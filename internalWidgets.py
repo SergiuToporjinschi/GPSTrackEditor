@@ -7,7 +7,7 @@ from slider_filter_ui import Ui_SliderFilter
 from status_bar_ui import Ui_GroupBox
 from PyQt6.QtDesigner import QPyDesignerCustomWidgetPlugin
 from PyQt6.QtWidgets import  QMainWindow, QDockWidget
-import map_dock_ui
+import map_dock_map_ui
 from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings, QWebEngineScript
 from PyQt6.QtWebChannel import QWebChannel, QWebChannelAbstractTransport
 import json
@@ -97,7 +97,7 @@ class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter, QPyDesignerCustomWidge
             self.selectionCnt = val
             self.selectionCountChanged.emit(val)
 
-class MapWindow(QDockWidget, map_dock_ui.Ui_DockWidget):
+class MapWindow(QDockWidget, map_dock_map_ui.Ui_DockWidget):
     entireTrackCoordinates = Signal(str)
     markPoint = Signal(str)
     def __init__(self, parent: typing.Optional[QWidget] = ...):
