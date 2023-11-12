@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile Resources",
+            "type": "shell",
+            "command": "${workspaceFolder}/.venv/Scripts/pyrcc5",
+            "args": [
+                "-o",
+                "${workspaceFolder}/resources/resource.py",
+                "${workspaceFolder}/resources/gpstracker.qrc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}

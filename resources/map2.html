@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+        <style>
+            #map {
+                height: 100vh;
+            }
+        </style>
+        <title>Map Example</title>
+    </head>
+
+    <body>
+        <div id="map"></div>
+
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <script>
+            // Replace these coordinates with the initial center of your map
+            var initialCenter = [0, 0];
+
+            // Create a Leaflet map
+            var map = L.map('map').setView(initialCenter, 13);
+
+            // Add an OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Add a marker at the initial center
+            L.marker(initialCenter).addTo(map)
+                .bindPopup('Hello, this is your map!').openPopup();
+        </script>
+    </body>
+
+</html>
