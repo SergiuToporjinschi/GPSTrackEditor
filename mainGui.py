@@ -2,7 +2,8 @@ from PyQt6.QtWidgets import QFileDialog, QMainWindow, QApplication, QAbstractIte
 from PyQt6.QtCore import Qt, QObject, QTimer, QUrl, QItemSelection, QModelIndex
 from PyQt6.QtGui import QPalette, QColor, QColorConstants
 from tcxmodel import TrackPointsModel, TrackPointModel, TCXLoader
-import main_remaster_ui
+from gui.main_remaster_ui import Ui_MainWindow
+
 from internalWidgets import StatusBarGroupBox
 from PyQt6 import QtWebEngineWidgets, QtWebEngineCore
 import sys
@@ -15,7 +16,7 @@ class itDel(QAbstractItemDelegate):
         super().__init__()
     pass
 
-class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
+class mainGUI(QMainWindow, Ui_MainWindow):
     fileName = ''
     tcx = None
 
@@ -24,11 +25,10 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         self.setupUi(self)
 
         self.buttonCalculateSpeed.clicked.connect(self._calculateSpeed)
-        self.actionSave.triggered.connect(self._saveFile)
-        self.actionOpen.triggered.connect(self._openFile)
-        self.actionExit.triggered.connect(self._exit)
-        self.actionClear.triggered.connect(self._clear)
-        self.actionOpenMap.triggered.connect(self._openMap)
+        self.actionSave.triggered.connect(self._onSaveFile)
+        self.actionOpen.triggered.connect(self._onOpenFile)
+        self.actionExit.triggered.connect(self._onExit)
+        self.actionClear.triggered.connect(self._onClear)
 
         self.app = app
         self.model = TrackPointsModel(palette=app.palette())
@@ -39,8 +39,8 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         self.progress = StatusBarGroupBox(parent=self.statusbar)
         self.statusbar.addPermanentWidget(self.progress, 1)
         self._noDataDisable(False)
-        self.pushButtonFind.clicked.connect(self._find)
-        self.pushButtonFindClear.clicked.connect(self._find)
+        self.pushButtonFind.clicked.connect(self._onFindButton)
+        self.pushButtonFindClear.clicked.connect(self._onFindButton)
 
         self.markStatSelColor.clicked.connect(self._markStationarySelectColor)
         self.pushButtonMarkStat.clicked.connect(lambda: self.model.markStationary(self.spinBoxMarkStatSelectRange.value()))
@@ -65,8 +65,8 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         long = self.model.data(longIndex,  Qt.ItemDataRole.EditRole)
         lat = self.model.data(latIndex,  Qt.ItemDataRole.EditRole)
         self.mapWindow.sendMarkPoint([long, lat])
-        pass
-    def _find(self):
+
+    def _onFindButton(self):
         data = {
             "time": self.editFindByTime.text(),
             "latitude": self.editFindByLatitude.text(),
@@ -97,7 +97,7 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
             self.markStatSelColor.setPalette(pal)
 
     def _connectSignals(self):
-        self.slider.selectedIntervalChanged.connect(lambda val: print("selectedIntervalChanged", val))
+        # self.slider.selectedIntervalChanged.connect(lambda val: print("selectedIntervalChanged", val))
         self.slider.selectedIntervalChanged.connect(self.model.filterByRowNumbers)
         self.slider.selectionCountChanged.connect(self.progress.updateSelection)
         self.slider.selectedIntervalChanged.connect(lambda val: self._noDataDisable(val[1]-val[0]>0))
@@ -116,7 +116,7 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         # self.tabProcessing.setEnabled(enabled)
         # self.tabFiltering.setEnabled(enabled)
 
-    def _openFile(self):
+    def _onOpenFile(self):
         file_dialog = QFileDialog()
         file_name, _ = file_dialog.getOpenFileName(self, 'Open File', '', 'All Files (*.tcx)')
         if not file_name:
@@ -231,7 +231,7 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         else:
             missField.setStyleSheet("")
 
-    def _saveFile(self):
+    def _onSaveFile(self):
         self.progress.hide()
         print('Save file')
 
@@ -258,7 +258,7 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         self.tableView.resizeColumnsToContents()
         self.tableView.reset()
 
-    def _exit(self):
+    def _onExit(self):
         self.app.exit()
         pass
 
@@ -266,6 +266,6 @@ class mainGUI(QMainWindow, main_remaster_ui.Ui_MainWindow):
         for i in range(self.model.columnCount()):
             self.tableView.setItemDelegateForColumn(i, TrackPointModel.getColDelegate(i))
 
-    def _clear(self):
+    def _onClear(self):
         self.model.clearData()# = TrackPointsModel()
         self.tableView.resizeColumnsToContents()

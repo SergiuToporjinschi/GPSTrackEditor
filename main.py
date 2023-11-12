@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QApplication
-from gui import mainGUI
+from mainGui import mainGUI
 import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette, QColor, QColorConstants

@@ -2342,7 +2342,7 @@
           <x>0</x>
           <y>0</y>
           <width>524</width>
-          <height>77</height>
+          <height>69</height>
          </rect>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
@@ -2738,11 +2738,10 @@
    <addaction name="actionSave"/>
    <addaction name="actionOpen"/>
    <addaction name="actionClear"/>
-   <addaction name="actionOpenMap"/>
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="resources/gpstracker.qrc">
+    <iconset>
      <normaloff>:/folder-open-outline.svg</normaloff>:/folder-open-outline.svg</iconset>
    </property>
    <property name="text">
@@ -2754,7 +2753,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="resources/gpstracker.qrc">
+    <iconset>
      <normaloff>:/content-save-outline.svg</normaloff>:/content-save-outline.svg</iconset>
    </property>
    <property name="text">
@@ -2766,7 +2765,7 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset resource="resources/gpstracker.qrc">
+    <iconset>
      <normaloff>:/exit-run.svg</normaloff>:/exit-run.svg</iconset>
    </property>
    <property name="text">
@@ -2778,7 +2777,7 @@
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset resource="resources/gpstracker.qrc">
+    <iconset>
      <normaloff>:/close-circle-outline.svg</normaloff>:/close-circle-outline.svg</iconset>
    </property>
    <property name="text">
@@ -2786,18 +2785,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
-   </property>
-  </action>
-  <action name="actionOpenMap">
-   <property name="icon">
-    <iconset resource="resources/gpstracker.qrc">
-     <normaloff>:/map.svg</normaloff>:/map.svg</iconset>
-   </property>
-   <property name="text">
-    <string>OpenMap</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::NoRole</enum>
    </property>
   </action>
   <action name="actionclose">

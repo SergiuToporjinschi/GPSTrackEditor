@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'e:\IOT\Projects\GPSTracker\main_remaster.ui'
+# Form implementation generated from reading ui file 'e:\IOT\Projects\Python\GPSTrackEditor\gui\main_remaster.ui'
 #
 # Created by: PyQt6 UI code generator 6.6.0
 #
@@ -996,7 +996,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignTop)
         self.scrollArea_3.setObjectName("scrollArea_3")
         self.scrollAreaWidgetContents_3 = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 524, 77))
+        self.scrollAreaWidgetContents_3.setGeometry(QtCore.QRect(0, 0, 524, 69))
         self.scrollAreaWidgetContents_3.setObjectName("scrollAreaWidgetContents_3")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.scrollAreaWidgetContents_3)
         self.gridLayout_2.setContentsMargins(0, -1, 9, 0)
@@ -1195,12 +1195,6 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap(":/close-circle-outline.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.actionClear.setIcon(icon3)
         self.actionClear.setObjectName("actionClear")
-        self.actionOpenMap = QtGui.QAction(parent=MainWindow)
-        icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap(":/map.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
-        self.actionOpenMap.setIcon(icon4)
-        self.actionOpenMap.setMenuRole(QtGui.QAction.MenuRole.NoRole)
-        self.actionOpenMap.setObjectName("actionOpenMap")
         self.actionclose = QtGui.QAction(parent=MainWindow)
         self.actionclose.setMenuRole(QtGui.QAction.MenuRole.NoRole)
         self.actionclose.setObjectName("actionclose")
@@ -1214,7 +1208,6 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionSave)
         self.toolBar.addAction(self.actionOpen)
         self.toolBar.addAction(self.actionClear)
-        self.toolBar.addAction(self.actionOpenMap)
         self.labelSport.setBuddy(self.inputSport)
         self.lableFile.setBuddy(self.labelFilePath)
         self.labelLapsNo.setBuddy(self.inputLaps)
@@ -1342,6 +1335,5 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+X"))
         self.actionClear.setText(_translate("MainWindow", "Clear"))
         self.actionClear.setShortcut(_translate("MainWindow", "Ctrl+Shift+C"))
-        self.actionOpenMap.setText(_translate("MainWindow", "OpenMap"))
         self.actionclose.setText(_translate("MainWindow", "close"))
 from internalWidgets import QtSliderFilterWidgetPlugin

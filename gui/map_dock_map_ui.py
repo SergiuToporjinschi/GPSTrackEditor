@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'e:\IOT\Projects\Python\GPSTrackEditor\map_dock_map.ui'
+# Form implementation generated from reading ui file 'e:\IOT\Projects\Python\GPSTrackEditor\gui\map_dock_map.ui'
 #
 # Created by: PyQt6 UI code generator 6.6.0
 #

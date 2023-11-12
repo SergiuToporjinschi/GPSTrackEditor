@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'e:\IOT\Projects\GPSTracker\slider_filter.ui'
+# Form implementation generated from reading ui file 'e:\IOT\Projects\Python\GPSTrackEditor\gui\slider_filter.ui'
 #
 # Created by: PyQt6 UI code generator 6.6.0
 #

@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'e:\IOT\Projects\GPSTracker\status_bar.ui'
+# Form implementation generated from reading ui file 'e:\IOT\Projects\Python\GPSTrackEditor\gui\status_bar.ui'
 #
 # Created by: PyQt6 UI code generator 6.6.0
 #
