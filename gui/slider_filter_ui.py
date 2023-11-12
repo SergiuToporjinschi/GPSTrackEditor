@@ -16,7 +16,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QFrame, QHBoxLayout,
-    QSizePolicy, QSlider, QSpinBox, QWidget)
+    QSizePolicy, QSpinBox, QWidget)
 
 class Ui_SliderFilter(object):
     def setupUi(self, SliderFilter):
@@ -42,14 +42,6 @@ class Ui_SliderFilter(object):
         self.spinBoxRangeMin.setValue(0)
 
         self.horizontalLayout.addWidget(self.spinBoxRangeMin)
-
-        self.sliderFilter = QSlider(SliderFilter)
-        self.sliderFilter.setObjectName(u"sliderFilter")
-        self.sliderFilter.setMinimum(1)
-        self.sliderFilter.setMaximum(100)
-        self.sliderFilter.setOrientation(Qt.Horizontal)
-
-        self.horizontalLayout.addWidget(self.sliderFilter)
 
         self.spinBoxRangeMax = QSpinBox(SliderFilter)
         self.spinBoxRangeMax.setObjectName(u"spinBoxRangeMax")

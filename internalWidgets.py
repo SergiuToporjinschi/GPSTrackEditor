@@ -36,13 +36,13 @@ class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
         self.max = 0
 
     def _insertRangeSlider(self):
-        self.horizontalLayout.removeWidget(self.sliderFilter)
         self.sliderFilter = QRangeSlider(self)
         self.sliderFilter.setOrientation(Qt.Orientation.Horizontal)
         self.sliderFilter.setObjectName("verticalSlider")
         self.sliderFilter.setRange(1, 2)
         self.sliderFilter.applyMacStylePatch()
         self.sliderFilter.setSliderPosition([1, 1])
+
         self.horizontalLayout.insertWidget(1, self.sliderFilter, 1)
         self.sliderFilter.valueChanged.connect(self.sliderChanged)
         self.sliderFilter.valueChanged.connect(self.selectedIntervalChanged)

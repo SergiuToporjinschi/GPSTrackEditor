@@ -64,19 +64,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QSlider" name="sliderFilter">
-     <property name="minimum">
-      <number>1</number>
-     </property>
-     <property name="maximum">
-      <number>100</number>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-   </item>
-   <item>
     <widget class="QSpinBox" name="spinBoxRangeMax">
      <property name="minimumSize">
       <size>
