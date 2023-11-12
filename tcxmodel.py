@@ -1,14 +1,13 @@
 import xml.etree.ElementTree as ET
-import pytz
-import re
-import datetime
-from PyQt6 import QtCore
-from PyQt6.QtCore import Qt, QModelIndex
+import pytz, re
 from datetime import datetime
 from typing import List, Any
-from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 from qtpy.QtCore import Signal
-from PyQt6.QtGui import QPalette
+
+from PySide6.QtGui import QPalette
+from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject
+
+from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 
 class TrackPointModel:
     colNames =  ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Distance (m)', 'Calculated distance (m)', 'Speed (km/h)', 'Calculated speed (km/h)', 'Hart rate (bpm)', 'Sensor state']
@@ -85,7 +84,7 @@ class TrackPointModel:
             index += 1
         return -1
 
-class TrackPointsModel(QtCore.QAbstractTableModel):
+class TrackPointsModel(QAbstractTableModel):
     rowCountChanged = Signal(int)
     allTrackPointsCountChanged = Signal(int)
     statusMessage = Signal(str)
@@ -221,7 +220,7 @@ class TrackPointsModel(QtCore.QAbstractTableModel):
             result += ' '.join(item) + ' '
         return key + ' is not None and ' +result.strip()
 
-class TCXLoader(QtCore.QObject):
+class TCXLoader(QObject):
     workingProgress = Signal(int)
     def __init__(self, file_path):
         super().__init__()

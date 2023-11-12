@@ -1,16 +1,15 @@
-import typing, os
-from PyQt6.QtWidgets import QFrame, QWidget
-from PyQt6 import QtCore
+import typing, os, json
 from qtpy.QtCore import Signal, QUrl
 from superqt import QRangeSlider
+
 from gui.slider_filter_ui import Ui_SliderFilter
 from gui.status_bar_ui import Ui_GroupBox
-from PyQt6.QtDesigner import QPyDesignerCustomWidgetPlugin
-from PyQt6.QtWidgets import  QMainWindow, QDockWidget
 from gui.map_dock_map_ui import Ui_DockWidget
-from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings, QWebEngineScript
-from PyQt6.QtWebChannel import QWebChannel, QWebChannelAbstractTransport
-import json
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QFrame, QWidget, QDockWidget
+from PySide6.QtWebEngineCore import QWebEngineSettings
+from PySide6.QtWebChannel import QWebChannel
 
 class StatusBarGroupBox(QFrame, Ui_GroupBox):
     updateProgress = Signal(int)
@@ -21,7 +20,7 @@ class StatusBarGroupBox(QFrame, Ui_GroupBox):
         super().__init__(parent)
         self.setupUi(self)
 
-class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter, QPyDesignerCustomWidgetPlugin):
+class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
     selectedIntervalChanged = Signal(tuple)
     selectedMinIntervalChanged = Signal(int)
     selectedMaxIntervalChanged = Signal(int)
@@ -39,7 +38,7 @@ class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter, QPyDesignerCustomWidge
     def _insertRangeSlider(self):
         self.horizontalLayout.removeWidget(self.sliderFilter)
         self.sliderFilter = QRangeSlider(self)
-        self.sliderFilter.setOrientation(QtCore.Qt.Orientation.Horizontal)
+        self.sliderFilter.setOrientation(Qt.Orientation.Horizontal)
         self.sliderFilter.setObjectName("verticalSlider")
         self.sliderFilter.setRange(1, 2)
         self.sliderFilter.applyMacStylePatch()
@@ -101,7 +100,7 @@ class MapWindow(QDockWidget, Ui_DockWidget):
     entireTrackCoordinates = Signal(str)
     markPoint = Signal(str)
     def __init__(self, parent: typing.Optional[QWidget] = ...):
-        super().__init__(parent=parent,flags=QtCore.Qt.WindowType.FramelessWindowHint)
+        super().__init__()
         self.file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "resources/index.html"))
         self.setupUi(self)
         self._loadMap()

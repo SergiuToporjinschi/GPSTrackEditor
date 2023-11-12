@@ -1,14 +1,13 @@
-from PyQt6.QtWidgets import QFileDialog, QMainWindow, QApplication, QAbstractItemDelegate, QColorDialog, QStyle
-from PyQt6.QtCore import Qt, QObject, QTimer, QUrl, QItemSelection, QModelIndex
-from PyQt6.QtGui import QPalette, QColor, QColorConstants
+import sys
+
 from tcxmodel import TrackPointsModel, TrackPointModel, TCXLoader
+from internalWidgets import StatusBarGroupBox, MapWindow
+
 from gui.main_remaster_ui import Ui_MainWindow
 
-from internalWidgets import StatusBarGroupBox
-from PyQt6 import QtWebEngineWidgets, QtWebEngineCore
-import sys
-import resources.resource
-from internalWidgets import MapWindow
+from PySide6.QtGui import QPalette
+from PySide6.QtCore import Qt, QObject, QTimer, QModelIndex
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication, QAbstractItemDelegate, QColorDialog
 
 sys.argv.append("--disable-web-security")
 class itDel(QAbstractItemDelegate):

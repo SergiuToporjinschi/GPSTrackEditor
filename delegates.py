@@ -1,8 +1,8 @@
-from PyQt6 import QtCore, QtWidgets
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget
-import datetime
-import pytz
+from PySide6 import QtWidgets
+from PySide6.QtCore import Qt, QModelIndex, QSize, QLocale
+from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget
+
+import datetime, pytz
 
 from typing import Any
 class DateTimeDelegate(QStyledItemDelegate):
@@ -11,16 +11,16 @@ class DateTimeDelegate(QStyledItemDelegate):
         self.editFormat = editFormat
         self.displayFormat = displayFormat
 
-    def initStyleOption(self, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
+    def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         option.displayAlignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
         super().initStyleOption(option, index)
 
-    def createEditor(self,  parent: QWidget, option: QStyleOptionViewItem, index: QtCore.QModelIndex):
+    def createEditor(self,  parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex):
         dateTimeEdit = QtWidgets.QDateTimeEdit(parent)
-        dateTimeEdit.setMinimumSize(QtCore.QSize(196, 0))
-        dateTimeEdit.setMaximumSize(QtCore.QSize(167, 16777215))
+        dateTimeEdit.setMinimumSize(QSize(196, 0))
+        dateTimeEdit.setMaximumSize(QSize(167, 16777215))
         dateTimeEdit.setCalendarPopup(True)
-        dateTimeEdit.setTimeSpec(QtCore.Qt.TimeSpec.UTC)
+        dateTimeEdit.setTimeSpec(Qt.TimeSpec.UTC)
         dateTimeEdit.setObjectName("dateTimeEdit")
         dateTimeEdit.setDisplayFormat(self.editFormat)
         return dateTimeEdit
@@ -39,7 +39,7 @@ class DateTimeDelegate(QStyledItemDelegate):
         else:
             super().setModelData(editor, model, index)
 
-    def displayText(self, value: Any, locale: QtCore.QLocale):
+    def displayText(self, value: Any, locale: QLocale):
         if isinstance(value, datetime.datetime):
             return value.strftime(self.displayFormat)
         return super().displayText(value, locale)
@@ -51,11 +51,11 @@ class FloatDelegate(QStyledItemDelegate):
         self.max = max
         self.dec = dec
 
-    def initStyleOption(self, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
+    def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         option.displayAlignment = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
         super().initStyleOption(option, index)
 
-    def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> QWidget:
+    def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex) -> QWidget:
         spinner = QtWidgets.QDoubleSpinBox(parent)
         spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
         spinner.setMinimum(self.min)
@@ -68,7 +68,7 @@ class FloatDelegate(QStyledItemDelegate):
             spinner.setSingleStep(10**self.dec)
         return spinner
 
-    def displayText(self, value: Any, locale: QtCore.QLocale) -> str:
+    def displayText(self, value: Any, locale: QLocale) -> str:
             #         value = self.trackPoints[index.row()].getValueByColumnIndex(index.column())
             # if isinstance(value, (float, int)):
             #     return '{:,}'.format(value).replace(',', ' ')
@@ -85,11 +85,11 @@ class ListOfValuesDelegate(QStyledItemDelegate):
         super().__init__()
         self.values = values
 
-    def initStyleOption(self, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> None:
+    def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         option.displayAlignment = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
         super().initStyleOption(option, index)
 
-    def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QtCore.QModelIndex) -> QWidget:
+    def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex) -> QWidget:
         combo = QtWidgets.QComboBox(parent)
         for value, display in self.values:
             combo.addItem(display)
@@ -104,7 +104,7 @@ class ListOfValuesDelegate(QStyledItemDelegate):
                     break
         super().setModelData(editor, model, index)
 
-    def displayText(self, value: Any, locale: QtCore.QLocale) -> str:
+    def displayText(self, value: Any, locale: QLocale) -> str:
         if isinstance(value, str):
             for index, display in self.values:
                 if index == value:

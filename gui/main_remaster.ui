@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1254</width>
+    <width>853</width>
     <height>885</height>
    </rect>
   </property>
@@ -19,11 +19,14 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="animated">
+   <bool>false</bool>
+  </property>
   <property name="dockNestingEnabled">
    <bool>true</bool>
   </property>
   <property name="dockOptions">
-   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks|QMainWindow::GroupedDragging</set>
+   <set>QMainWindow::AllowNestedDocks|QMainWindow::AllowTabbedDocks|QMainWindow::GroupedDragging</set>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="sizePolicy">
@@ -124,7 +127,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1254</width>
+     <width>853</width>
      <height>22</height>
     </rect>
    </property>
@@ -2110,7 +2113,7 @@
     <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
    </property>
    <property name="allowedAreas">
-    <set>Qt::RightDockWidgetArea</set>
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
     <string>File info</string>
@@ -2788,6 +2791,9 @@
    </property>
   </action>
   <action name="actionclose">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>close</string>
    </property>
@@ -2813,8 +2819,6 @@
  <includes>
   <include location="local">superqt</include>
  </includes>
- <resources>
-  <include location="resources/gpstracker.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

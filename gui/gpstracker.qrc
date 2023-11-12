@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="/">
+    <file>../resources/index.html</file>
+    <file>../resources/icon_theme/close-circle-outline.svg</file>
+    <file>../resources/icon_theme/folder-open-outline.svg</file>
+    <file>../resources/icon_theme/map.svg</file>
+    <file>../resources/icon_theme/content-save-outline.svg</file>
+    <file>../resources/icon_theme/close-circle-outline.svg</file>
+    <file>../resources/icon_theme/exit-run.svg</file>
+  </qresource>
+</RCC>

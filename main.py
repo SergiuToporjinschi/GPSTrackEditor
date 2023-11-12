@@ -1,9 +1,8 @@
-from PyQt6.QtWidgets import QApplication
-from mainGui import mainGUI
 import sys
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPalette, QColor, QColorConstants
-from PyQt6 import QtGui
+from mainGui import mainGUI
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QPalette, QColor, QColorConstants, QIcon
 
 def main():
     app = QApplication(sys.argv)
@@ -32,8 +31,8 @@ def main():
     palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
     palette.setColor(QPalette.ColorRole.HighlightedText, QColorConstants.White)
 
-    QtGui.QIcon.setThemeSearchPaths(["resources/icon_theme"])
-    QtGui.QIcon.setThemeName("icon-theme")
+    QIcon.setThemeSearchPaths(["resources/icon_theme"])
+    QIcon.setThemeName("icon-theme")
 
     palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.ButtonText, QColor(170, 170, 170))
     palette.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.WindowText, QColor(170, 170, 170))
