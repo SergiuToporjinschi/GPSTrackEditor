@@ -1,10 +1,11 @@
+import pytz
+from datetime import datetime
+from typing import Any
+
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QModelIndex, QSize, QLocale
 from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget
 
-import datetime, pytz
-
-from typing import Any
 class DateTimeDelegate(QStyledItemDelegate):
     def __init__(self, editFormat: str, displayFormat: str) -> None:
         super().__init__()
@@ -40,7 +41,7 @@ class DateTimeDelegate(QStyledItemDelegate):
             super().setModelData(editor, model, index)
 
     def displayText(self, value: Any, locale: QLocale):
-        if isinstance(value, datetime.datetime):
+        if isinstance(value, datetime):
             return value.strftime(self.displayFormat)
         return super().displayText(value, locale)
 
