@@ -162,7 +162,6 @@ class TrackPointsModel(QAbstractTableModel):
     def setDataByColumnName(self, row: int, colName: str, value: Any, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> bool:
         return self.setData(self.indexByColName(row, colName), value, role)
 
-
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.trackPoints)
 
