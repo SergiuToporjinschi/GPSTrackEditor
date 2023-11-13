@@ -87,6 +87,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../gpstracker.qrc"/>
+ </resources>
  <connections/>
 </ui>

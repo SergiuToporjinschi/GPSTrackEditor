@@ -3,7 +3,7 @@ from mainGui import mainGUI
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QPalette, QColor, QColorConstants, QIcon
-
+import gpstracker_rc
 def main():
     app = QApplication(sys.argv)
     gui = mainGUI(app)

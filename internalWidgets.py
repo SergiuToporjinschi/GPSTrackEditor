@@ -4,9 +4,9 @@ from superqt import QRangeSlider
 
 from gui.slider_filter_ui import Ui_SliderFilter
 from gui.status_bar_ui import Ui_GroupBox
-from gui.map_dock_map_ui import Ui_DockWidget
+from gui.map_dock_ui import Ui_DockWidget
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QFrame, QWidget, QDockWidget
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
@@ -19,6 +19,13 @@ class StatusBarGroupBox(QFrame, Ui_GroupBox):
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
+        self.timerClear =  QTimer(self)
+        self.timerClear.setInterval(5000)
+        self.timerClear.setSingleShot(False)
+        self.timerClear.setTimerType(Qt.TimerType.CoarseTimer)
+        self.timerClear.start()
+        self.timerClear.timeout.connect(lambda: self.updateTimerMessage.emit(''))
+        self.timerClear.timeout.connect(lambda: self.updateProgress.emit(0))
 
 class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
     selectedIntervalChanged = Signal(tuple)
@@ -96,34 +103,3 @@ class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
             self.selectionCnt = val
             self.selectionCountChanged.emit(val)
 
-class MapWindow(QDockWidget, Ui_DockWidget):
-    entireTrackCoordinates = Signal(str)
-    markPoint = Signal(str)
-    def __init__(self, parent: typing.Optional[QWidget] = ...):
-        super().__init__()
-        self.file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "resources/index.html"))
-        self.setupUi(self)
-        self._loadMap()
-
-    def _loadMap(self):
-        self.browser.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        self.browser.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
-
-        self.channel = QWebChannel()
-        self.channel.registerObject("backEnd", self)
-
-        self.browser.page().setWebChannel(self.channel)
-        self.browser.setUrl(QUrl.fromLocalFile(self.file_path))
-        self.browser.show()
-        self.pushButton.clicked.connect(self.sendNewCoordinates)
-
-    def sendMarkPoint(self, coordinates):
-        self.markPoint.emit(json.dumps(coordinates))
-
-    def sendNewCoordinates(self, coordinates):
-        # coordinates = [
-        #     [24.19399667, 45.81218000],
-        #     [24.19401500, 45.81217000],
-        #     [24.19403167, 45.81216000]
-        # ]
-        self.entireTrackCoordinates.emit(json.dumps(coordinates))

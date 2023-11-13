@@ -17,6 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractSpinBox, QApplication, QFrame, QHBoxLayout,
     QSizePolicy, QSpinBox, QWidget)
+import gpstracker_rc
 
 class Ui_SliderFilter(object):
     def setupUi(self, SliderFilter):

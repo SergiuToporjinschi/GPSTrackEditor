@@ -17,7 +17,7 @@
         <link rel="stylesheet" href="ol.css"> -->
         <script src="https://cdn.jsdelivr.net/npm/ol@v8.1.0/dist/ol.js"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.1.0/ol.css">
-        <script src="openLayerHandler.js"></script>
+        <script src="qrc:/resources/openLayerHandler.js"></script>
     </head>
 
 
@@ -29,7 +29,8 @@
 
             new QWebChannel(qt.webChannelTransport, function (channel) {
                 window.backEnd = channel.objects.backEnd
-                window.backEnd.entireTrackCoordinates.connect(loadTrack)
+                window.backEnd.mainSeriesChanged.connect(loadTrack)
+                // window.backEnd.markPoint.connect(markPoint)
                 window.backEnd.markPoint.connect(markPoint)
             });
         </script>

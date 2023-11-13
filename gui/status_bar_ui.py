@@ -22,7 +22,7 @@ class Ui_GroupBox(object):
     def setupUi(self, GroupBox):
         if not GroupBox.objectName():
             GroupBox.setObjectName(u"GroupBox")
-        GroupBox.resize(326, 25)
+        GroupBox.resize(443, 24)
         GroupBox.setLineWidth(0)
         self.horizontalLayout = QHBoxLayout(GroupBox)
         self.horizontalLayout.setSpacing(3)
@@ -75,7 +75,6 @@ class Ui_GroupBox(object):
         sizePolicy1.setHeightForWidth(self.labelSelectionCntVal.sizePolicy().hasHeightForWidth())
         self.labelSelectionCntVal.setSizePolicy(sizePolicy1)
         self.labelSelectionCntVal.setMinimumSize(QSize(40, 0))
-        self.labelSelectionCntVal.setMaximumSize(QSize(16777215, 19))
         self.labelSelectionCntVal.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.labelSelectionCntVal.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByKeyboard|Qt.TextSelectableByMouse)
 
@@ -86,7 +85,6 @@ class Ui_GroupBox(object):
         sizePolicy1.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy1)
         self.label.setMinimumSize(QSize(8, 0))
-        self.label.setMaximumSize(QSize(8, 16777215))
         self.label.setAlignment(Qt.AlignCenter)
 
         self.horizontalLayoutCounts.addWidget(self.label)

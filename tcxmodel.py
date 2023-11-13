@@ -1,11 +1,11 @@
 import xml.etree.ElementTree as ET
-import pytz, re
+import pytz, re, typing
 from datetime import datetime
-from typing import List, Any
+from typing import List, Any, Union
 from qtpy.QtCore import Signal
 
 from PySide6.QtGui import QPalette
-from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject
+from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersistentModelIndex
 
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 
@@ -85,10 +85,16 @@ class TrackPointModel:
         return -1
 
 class TrackPointsModel(QAbstractTableModel):
+    mainSeriesChanged = Signal() # when the entire track (without any filters or markers) changed
+    mainSeriesLengthChanged = Signal(int)
+    trimRangeChange = Signal()
+    markingChange = Signal()
+
     rowCountChanged = Signal(int)
     allTrackPointsCountChanged = Signal(int)
     statusMessage = Signal(str)
     workingProgress = Signal(int)
+
     filterRange = None
     trackPoints = []
     allTrackPoints = []
@@ -100,23 +106,31 @@ class TrackPointsModel(QAbstractTableModel):
         self.trackPoints = self.allTrackPoints
         self.palette = palette
         self.pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
+        self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
 
     def loadData(self, trackPoints: List[TrackPointModel]):
         self.beginResetModel()
         self.allTrackPoints.clear()
         self.allTrackPoints.extend(trackPoints)
         self.trackPoints = self.allTrackPoints
-        self.rowCountChanged.emit(len(self.allTrackPoints))
-        self.allTrackPointsCountChanged.emit(len(self.allTrackPoints))
+        # self.rowCountChanged.emit(len(self.allTrackPoints))
+        # self.allTrackPointsCountChanged.emit(len(self.allTrackPoints))
+        self.mainSeriesChanged.emit()
+        self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
         self.endResetModel()
 
     def clearData(self):
         self.beginResetModel()
         self.allTrackPoints.clear()
         self.trackPoints = self.allTrackPoints
-        self.rowCountChanged.emit(len(self.allTrackPoints))
-        self.allTrackPointsCountChanged.emit(0)
+        # self.rowCountChanged.emit(len(self.allTrackPoints))
+        # self.allTrackPointsCountChanged.emit(0)
+        self.mainSeriesChanged.emit()
+        self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
         self.endResetModel()
+
+    def indexByColName(self, row: int, column: str, parent: Union[QModelIndex, QPersistentModelIndex] = ...) -> QModelIndex:
+        return self.index(row, TrackPointModel.nameToIndex('calculatedSpeed'))
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
         if role == Qt.ItemDataRole.DisplayRole:
@@ -126,11 +140,28 @@ class TrackPointsModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.BackgroundRole and index.row() in self.foundIndexes:
             return self.palette.highlight().color()
 
+
+    def dataByColNames(self, row: int, colNames: [str], role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
+        response = ()
+        for colName in colNames:
+            response += (self.data(self.index(row, TrackPointModel.nameToIndex(colName)), role), )
+        return response
+
+    def dataByColName(self, row: int, colName: str, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
+        return self.data(self.index(row, TrackPointModel.nameToIndex(colName)), role)
+
+    def dataByIndex(self, row: int, col: int, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
+        return self.data(self.index(row, col), role), TrackPointModel.indexToName(col)
+
     def setData(self, index: QModelIndex, value: Any, role: int = ...) -> bool:
         if role == Qt.ItemDataRole.EditRole:
             self.trackPoints[index.row()].setValue(index.column(), value)
             return True
         return super().setData(index, value, role)
+
+    def setDataByColumnName(self, row: int, colName: str, value: Any, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> bool:
+        return self.setData(self.indexByColName(row, colName), value, role)
+
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.trackPoints)
@@ -222,11 +253,14 @@ class TrackPointsModel(QAbstractTableModel):
 
 class TCXLoader(QObject):
     workingProgress = Signal(int)
-    def __init__(self, file_path):
+    fileDataChanged = Signal(dict)
+    def __init__(self, file_path = None):
         super().__init__()
-        self.file_path = file_path
         self.data = {
             'activity': {
+                'file': file_path,
+                'lapsCount': None,
+                'trackPointsCount': None,
                 'type': None,
                 'id': None,
                 'notes': None,
@@ -235,13 +269,15 @@ class TCXLoader(QObject):
             'laps': [],
             'trackpoints': [],
         }
+        self.fileDataChanged.emit(self.data['activity'])
 
-    def load_tcx_file(self):
+    def load_tcx_file(self, file_path):
         try:
-            tree = ET.parse(self.file_path)
+            tree = ET.parse(file_path)
             root = tree.getroot()
             # Extract activity information
             activity = root.find(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Activity")
+            self.data['activity']['file'] = file_path
             self.data['activity']['type'] = activity.attrib['Sport']
             self.data['activity']['id'] = activity.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Id").text
             self.data['activity']['notes'] = self._getNotes(activity)
@@ -263,6 +299,7 @@ class TCXLoader(QObject):
                 }
                 self.data['laps'].append(lap_data)
                 self.workingProgress.emit(int((index + 1) * 25 / len(laps)))
+            self.data['activity']['lapsCount'] = len(self.data['laps'])
 
             # Extract trackpoint data (GPS data, heart rate, etc.)
             trackpoints = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint")
@@ -278,7 +315,8 @@ class TCXLoader(QObject):
                 self.data['trackpoints'].append(TrackPointModel(time, latitude, longitude, altitude, heart_rate, distance, speed, sensorState))
                 self.workingProgress.emit(int(25 + (index + 1) * 75 / len(trackpoints)))
             self.data['activity']['start_time'] = self.data['trackpoints'][0].getValueByColumnName('time')
-
+            self.data['activity']['trackPointsCount'] = len(self.data['trackpoints'])
+            self.fileDataChanged.emit(self.data['activity'])
         except ET.ParseError as e:
             print(f"Error parsing TCX file: {e}")
 

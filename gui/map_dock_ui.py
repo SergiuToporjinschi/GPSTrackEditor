@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'map_dock_map.ui'
+## Form generated from reading UI file 'map_dock.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.6.0
 ##
@@ -16,8 +16,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QDockWidget, QHBoxLayout, QPushButton,
-    QSizePolicy, QTabWidget, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QDockWidget, QHBoxLayout, QSizePolicy,
+    QTabWidget, QVBoxLayout, QWidget)
 
 class Ui_DockWidget(object):
     def setupUi(self, DockWidget):
@@ -40,11 +40,6 @@ class Ui_DockWidget(object):
         self.verticalLayout = QVBoxLayout(self.tab)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
-        self.pushButton = QPushButton(self.tab)
-        self.pushButton.setObjectName(u"pushButton")
-
-        self.verticalLayout.addWidget(self.pushButton)
-
         self.browser = QWebEngineView(self.tab)
         self.browser.setObjectName(u"browser")
 
@@ -69,7 +64,6 @@ class Ui_DockWidget(object):
 
     def retranslateUi(self, DockWidget):
         DockWidget.setWindowTitle(QCoreApplication.translate("DockWidget", u"Map", None))
-        self.pushButton.setText(QCoreApplication.translate("DockWidget", u"PushButton", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("DockWidget", u"View", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("DockWidget", u"Settings", None))
     # retranslateUi
