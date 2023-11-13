@@ -7,6 +7,7 @@ from qtpy.QtCore import Signal, Slot
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersistentModelIndex
 
+from Utilities import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 
 
@@ -132,49 +133,55 @@ class TrackPointModel:
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal() # when the entire track (without any filters or markers) changed
     mainSeriesLengthChanged = Signal(int) # when the entire track changes the number of items
-    trimRangeChange = Signal()
-    # markingChange = Signal()
-    contentChanged = Signal()
+    trimRangeChange = Signal() # when trimming has changed (spinners or slider) in lenght or position
+    contentChanged = Signal() # content has changed its position (sorting)
+    markers: [Marker] = []
 
-    rowCountChanged = Signal(int)
-    allTrackPointsCountChanged = Signal(int)
     statusMessage = Signal(str)
     workingProgress = Signal(int)
 
-    filterRange = None
+    trimmerInterval = TrimmerInterval(0,0)
     trackPoints = []
     allTrackPoints = []
-    markers: [Marker] = []
-    _lastFindDataExpression = None
+
     def __init__(self, trackPoints: List[TrackPointModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
         self.allTrackPoints = trackPoints or []
         self.trackPoints = self.allTrackPoints
         self.palette = palette
-        self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
-        self.rowsMoved.connect(self._test)
-        self.rowsInserted.connect(self._test)
-    def _test(Self, index:QModelIndex, a: int, b:int, c: QModelIndex, d:int):
-        pass
+        self.trimmerInterval.max = len(self.allTrackPoints)
+        self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
+        # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
+
     def loadData(self, trackPoints: List[TrackPointModel]):
         self.beginResetModel()
         self.allTrackPoints.clear()
         self.allTrackPoints.extend(trackPoints)
         self.trackPoints = self.allTrackPoints
+        self.trimmerInterval.max = len(self.allTrackPoints)
+        self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
+        # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
+
+        # self.trimerInterval.min = 1
+        # self.trimerInterval.max = len(self.allTrackPoints)
         # self.rowCountChanged.emit(len(self.allTrackPoints))
         # self.allTrackPointsCountChanged.emit(len(self.allTrackPoints))
         self.mainSeriesChanged.emit()
-        self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
         self.endResetModel()
 
     def clearData(self):
         self.beginResetModel()
         self.allTrackPoints.clear()
         self.trackPoints = self.allTrackPoints
+
+        self.trimmerInterval.max = 0
+
         # self.rowCountChanged.emit(len(self.allTrackPoints))
         # self.allTrackPointsCountChanged.emit(0)
         self.mainSeriesChanged.emit()
-        self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
+
+        self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
+        # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
         self.endResetModel()
 
     def indexByColName(self, row: int, column: str, parent: Union[QModelIndex, QPersistentModelIndex] = ...) -> QModelIndex:
@@ -182,13 +189,15 @@ class TrackPointsModel(QAbstractTableModel):
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
         if role == Qt.ItemDataRole.DisplayRole:
-            return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
+            return self.allTrackPoints[self.trimmerInterval.index(index.row())].getValueByColumnIndex(index.column())
+            # return self.allTrackPoints[ index.row()].getValueByColumnIndex(index.column())
         if role == Qt.ItemDataRole.EditRole:
-            return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
+            return self.allTrackPoints[self.trimmerInterval.index(index.row())].getValueByColumnIndex(index.column())
+            # return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
         if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
             selectedColor = None
             for marker in self.markers:
-                if index.row() in marker.indexes:
+                if self.trimmerInterval.index(index.row()) in marker.indexes:
                     selectedColor = marker.color
             if selectedColor is not None: return selectedColor
 
@@ -206,7 +215,7 @@ class TrackPointsModel(QAbstractTableModel):
 
     def setData(self, index: QModelIndex, value: Any, role: int = ...) -> bool:
         if role == Qt.ItemDataRole.EditRole:
-            self.trackPoints[index.row()].setValue(index.column(), value)
+            self.allTrackPoints[self.trimmerInterval.index(index.row())].setValue(index.column(), value)
             return True
         return super().setData(index, value, role)
 
@@ -214,7 +223,8 @@ class TrackPointsModel(QAbstractTableModel):
         return self.setData(self.indexByColName(row, colName), value, role)
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
-        return len(self.trackPoints)
+        return len(self.trimmerInterval)
+        # return len(self.allTrackPoints)
 
     def columnCount(self, parent: QModelIndex = ...) -> int:
         return TrackPointModel.getNoOfColumns()
@@ -236,17 +246,15 @@ class TrackPointsModel(QAbstractTableModel):
 
         self.trackPoints.sort(key=key_function, reverse=order == Qt.SortOrder.DescendingOrder)
         self.contentChanged.emit()
-        # if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
         self.endResetModel()
 
     def sort(self, column:int, order: Qt.SortOrder = ...):
         self.sortBy(TrackPointModel.indexToName(column), order)
-        # if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
 
     def trimRows(self, interval: tuple = None):
         self.beginResetModel()
-        min, max = interval
-        self.trackPoints = [i for index, i in enumerate(self.allTrackPoints) if index in range(min-1,max)]
+        self.trimmerInterval.val = interval
+        # self.trackPoints = [i for index, i in enumerate(self.allTrackPoints) if index in range(min-1, max)]
         self.trimRangeChange.emit()
         self.endResetModel()
 
