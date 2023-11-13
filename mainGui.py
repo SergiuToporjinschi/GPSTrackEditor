@@ -90,7 +90,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         # self.slider.selectedIntervalChanged.connect(lambda val: print("selectedIntervalChanged", val))
         self.slider.selectedIntervalChanged.connect(lambda val: self._noDataDisable(val[1]-val[0]>0))
         self.slider.selectionCountChanged.connect(self.progress.updateSelection)
-        self.model.allTrackPointsCountChanged.connect(self.progress.updateTackPoints)
+        self.model.mainSeriesLengthChanged.connect(self.progress.updateTackPoints)
         # self.timerClear.timeout.connect(lambda: self.progress.updateTimerMessage.emit(''))
         # self.timerClear.timeout.connect(lambda: self.progress.updateProgress.emit(0))
         self.model.statusMessage.connect(self.progress.updateTimerMessage)

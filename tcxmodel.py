@@ -131,7 +131,7 @@ class TrackPointModel:
 
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal() # when the entire track (without any filters or markers) changed
-    mainSeriesLengthChanged = Signal(int)
+    mainSeriesLengthChanged = Signal(int) # when the entire track changes the number of items
     trimRangeChange = Signal()
     # markingChange = Signal()
     contentChanged = Signal()

@@ -33,6 +33,7 @@
 var map;
 var vectorLayer;
 var markPositionVectorLayer;
+var zoom;
 function initMap(coordinates) {
     map = new ol.Map({
         target: 'basicMap', // ID of the div element where the map will be rendered
@@ -78,7 +79,6 @@ function loadTrack(newCoordinates) {
     });
 
     map.addLayer(vectorLayer);
-    map.getView().fit(lineString.getExtent(), map.getSize());
 }
 
 function markPoint(pointCoordinates) {
@@ -112,6 +112,6 @@ function markPoint(pointCoordinates) {
             features: [pointFeature]
         })
     });
-
+    map.getView().fit(point, { maxZoom: 14 })
     map.addLayer(markPositionVectorLayer);
 }
