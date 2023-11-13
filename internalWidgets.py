@@ -28,11 +28,11 @@ class StatusBarGroupBox(QFrame, Ui_GroupBox):
         self.timerClear.timeout.connect(lambda: self.updateProgress.emit(0))
 
 class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
-    selectedIntervalChanged = Signal(tuple)
-    selectedMinIntervalChanged = Signal(int)
-    selectedMaxIntervalChanged = Signal(int)
+    selectedIntervalChanged = Signal(tuple) #spinner changed or slider changed in any way or any cain
+    selectedMinIntervalChanged = Signal(int) #min spinner changed
+    selectedMaxIntervalChanged = Signal(int) #max spinner changed
 
-    selectionCountChanged = Signal(int)
+    selectionCountChanged = Signal(int) #When selection in slider changed
     selectionCnt = 0
 
     def __init__(self, parent = None) -> None:
@@ -60,7 +60,7 @@ class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
         self.spinBoxRangeMin.valueChanged.connect(self.minSpinnerChanged)
         self.spinBoxRangeMin.valueChanged.connect(self.selectedMinIntervalChanged)
 
-    def setRange(self, min:int, max:int):
+    def setMainRange(self, min:int, max:int):
         if min > max: raise ValueError("Value error for setting range Max < Min!!!")
         if min == self.min and max == self.max: return
         self.min = min

@@ -24,7 +24,7 @@ class Ui_DockWidget(object):
     def setupUi(self, DockWidget):
         if not DockWidget.objectName():
             DockWidget.setObjectName(u"DockWidget")
-        DockWidget.resize(707, 767)
+        DockWidget.resize(676, 767)
         self.dockWidgetContents = QWidget()
         self.dockWidgetContents.setObjectName(u"dockWidgetContents")
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
@@ -37,7 +37,7 @@ class Ui_DockWidget(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 689, 725))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 658, 725))
         self.verticalLayout_14 = QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_14.setObjectName(u"verticalLayout_14")
         self.verticalLayout_14.setContentsMargins(0, 0, 0, 0)
@@ -73,25 +73,25 @@ class Ui_DockWidget(object):
 
         self.formLayout_6.setWidget(2, QFormLayout.LabelRole, self.label_165)
 
-        self.label_164 = QLabel(self.frameFilders1_2)
-        self.label_164.setObjectName(u"label_164")
+        self.editFindByLatitude = QLineEdit(self.frameFilders1_2)
+        self.editFindByLatitude.setObjectName(u"editFindByLatitude")
 
-        self.formLayout_6.setWidget(4, QFormLayout.LabelRole, self.label_164)
+        self.formLayout_6.setWidget(2, QFormLayout.FieldRole, self.editFindByLatitude)
 
         self.label_166 = QLabel(self.frameFilders1_2)
         self.label_166.setObjectName(u"label_166")
 
         self.formLayout_6.setWidget(3, QFormLayout.LabelRole, self.label_166)
 
-        self.editFindByLatitude = QLineEdit(self.frameFilders1_2)
-        self.editFindByLatitude.setObjectName(u"editFindByLatitude")
-
-        self.formLayout_6.setWidget(2, QFormLayout.FieldRole, self.editFindByLatitude)
-
         self.editFindByLongitude = QLineEdit(self.frameFilders1_2)
         self.editFindByLongitude.setObjectName(u"editFindByLongitude")
 
         self.formLayout_6.setWidget(3, QFormLayout.FieldRole, self.editFindByLongitude)
+
+        self.label_164 = QLabel(self.frameFilders1_2)
+        self.label_164.setObjectName(u"label_164")
+
+        self.formLayout_6.setWidget(4, QFormLayout.LabelRole, self.label_164)
 
         self.editFindByTime = QLineEdit(self.frameFilders1_2)
         self.editFindByTime.setObjectName(u"editFindByTime")
@@ -148,33 +148,29 @@ class Ui_DockWidget(object):
 
         self.formLayout_6.setWidget(9, QFormLayout.FieldRole, self.editFindBySensorState)
 
-        self.groupBoxFilterButtons_2 = QGroupBox(self.frameFilders1_2)
-        self.groupBoxFilterButtons_2.setObjectName(u"groupBoxFilterButtons_2")
-        self.groupBoxFilterButtons_2.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
-        self.groupBoxFilterButtons_2.setFlat(True)
-        self.horizontalLayout = QHBoxLayout(self.groupBoxFilterButtons_2)
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalLayout.setContentsMargins(1, 9, 0, 0)
-        self.pushCustomMark = QPushButton(self.groupBoxFilterButtons_2)
-        self.pushCustomMark.setObjectName(u"pushCustomMark")
-
-        self.horizontalLayout.addWidget(self.pushCustomMark)
-
-        self.pushCustomMarkClear = QPushButton(self.groupBoxFilterButtons_2)
-        self.pushCustomMarkClear.setObjectName(u"pushCustomMarkClear")
-
-        self.horizontalLayout.addWidget(self.pushCustomMarkClear)
-
-
-        self.formLayout_6.setWidget(11, QFormLayout.FieldRole, self.groupBoxFilterButtons_2)
-
+        self.horizontalLayout_3 = QHBoxLayout()
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalLayout_3.setContentsMargins(0, 0, -1, -1)
         self.pushCustomMarkSelColor = QPushButton(self.frameFilders1_2)
         self.pushCustomMarkSelColor.setObjectName(u"pushCustomMarkSelColor")
         self.pushCustomMarkSelColor.setFocusPolicy(Qt.NoFocus)
         self.pushCustomMarkSelColor.setAutoFillBackground(True)
         self.pushCustomMarkSelColor.setFlat(True)
 
-        self.formLayout_6.setWidget(10, QFormLayout.FieldRole, self.pushCustomMarkSelColor)
+        self.horizontalLayout_3.addWidget(self.pushCustomMarkSelColor)
+
+        self.pushCustomMark = QPushButton(self.frameFilders1_2)
+        self.pushCustomMark.setObjectName(u"pushCustomMark")
+
+        self.horizontalLayout_3.addWidget(self.pushCustomMark)
+
+        self.pushCustomMarkClear = QPushButton(self.frameFilders1_2)
+        self.pushCustomMarkClear.setObjectName(u"pushCustomMarkClear")
+
+        self.horizontalLayout_3.addWidget(self.pushCustomMarkClear)
+
+
+        self.formLayout_6.setLayout(10, QFormLayout.FieldRole, self.horizontalLayout_3)
 
 
         self.verticalLayout_14.addWidget(self.frameFilders1_2)
@@ -196,25 +192,26 @@ class Ui_DockWidget(object):
         sizePolicy1.setVerticalStretch(0)
         sizePolicy1.setHeightForWidth(self.label_163.sizePolicy().hasHeightForWidth())
         self.label_163.setSizePolicy(sizePolicy1)
+        self.label_163.setMinimumSize(QSize(106, 0))
 
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_163)
 
-        self.spinBoxMarkStatSelectRange = QDoubleSpinBox(self.groupBox_28)
-        self.spinBoxMarkStatSelectRange.setObjectName(u"spinBoxMarkStatSelectRange")
+        self.spinBoxMarkStatTolerance = QDoubleSpinBox(self.groupBox_28)
+        self.spinBoxMarkStatTolerance.setObjectName(u"spinBoxMarkStatTolerance")
 
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.spinBoxMarkStatSelectRange)
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.spinBoxMarkStatTolerance)
 
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(0, 0, -1, -1)
         self.pushStatMarkSelColor = QPushButton(self.groupBox_28)
         self.pushStatMarkSelColor.setObjectName(u"pushStatMarkSelColor")
         self.pushStatMarkSelColor.setFocusPolicy(Qt.NoFocus)
         self.pushStatMarkSelColor.setAutoFillBackground(True)
         self.pushStatMarkSelColor.setFlat(True)
 
-        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.pushStatMarkSelColor)
+        self.horizontalLayout_2.addWidget(self.pushStatMarkSelColor)
 
-        self.horizontalLayout_2 = QHBoxLayout()
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.horizontalLayout_2.setContentsMargins(0, 0, -1, -1)
         self.pushStatMark = QPushButton(self.groupBox_28)
         self.pushStatMark.setObjectName(u"pushStatMark")
 
@@ -251,19 +248,18 @@ class Ui_DockWidget(object):
         self.label_167.setText(QCoreApplication.translate("DockWidget", u"Altitude:", None))
         self.label_168.setText(QCoreApplication.translate("DockWidget", u"Hart rate:", None))
         self.label_165.setText(QCoreApplication.translate("DockWidget", u"Latitude:", None))
-        self.label_164.setText(QCoreApplication.translate("DockWidget", u"Time:", None))
         self.label_166.setText(QCoreApplication.translate("DockWidget", u"Longitude:", None))
+        self.label_164.setText(QCoreApplication.translate("DockWidget", u"Time:", None))
         self.label_158.setText(QCoreApplication.translate("DockWidget", u"Distance:", None))
         self.label_159.setText(QCoreApplication.translate("DockWidget", u"Calculated distance:", None))
         self.label_160.setText(QCoreApplication.translate("DockWidget", u"Speed:", None))
         self.label_161.setText(QCoreApplication.translate("DockWidget", u"Calculated speed:", None))
         self.label_162.setText(QCoreApplication.translate("DockWidget", u"Sensor state", None))
-        self.groupBoxFilterButtons_2.setTitle("")
+        self.pushCustomMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
         self.pushCustomMark.setText(QCoreApplication.translate("DockWidget", u"Mark", None))
         self.pushCustomMarkClear.setText(QCoreApplication.translate("DockWidget", u"Clear", None))
-        self.pushCustomMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
         self.groupBox_28.setTitle(QCoreApplication.translate("DockWidget", u"Mark stationary", None))
-        self.label_163.setText(QCoreApplication.translate("DockWidget", u"Range:", None))
+        self.label_163.setText(QCoreApplication.translate("DockWidget", u"Tolerance:", None))
         self.pushStatMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
         self.pushStatMark.setText(QCoreApplication.translate("DockWidget", u"Mark ", None))
         self.pushStatMarkClear.setText(QCoreApplication.translate("DockWidget", u"Clear", None))

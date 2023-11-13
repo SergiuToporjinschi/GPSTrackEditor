@@ -33,7 +33,6 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.app = app
         self.model = TrackPointsModel(palette=app.palette())
-        self.model.rowCountChanged.connect(lambda x: self.slider.setRange(1 if x!=0 else 0, x))
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self._applyDelegates()
@@ -85,10 +84,12 @@ class mainGUI(QMainWindow, Ui_MainWindow):
     #         self.markStatSelColor.setPalette(pal)
 
     def _connectSignals(self):
+        self.model.mainSeriesLengthChanged.connect(lambda x: self.slider.setMainRange(1 if x!=0 else 0, x))
+        self.slider.selectedIntervalChanged.connect(self.model.trimRows)
+
         # self.slider.selectedIntervalChanged.connect(lambda val: print("selectedIntervalChanged", val))
-        self.slider.selectedIntervalChanged.connect(self.model.filterByRowNumbers)
-        self.slider.selectionCountChanged.connect(self.progress.updateSelection)
         self.slider.selectedIntervalChanged.connect(lambda val: self._noDataDisable(val[1]-val[0]>0))
+        self.slider.selectionCountChanged.connect(self.progress.updateSelection)
         self.model.allTrackPointsCountChanged.connect(self.progress.updateTackPoints)
         # self.timerClear.timeout.connect(lambda: self.progress.updateTimerMessage.emit(''))
         # self.timerClear.timeout.connect(lambda: self.progress.updateProgress.emit(0))

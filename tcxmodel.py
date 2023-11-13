@@ -9,6 +9,49 @@ from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersi
 
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 
+
+class Marker:
+    _name: str = None
+    _indexes: [int] = None
+    _color: [QColor] = None
+    _expression: str = None
+    def __init__(self, name: str, indexes:[int], color:QColor, expression: typing.Optional[str] = None) -> None:
+        self._name = name
+        self._indexes = indexes
+        self._color = color
+        self._expression = expression
+        pass
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def indexes(self):
+        return self._indexes
+
+    @indexes.setter
+    def indexes(self, indexes: []):
+        self._indexes = indexes
+
+    @property
+    def color(self):
+        return self._color
+
+    @property
+    def expression(self):
+        return self._expression
+
+    @expression.setter
+    def expression(self, expression: str):
+        self._expression = expression
+
+    def __eq__(self, other):
+        # Customize the equality comparison based on your requirements
+        if isinstance(other, Marker):
+            return self.name == other.name
+        return False
+
 class TrackPointModel:
     colNames =  ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Distance (m)', 'Calculated distance (m)', 'Speed (km/h)', 'Calculated speed (km/h)', 'Hart rate (bpm)', 'Sensor state']
     colInfo = {
@@ -84,11 +127,14 @@ class TrackPointModel:
             index += 1
         return -1
 
+
+
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal() # when the entire track (without any filters or markers) changed
     mainSeriesLengthChanged = Signal(int)
     trimRangeChange = Signal()
-    markingChange = Signal()
+    # markingChange = Signal()
+    contentChanged = Signal()
 
     rowCountChanged = Signal(int)
     allTrackPointsCountChanged = Signal(int)
@@ -98,7 +144,7 @@ class TrackPointsModel(QAbstractTableModel):
     filterRange = None
     trackPoints = []
     allTrackPoints = []
-    markers = []
+    markers: [Marker] = []
     _lastFindDataExpression = None
     def __init__(self, trackPoints: List[TrackPointModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
@@ -106,7 +152,10 @@ class TrackPointsModel(QAbstractTableModel):
         self.trackPoints = self.allTrackPoints
         self.palette = palette
         self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
-
+        self.rowsMoved.connect(self._test)
+        self.rowsInserted.connect(self._test)
+    def _test(Self, index:QModelIndex, a: int, b:int, c: QModelIndex, d:int):
+        pass
     def loadData(self, trackPoints: List[TrackPointModel]):
         self.beginResetModel()
         self.allTrackPoints.clear()
@@ -138,9 +187,9 @@ class TrackPointsModel(QAbstractTableModel):
             return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
         if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
             selectedColor = None
-            for _, series, color in self.markers:
-                if index.row() in series:
-                    selectedColor = color
+            for marker in self.markers:
+                if index.row() in marker.indexes:
+                    selectedColor = marker.color
             if selectedColor is not None: return selectedColor
 
     def dataByColNames(self, row: int, colNames: [str], role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
@@ -186,38 +235,37 @@ class TrackPointsModel(QAbstractTableModel):
             return val if val is not None else 0
 
         self.trackPoints.sort(key=key_function, reverse=order == Qt.SortOrder.DescendingOrder)
-        if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
+        self.contentChanged.emit()
+        # if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
         self.endResetModel()
 
     def sort(self, column:int, order: Qt.SortOrder = ...):
         self.sortBy(TrackPointModel.indexToName(column), order)
-        if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
+        # if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
 
-    def filterByRowNumbers(self, interval: tuple = None):
+    def trimRows(self, interval: tuple = None):
         self.beginResetModel()
         min, max = interval
         self.trackPoints = [i for index, i in enumerate(self.allTrackPoints) if index in range(min-1,max)]
-        if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
+        self.trimRangeChange.emit()
         self.endResetModel()
 
-    def addMarker(self, name, marker:[int], color: QColor):
+    def addMarker(self, maker: Marker):
         self.beginResetModel()
-        self.markers.append((name, marker, color))
+        self.markers.append(maker)
         self.endResetModel()
         pass
 
-    def clearAllMarker(self, name: str):
+    def clearAllMarker(self):
         self.beginResetModel()
-        self.markers = None
+        self.markers = []
         self.endResetModel()
 
     def clearMarker(self, name: str):
         self.beginResetModel()
-        self.markers[:] = [tup for tup in self.markers if tup[0] != name]
+        self.markers[:] = [maker for maker in self.markers if maker.name != name]
         self.endResetModel()
         pass
-
-
 
 class TCXLoader(QObject):
     workingProgress = Signal(int)

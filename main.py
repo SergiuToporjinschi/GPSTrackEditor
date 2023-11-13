@@ -4,15 +4,16 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QPalette, QColor, QColorConstants, QIcon
 import gpstracker_rc
+
 def main():
     app = QApplication(sys.argv)
     gui = mainGUI(app)
     app.setStyle("Fusion")
 
     screens = app.screens()
-    geom = screens[1].geometry()
+    geom = screens[2].geometry()
 
-    gui.setGeometry(geom.x()+100, geom.y()+800, 1300, 1000)
+    gui.setGeometry(geom.x(), geom.y(), 2300, 1000)
     gui.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowSystemMenuHint | Qt.WindowType.WindowMinMaxButtonsHint | Qt.WindowType.WindowCloseButtonHint)
     gui.show()
 
