@@ -2,9 +2,9 @@ import xml.etree.ElementTree as ET
 import pytz, re, typing
 from datetime import datetime
 from typing import List, Any, Union
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Slot
 
-from PySide6.QtGui import QPalette
+from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersistentModelIndex
 
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
@@ -98,14 +98,13 @@ class TrackPointsModel(QAbstractTableModel):
     filterRange = None
     trackPoints = []
     allTrackPoints = []
-    foundIndexes = []
+    markers = []
     _lastFindDataExpression = None
     def __init__(self, trackPoints: List[TrackPointModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
         self.allTrackPoints = trackPoints or []
         self.trackPoints = self.allTrackPoints
         self.palette = palette
-        self.pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
         self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
 
     def loadData(self, trackPoints: List[TrackPointModel]):
@@ -137,9 +136,12 @@ class TrackPointsModel(QAbstractTableModel):
             return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
         if role == Qt.ItemDataRole.EditRole:
             return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
-        if role == Qt.ItemDataRole.BackgroundRole and index.row() in self.foundIndexes:
-            return self.palette.highlight().color()
-
+        if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
+            selectedColor = None
+            for _, series, color in self.markers:
+                if index.row() in series:
+                    selectedColor = color
+            if selectedColor is not None: return selectedColor
 
     def dataByColNames(self, row: int, colNames: [str], role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
         response = ()
@@ -198,57 +200,24 @@ class TrackPointsModel(QAbstractTableModel):
         if self._lastFindDataExpression is not None: self.findByExpression(self._lastFindDataExpression)
         self.endResetModel()
 
-    def findByExpression(self, data):
+    def addMarker(self, name, marker:[int], color: QColor):
         self.beginResetModel()
-        self.workingProgress.emit(0)
-        try:
-            self.foundIndexes.clear()
-            expression = self._createExpression(data)
-            if len(expression) == 0:
-                self._lastFindDataExpression = None
-                self.endResetModel()
-                return
-            for index, item in enumerate(self.trackPoints):
-                self.workingProgress.emit(int(index/len(self.trackPoints)*100))
-                if eval(expression):
-                    self.foundIndexes.append(index)
-        except Exception as e:
-            self._lastFindDataExpression = None
-            self.statusMessage.emit(f"Syntax error (syntax: <=,<,<>><value><&,|>)")
-        self.endResetModel()
-        self.workingProgress.emit(100)
-        self._lastFindDataExpression = data
-
-    def markStationary(self, val):
-        self.beginResetModel()
-        self.workingProgress.emit(0)
-        self.foundIndexes.clear()
-        prevItem = None
-        for index, item in enumerate(self.trackPoints):
-            self.workingProgress.emit(int(index/len(self.trackPoints)*100))
-            if item.data['distance'] is not None and prevItem.data['distance'] is not None and abs(prevItem.data['distance'] - item.data['distance']) <= val:
-                self.foundIndexes.append(index)
-                self.foundIndexes.append(index-1)
-            prevItem = item
+        self.markers.append((name, marker, color))
         self.endResetModel()
         pass
 
-    def _createExpression(self, findBy):
-        # exp = self._createExpression(findBy)
-        expression = []
-        for key, value in findBy.items():
-            if value is not None and value.strip() != "":
-                expression.append(self._addKey(key, self.pattern.findall(value)))
+    def clearAllMarker(self, name: str):
+        self.beginResetModel()
+        self.markers = None
+        self.endResetModel()
 
-        return ' or '.join(expression)
+    def clearMarker(self, name: str):
+        self.beginResetModel()
+        self.markers[:] = [tup for tup in self.markers if tup[0] != name]
+        self.endResetModel()
+        pass
 
-    def _addKey(self, key:str, expression: list[tuple]):
-        result = ''
-        key = 'item.data["'+key+'"]'
-        for item in expression:
-            item = [key] + [(val.replace('&', 'and').replace('|', 'or').replace('=', '==')) for val in item]
-            result += ' '.join(item) + ' '
-        return key + ' is not None and ' +result.strip()
+
 
 class TCXLoader(QObject):
     workingProgress = Signal(int)

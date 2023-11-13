@@ -16,9 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QDockWidget, QDoubleSpinBox, QFormLayout,
-    QFrame, QGroupBox, QLabel, QLineEdit,
-    QPushButton, QScrollArea, QSizePolicy, QSpacerItem,
-    QVBoxLayout, QWidget)
+    QFrame, QGroupBox, QHBoxLayout, QLabel,
+    QLineEdit, QPushButton, QScrollArea, QSizePolicy,
+    QSpacerItem, QVBoxLayout, QWidget)
 
 class Ui_DockWidget(object):
     def setupUi(self, DockWidget):
@@ -150,35 +150,45 @@ class Ui_DockWidget(object):
 
         self.groupBoxFilterButtons_2 = QGroupBox(self.frameFilders1_2)
         self.groupBoxFilterButtons_2.setObjectName(u"groupBoxFilterButtons_2")
-        sizePolicy = QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBoxFilterButtons_2.sizePolicy().hasHeightForWidth())
-        self.groupBoxFilterButtons_2.setSizePolicy(sizePolicy)
         self.groupBoxFilterButtons_2.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.groupBoxFilterButtons_2.setFlat(True)
-        self.verticalLayout_12 = QVBoxLayout(self.groupBoxFilterButtons_2)
-        self.verticalLayout_12.setObjectName(u"verticalLayout_12")
-        self.pushButtonFind = QPushButton(self.groupBoxFilterButtons_2)
-        self.pushButtonFind.setObjectName(u"pushButtonFind")
+        self.horizontalLayout = QHBoxLayout(self.groupBoxFilterButtons_2)
+        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalLayout.setContentsMargins(1, 9, 0, 0)
+        self.pushCustomMark = QPushButton(self.groupBoxFilterButtons_2)
+        self.pushCustomMark.setObjectName(u"pushCustomMark")
 
-        self.verticalLayout_12.addWidget(self.pushButtonFind)
+        self.horizontalLayout.addWidget(self.pushCustomMark)
 
-        self.pushButtonFindClear = QPushButton(self.groupBoxFilterButtons_2)
-        self.pushButtonFindClear.setObjectName(u"pushButtonFindClear")
+        self.pushCustomMarkClear = QPushButton(self.groupBoxFilterButtons_2)
+        self.pushCustomMarkClear.setObjectName(u"pushCustomMarkClear")
 
-        self.verticalLayout_12.addWidget(self.pushButtonFindClear)
+        self.horizontalLayout.addWidget(self.pushCustomMarkClear)
 
 
-        self.formLayout_6.setWidget(10, QFormLayout.FieldRole, self.groupBoxFilterButtons_2)
+        self.formLayout_6.setWidget(11, QFormLayout.FieldRole, self.groupBoxFilterButtons_2)
+
+        self.pushCustomMarkSelColor = QPushButton(self.frameFilders1_2)
+        self.pushCustomMarkSelColor.setObjectName(u"pushCustomMarkSelColor")
+        self.pushCustomMarkSelColor.setFocusPolicy(Qt.NoFocus)
+        self.pushCustomMarkSelColor.setAutoFillBackground(True)
+        self.pushCustomMarkSelColor.setFlat(True)
+
+        self.formLayout_6.setWidget(10, QFormLayout.FieldRole, self.pushCustomMarkSelColor)
 
 
         self.verticalLayout_14.addWidget(self.frameFilders1_2)
 
         self.groupBox_28 = QGroupBox(self.scrollAreaWidgetContents_4)
         self.groupBox_28.setObjectName(u"groupBox_28")
-        self.verticalLayout_13 = QVBoxLayout(self.groupBox_28)
-        self.verticalLayout_13.setObjectName(u"verticalLayout_13")
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.groupBox_28.sizePolicy().hasHeightForWidth())
+        self.groupBox_28.setSizePolicy(sizePolicy)
+        self.formLayout = QFormLayout(self.groupBox_28)
+        self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setContentsMargins(0, 9, -1, 0)
         self.label_163 = QLabel(self.groupBox_28)
         self.label_163.setObjectName(u"label_163")
         sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -187,25 +197,36 @@ class Ui_DockWidget(object):
         sizePolicy1.setHeightForWidth(self.label_163.sizePolicy().hasHeightForWidth())
         self.label_163.setSizePolicy(sizePolicy1)
 
-        self.verticalLayout_13.addWidget(self.label_163)
+        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_163)
 
         self.spinBoxMarkStatSelectRange = QDoubleSpinBox(self.groupBox_28)
         self.spinBoxMarkStatSelectRange.setObjectName(u"spinBoxMarkStatSelectRange")
 
-        self.verticalLayout_13.addWidget(self.spinBoxMarkStatSelectRange)
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.spinBoxMarkStatSelectRange)
 
-        self.markStatSelColor = QPushButton(self.groupBox_28)
-        self.markStatSelColor.setObjectName(u"markStatSelColor")
-        self.markStatSelColor.setFocusPolicy(Qt.NoFocus)
-        self.markStatSelColor.setAutoFillBackground(True)
-        self.markStatSelColor.setFlat(True)
+        self.pushStatMarkSelColor = QPushButton(self.groupBox_28)
+        self.pushStatMarkSelColor.setObjectName(u"pushStatMarkSelColor")
+        self.pushStatMarkSelColor.setFocusPolicy(Qt.NoFocus)
+        self.pushStatMarkSelColor.setAutoFillBackground(True)
+        self.pushStatMarkSelColor.setFlat(True)
 
-        self.verticalLayout_13.addWidget(self.markStatSelColor)
+        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.pushStatMarkSelColor)
 
-        self.pushButtonMarkStat = QPushButton(self.groupBox_28)
-        self.pushButtonMarkStat.setObjectName(u"pushButtonMarkStat")
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.horizontalLayout_2.setContentsMargins(0, 0, -1, -1)
+        self.pushStatMark = QPushButton(self.groupBox_28)
+        self.pushStatMark.setObjectName(u"pushStatMark")
 
-        self.verticalLayout_13.addWidget(self.pushButtonMarkStat)
+        self.horizontalLayout_2.addWidget(self.pushStatMark)
+
+        self.pushStatMarkClear = QPushButton(self.groupBox_28)
+        self.pushStatMarkClear.setObjectName(u"pushStatMarkClear")
+
+        self.horizontalLayout_2.addWidget(self.pushStatMarkClear)
+
+
+        self.formLayout.setLayout(2, QFormLayout.FieldRole, self.horizontalLayout_2)
 
 
         self.verticalLayout_14.addWidget(self.groupBox_28)
@@ -238,11 +259,13 @@ class Ui_DockWidget(object):
         self.label_161.setText(QCoreApplication.translate("DockWidget", u"Calculated speed:", None))
         self.label_162.setText(QCoreApplication.translate("DockWidget", u"Sensor state", None))
         self.groupBoxFilterButtons_2.setTitle("")
-        self.pushButtonFind.setText(QCoreApplication.translate("DockWidget", u"Find..", None))
-        self.pushButtonFindClear.setText(QCoreApplication.translate("DockWidget", u"Clear", None))
+        self.pushCustomMark.setText(QCoreApplication.translate("DockWidget", u"Mark", None))
+        self.pushCustomMarkClear.setText(QCoreApplication.translate("DockWidget", u"Clear", None))
+        self.pushCustomMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
         self.groupBox_28.setTitle(QCoreApplication.translate("DockWidget", u"Mark stationary", None))
         self.label_163.setText(QCoreApplication.translate("DockWidget", u"Range:", None))
-        self.markStatSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
-        self.pushButtonMarkStat.setText(QCoreApplication.translate("DockWidget", u"Mark ", None))
+        self.pushStatMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
+        self.pushStatMark.setText(QCoreApplication.translate("DockWidget", u"Mark ", None))
+        self.pushStatMarkClear.setText(QCoreApplication.translate("DockWidget", u"Clear", None))
     # retranslateUi
 

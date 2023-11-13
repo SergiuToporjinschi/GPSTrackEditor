@@ -1,4 +1,4 @@
-import typing, os, json
+import typing, os, json, re
 from qtpy.QtCore import Signal, Slot
 from tcxmodel import TrackPointsModel, TCXLoader, TrackPointModel
 
@@ -10,7 +10,7 @@ from gui.processing_dock_ui import Ui_DockWidget as processingDock
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
 from abc import ABC, abstractmethod
 
-from PySide6.QtGui import QPalette
+from PySide6.QtGui import QPalette, QColor, QColorConstants
 from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
 from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog
 from PySide6.QtWebEngineCore import QWebEngineSettings
@@ -35,17 +35,98 @@ class AbstractModelDockWidget():
 
 
 class MarkingDockWidget(AbstractModelDockWidget, QDockWidget, markingDock):
+    colorCustomMarking:QColor = QColorConstants.Red
+    colorStationaryMarking: QColor = QColorConstants.Yellow
+    pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
+    marker = {
+        "indexes": [],
+        "color": QColor
+    }
+    markers = []
     def _setupUi(self):
-        self.markStatSelColor.clicked.connect(self._markStationarySelectColor)
-        self.pushButtonMarkStat.clicked.connect(lambda: self.model.markStationary(self.spinBoxMarkStatSelectRange.value()))
+        self._setColor(self.pushStatMarkSelColor, self.colorStationaryMarking)
+        self._setColor(self.pushCustomMarkSelColor, self.colorCustomMarking)
 
-    def _markStationarySelectColor(self):
-        color = QColorDialog.getColor()
+        self.pushCustomMark.clicked.connect(self._onCustomMarkButton)
+        self.pushCustomMarkClear.clicked.connect(lambda: self._clearMarker('custom'))
+        self.pushCustomMarkSelColor.clicked.connect(lambda: self._setColor(self.pushCustomMarkSelColor))
+
+        self.pushStatMark.clicked.connect(lambda: self._markStationary(self.spinBoxMarkStatSelectRange.value()))
+        self.pushStatMarkClear.clicked.connect(lambda: self._clearMarker('stationary'))
+        self.pushStatMarkSelColor.clicked.connect(lambda: self._setColor(self.pushStatMarkSelColor))
+
+
+
+        self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
+
+    def _setColor(self, control, color = None):
+        if color is None:
+            color = QColorDialog.getColor()
         if color.isValid():
             pal = QPalette()
             pal.setColor(QPalette.ColorRole.Button, color)
-            self.markStatSelColor.setPalette(pal)
+            control.setPalette(pal)
 
+    def _markStationary(self, val):
+        indexes = []
+        prevItem = None
+        color = self.pushStatMarkSelColor.palette().button().color()
+        for index, item in enumerate(self.model.trackPoints):
+            if item.data['distance'] is not None and prevItem.data['distance'] is not None and abs(prevItem.data['distance'] - item.data['distance']) <= val:
+                indexes.append(index)
+                indexes.append(index-1)
+            prevItem = item
+        self.model.addMarker('stationary', indexes, color)
+
+    def _clearMarker(self, name):
+        self.model.clearMarker(name)
+
+    def _onCustomMarkButton(self):
+        data = {
+            "time": self.editFindByTime.text(),
+            "latitude": self.editFindByLatitude.text(),
+            "longitude": self.editFindByLongitude.text(),
+            "distance": self.editFindByDistance.text(),
+            "calculatedDistance": self.editFindByCalculatedDistance.text(),
+            "altitude": self.editFindByAltitude.text(),
+            "speed": self.editFindBySpeed.text(),
+            "calculatedSpeed": self.editFindByCalculatedSpeed.text(),
+            "hartRate": self.editFindByHartRate.text(),
+            "sensorState": self.editFindBySensorState.text()
+        }
+        color = self.pushCustomMarkSelColor.palette().button().color()
+        try:
+            indexes = []
+            expression = self._createExpression(data)
+            if len(expression) == 0:
+                self._lastFindDataExpression = None
+                return
+            for index, item in enumerate(self.model.trackPoints):
+                if eval(expression):
+                    indexes.append(index)
+        except Exception as e:
+            self._lastFindDataExpression = None
+            self.statusMessage.emit(f"Syntax error (syntax: <=,<,<>><value><&,|>)")
+        self._lastFindDataExpression = data
+        self.model.addMarker('custom', indexes, color)
+        pass
+
+    def _createExpression(self, findBy):
+        # exp = self._createExpression(findBy)
+        expression = []
+        for key, value in findBy.items():
+            if value is not None and value.strip() != "":
+                expression.append(self._addKey(key, self.pattern.findall(value)))
+
+        return ' or '.join(expression)
+
+    def _addKey(self, key:str, expression: list[tuple]):
+        result = ''
+        key = 'item.data["'+key+'"]'
+        for item in expression:
+            item = [key] + [(val.replace('&', 'and').replace('|', 'or').replace('=', '==')) for val in item]
+            result += ' '.join(item) + ' '
+        return key + ' is not None and ' + result.strip()
 
 class ProcessingDockWidget(AbstractModelDockWidget, QDockWidget, processingDock):
 
@@ -71,8 +152,7 @@ class ProcessingDockWidget(AbstractModelDockWidget, QDockWidget, processingDock)
 
 class FilterDockWidget(AbstractModelDockWidget, QDockWidget, filterDock):
     def _setupUi(self):
-        pass
-
+        self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
 
 
 class FileInfoDockWidget(AbstractModelDockWidget, QDockWidget, fileInfoDock):

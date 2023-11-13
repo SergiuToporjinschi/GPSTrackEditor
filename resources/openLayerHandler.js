@@ -66,7 +66,7 @@ function loadTrack(newCoordinates) {
 
     var trackStyle = new ol.style.Style({
         stroke: new ol.style.Stroke({
-            color: 'red', // Set the desired color here
+            color: 'gray', // Set the desired color here
             width: 4
         })
     });

@@ -58,13 +58,13 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFileInfo)
         self.dockFileInfo.statusMessage.connect(self.progress.updateTimerMessage)
 
-        self.dockFilter = FilterDockWidget(parent=self)
+        self.dockFilter = FilterDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFilter)
 
         self.dockProcessing = ProcessingDockWidget(parent=self, model=self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockProcessing)
 
-        self.dockMarking = MarkingDockWidget(parent=self)
+        self.dockMarking = MarkingDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockMarking)
 
         self.tabifyDockWidget(self.dockFileInfo, self.dockStatistics)
@@ -75,20 +75,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)
         self.model.clearData()
 
-    def _onFindButton(self):
-        data = {
-            "time": self.editFindByTime.text(),
-            "latitude": self.editFindByLatitude.text(),
-            "longitude": self.editFindByLongitude.text(),
-            "distance": self.editFindByDistance.text(),
-            "calculatedDistance": self.editFindByCalculatedDistance.text(),
-            "altitude": self.editFindByAltitude.text(),
-            "speed": self.editFindBySpeed.text(),
-            "calculatedSpeed": self.editFindByCalculatedSpeed.text(),
-            "hartRate": self.editFindByHartRate.text(),
-            "sensorState": self.editFindBySensorState.text()
-        }
-        self.model.findByExpression(data)
+
 
     # def _markStationarySelectColor(self):
     #     color = QColorDialog.getColor()
