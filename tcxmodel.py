@@ -3,6 +3,7 @@ import pytz, typing
 from datetime import datetime
 from typing import List, Any, Union
 from qtpy.QtCore import Signal
+from statusBar import StatusMessage
 
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersistentModelIndex
@@ -131,16 +132,20 @@ class TrackPointModel:
 
 
 class TrackPointsModel(QAbstractTableModel):
-    mainSeriesChanged = Signal() # when the entire track (without any filters or markers) changed
-    mainSeriesLengthChanged = Signal(int) # when the entire track changes the number of items
-    trimRangeChange = Signal() # when trimming has changed (spinners or slider) in lenght or position
-    contentChanged = Signal() # content has changed its position (sorting)
+    mainSeriesChanged = Signal()           # when the entire track changed, track without any filters or markers
+    mainSeriesLengthChanged = Signal(int)  # when the entire track changes in length (number of items)
+    trimRangeChanged = Signal(int)          # when trimming has changed spinners|slider, length|position (length, number of elements)
+    contentChanged = Signal()              # content has changed its position ex: sorting
     markers: [Marker] = []
 
-    statusMessage = Signal(str)
+    statusMessage = Signal(StatusMessage)
     workingProgress = Signal(int)
 
+    updateSelection = Signal(int)          # signal emited
+    updateTrackPoints = Signal(int)
     trimmerInterval = TrimmerInterval(1, 1)
+
+
     # trackPoints = []
     allTrackPoints = []
 
@@ -255,7 +260,7 @@ class TrackPointsModel(QAbstractTableModel):
         self.beginResetModel()
         self.trimmerInterval.val = interval
         # self.trackPoints = [i for index, i in enumerate(self.allTrackPoints) if index in range(min-1, max)]
-        self.trimRangeChange.emit()
+        self.trimRangeChanged.emit(1) # TODO add the number of rows
         self.endResetModel()
 
     def addMarker(self, maker: Marker):

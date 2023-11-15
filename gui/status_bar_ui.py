@@ -41,11 +41,10 @@ class Ui_GroupBox(object):
 
         self.horizontalLayout.addWidget(self.separator3)
 
-        self.labelTimmerMessage = QLabel(GroupBox)
-        self.labelTimmerMessage.setObjectName(u"labelTimmerMessage")
-        self.labelTimmerMessage.setStyleSheet(u"color: red")
+        self.labelMessage = QLabel(GroupBox)
+        self.labelMessage.setObjectName(u"labelMessage")
 
-        self.horizontalLayout.addWidget(self.labelTimmerMessage)
+        self.horizontalLayout.addWidget(self.labelMessage)
 
         self.separator2 = QLabel(GroupBox)
         self.separator2.setObjectName(u"separator2")
@@ -75,7 +74,7 @@ class Ui_GroupBox(object):
         sizePolicy1.setHeightForWidth(self.labelSelectionCntVal.sizePolicy().hasHeightForWidth())
         self.labelSelectionCntVal.setSizePolicy(sizePolicy1)
         self.labelSelectionCntVal.setMinimumSize(QSize(40, 0))
-        self.labelSelectionCntVal.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.labelSelectionCntVal.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
         self.labelSelectionCntVal.setTextInteractionFlags(Qt.LinksAccessibleByMouse|Qt.TextSelectableByKeyboard|Qt.TextSelectableByMouse)
 
         self.horizontalLayoutCounts.addWidget(self.labelSelectionCntVal)
@@ -84,8 +83,7 @@ class Ui_GroupBox(object):
         self.label.setObjectName(u"label")
         sizePolicy1.setHeightForWidth(self.label.sizePolicy().hasHeightForWidth())
         self.label.setSizePolicy(sizePolicy1)
-        self.label.setMinimumSize(QSize(8, 0))
-        self.label.setAlignment(Qt.AlignCenter)
+        self.label.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
         self.horizontalLayoutCounts.addWidget(self.label)
 
@@ -129,9 +127,8 @@ class Ui_GroupBox(object):
 
         self.retranslateUi(GroupBox)
         GroupBox.updateProgress.connect(self.progressBar.setValue)
-        GroupBox.updateSelection.connect(self.labelSelectionCntVal.setNum)
-        GroupBox.updateTackPoints.connect(self.labelTotalCntVal.setNum)
-        GroupBox.updateTimerMessage.connect(self.labelTimmerMessage.setText)
+        GroupBox.updateTrimmerLen.connect(self.labelSelectionCntVal.setNum)
+        GroupBox.updateTackLen.connect(self.labelTotalCntVal.setNum)
 
         QMetaObject.connectSlotsByName(GroupBox)
     # setupUi
@@ -139,10 +136,11 @@ class Ui_GroupBox(object):
     def retranslateUi(self, GroupBox):
         GroupBox.setWindowTitle(QCoreApplication.translate("GroupBox", u"GroupBox", None))
         self.separator3.setText("")
+        self.labelMessage.setText("")
         self.separator2.setText("")
-        self.labelSelectionCntText.setText(QCoreApplication.translate("GroupBox", u"Track points:", None))
+        self.labelSelectionCntText.setText(QCoreApplication.translate("GroupBox", u"Trim: ", None))
         self.labelSelectionCntVal.setText(QCoreApplication.translate("GroupBox", u"0", None))
-        self.label.setText(QCoreApplication.translate("GroupBox", u"/", None))
+        self.label.setText(QCoreApplication.translate("GroupBox", u"Points: ", None))
         self.labelTotalCntVal.setText(QCoreApplication.translate("GroupBox", u"0", None))
         self.separator1.setText("")
     # retranslateUi

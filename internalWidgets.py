@@ -6,27 +6,8 @@ from superqt import QRangeSlider
 from AbstractModelWidget import AbstractModelWidget
 
 from gui.slider_filter_ui import Ui_SliderFilter
-from gui.status_bar_ui import Ui_GroupBox
-
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame
-
-class StatusBarGroupBox(QFrame, Ui_GroupBox):
-    updateProgress = Signal(int)
-    updateSelection = Signal(int)
-    updateTackPoints = Signal(int)
-    updateTimerMessage = Signal(str)
-
-    def __init__(self, parent = None) -> None:
-        super().__init__(parent)
-        self.setupUi(self)
-        self.timerClear =  QTimer(self)
-        self.timerClear.setInterval(5000)
-        self.timerClear.setSingleShot(False)
-        self.timerClear.setTimerType(Qt.TimerType.CoarseTimer)
-        self.timerClear.start()
-        self.timerClear.timeout.connect(lambda: self.updateTimerMessage.emit(''))
-        self.timerClear.timeout.connect(lambda: self.updateProgress.emit(0))
 
 class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
     trimmerChanged = Signal(tuple) #spinner changed or slider changed in any way or any cain
@@ -85,7 +66,6 @@ class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
         self._blockAllSignals(False)
         self._trimmerChanged()
         self.setEnabled(self._max - self._min > 1)
-
 
     def sliderValueChanged(self, tuple):
         min, max = tuple

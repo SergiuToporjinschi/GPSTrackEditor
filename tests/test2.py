@@ -1,66 +1,22 @@
-import sys
-class TrimmerInterval:
-    _min = 0
-    _max = 0
-    def __init__(self, min: int, max: int) -> None:
-        if (max<min):
-            raise Exception("Invalid trimmer value!")
-        self._min = min
-        self._max = max
-        pass
+from PySide6.QtCore import QTimer, QCoreApplication
 
-    @property
-    def min(self):
-        return self._min
+# Function to be executed after a delay
+def delayed_action():
+    print("Delayed action executed")
 
-    @min.setter
-    def min(self, val):
-        self._min = val
+# Create a QTimer instance
+timer = QTimer()
 
-    @property
-    def max(self):
-        return self._max
+# Connect the timeout signal of the timer to the delayed_action function
+timer.timeout.connect(delayed_action)
 
-    @max.setter
-    def max(self, val):
-        self._max = val
+# Set the interval (in milliseconds) for the timer
+delay_in_seconds = 2  # 2 seconds
+timer.start(delay_in_seconds * 1000)  # QTimer works in milliseconds
 
-    @property
-    def val(self):
-        return (self._min, self._max)
+# Start the application event loop
+app = QCoreApplication([])
 
-    @val.setter
-    def val(self, val: tuple):
-        minTest, maxTest = val
-        if minTest>maxTest:
-            raise Exception("Invalid trimmer value!")
-        self._min, self._max = val
-
-    def index(self, val):
-        index = self._min + val - 1
-        if index > self._max or index < 0:
-            raise Exception("Value outside trimmer range!")
-        return index
-
-    def __str__(self) -> str:
-        return f"min: {self._min}, max: {self._max}"
-
-    def __contains__(self, val: int) -> bool:
-        return self._min <= val < self._max
-
-    def __len__(self):
-        result = self._max - self._min
-        if result < 0:
-            raise Exception("Value outside trimmer range!")
-        return self._max - self._min
-
-
-tr = TrimmerInterval(0,1)
-tr.index(1)
-tr.val = (5,10)
-print(len(TrimmerInterval(0,3093)))
-print(len(tr))
-print(5 in tr)
-
-# 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
-# 5-10
+# Here, you can start your application logic...
+# For demonstration purposes, we'll wait for the timer to complete
+QCoreApplication.processEvents()

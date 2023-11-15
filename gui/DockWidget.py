@@ -2,6 +2,7 @@ import typing, os, json, re
 from qtpy.QtCore import Signal, Slot
 from tcxmodel import TrackPointsModel, TCXLoader, Marker
 from AbstractModelWidget import AbstractModelWidget
+from statusBar import StatusMessage
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -36,7 +37,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         self.pushStatMarkSelColor.clicked.connect(lambda: self._setColor(self.pushStatMarkSelColor))
 
         self.model.contentChanged.connect(self._refreshMarkers)
-        self.model.trimRangeChange.connect(self._refreshMarkers)
+        self.model.trimRangeChanged.connect(self._refreshMarkers)
 
         self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
         pass
@@ -51,12 +52,14 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         pass
 
     def _markStationary(self, marker: typing.Optional[Marker] = None):
+        self.statusMessage.emit(StatusMessage('Marking...'))
         color = self.pushStatMarkSelColor.palette().button().color()
         tolerance = self.spinBoxMarkStatTolerance.value()
         marker = Marker('stationary', [], color, tolerance) if not isinstance(marker, Marker) or marker is None else marker
         marker.indexes.clear()
         prevItem = None
         for index, item in enumerate(self.model.trackPoints):
+            self.statusMessage.emit(StatusMessage(f'Marking... index {index}'))
             dist = item.data['distance']
             prevDist = prevItem.data['distance'] if prevItem is not None else None
             if dist is not None and prevDist is not None and abs(prevDist - dist) <= marker.expression:
@@ -64,6 +67,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
                 marker.indexes.append(index-1)
             prevItem = item
         self._applyMarker(marker)
+        self.statusMessage.emit(None)
         pass
 
     def _clearMarker(self, name):
@@ -72,6 +76,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         pass
 
     def _onCustomMarkButton(self, marker: typing.Optional[Marker] = None):
+        self.statusMessage.emit(StatusMessage('Marking...'))
         marker = self._buildCustomMarker() if not isinstance(marker, Marker) or marker is None else marker
         try:
             marker.indexes = []
@@ -82,6 +87,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
             self._lastFindDataExpression = None
             self.statusMessage.emit(f"Syntax error (syntax: <=,<,<>><value><&,|>)")
         self._applyMarker(marker)
+        self.statusMessage.emit(None)
         pass
 
     def _buildCustomMarker(self):
@@ -138,7 +144,7 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
         self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
 
     def _calculateSpeed(self):
-        self.statusMessage.emit('Calculating speed...')
+        self.statusMessage.emit(StatusMessage('Calculating speed...'))
         self.model.sortBy('time', Qt.SortOrder.AscendingOrder)
         self.model.setDataByColumnName(0, 'calculatedSpeed', 0, Qt.ItemDataRole.EditRole)
         for row in range(1, self.model.rowCount()):
@@ -149,7 +155,7 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
             else:
                 newVal = 0
             self.model.setDataByColumnName(row, 'calculatedSpeed', newVal, Qt.ItemDataRole.EditRole)
-        self.statusMessage.emit('')
+        self.statusMessage.emit(None)
 
 
 
@@ -167,13 +173,14 @@ class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
 
     @Slot()
     def _loadInfo(self, activityData):
-        self.statusMessage.emit('Loading file ...')
+        self.statusMessage.emit(StatusMessage('Loading file ...'))
         self.inputFilePath.setText(str(activityData['file']))
         self.inputNotes.setText(activityData['notes'])
         self.inputId.setText(activityData['id'])
         self.inputSport.setText(activityData['type'])
         self.inputLaps.setText(str(activityData['lapsCount']))
         self.inputTrackPoints.setText(str(activityData['trackPointsCount']))
+        self.statusMessage.emit(None)
 
 
 
@@ -181,7 +188,7 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
 
     @Slot()
     def calculateStatistics(self):
-        self.statusMessage.emit('Calculating statistics...')
+        self.statusMessage.emit(StatusMessage('Calculating statistics...'))
         values = {
             "latitude": {"max": 0,"min": 0,"missing": 0},
             "longitude": {"max": 0,"min": 0,"missing": 0},
@@ -210,7 +217,9 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
         self._updateGroup("longitude", values, 8)
         self._updateGroup("latitude", values, 8)
         self._updateGroup("altitude", values, 3)
-        self.statusMessage.emit('')
+        self.statusMessage.emit(None)
+
+
 
     def _updateGroup(self, name:str, values:dict, dec:int, sufix:[tuple] = [("",1)]):
         ent = values.get(name)

@@ -1,14 +1,15 @@
 import sys
 
 from tcxmodel import TrackPointsModel, TrackPointModel, TCXLoader
-from internalWidgets import StatusBarGroupBox, QtSliderFilterWidgetPlugin
+from internalWidgets import QtSliderFilterWidgetPlugin
+from gui.main_remaster_ui import Ui_MainWindow
+from statusBar import StatusBarGroupBox, StatusMessage
 
 from gui.DockWidget import MapDockWidget, StatisticsDockWidget, FileInfoDockWidget, FilterDockWidget, ProcessingDockWidget, MarkingDockWidget
-from gui.main_remaster_ui import Ui_MainWindow
-
-from PySide6.QtGui import QPalette
-from PySide6.QtCore import Qt, QObject, QTimer, QModelIndex
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication, QAbstractItemDelegate, QColorDialog
+from AbstractModelWidget import AbstractModelWidget
+from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
 import gpstracker_rc
 
 sys.argv.append("--disable-web-security")
@@ -28,21 +29,18 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.actionOpen.triggered.connect(self._onOpenFile)
         self.actionExit.triggered.connect(self._onExit)
         self.actionClear.triggered.connect(self._onClear)
-
         self.app = app
         self.model = TrackPointsModel(palette=app.palette())
         self.tableView.setModel(self.model)
         self.tableView.resizeColumnsToContents()
         self._applyDelegates()
-        self.progress = StatusBarGroupBox(parent=self.statusbar)
-        self.statusbar.addPermanentWidget(self.progress, 1)
+        self.statusInfoBar = StatusBarGroupBox(parent=self.statusbar)
+        self.statusbar.addPermanentWidget(self.statusInfoBar, 1)
         # self._noDataDisable(False)
         # self.pushButtonFind.clicked.connect(self._onFindButton)
         # self.pushButtonFindClear.clicked.connect(self._onFindButton)
 
         # self.pushButtonMarkStat.clicked.connect(lambda: self.model.markStationary(self.spinBoxMarkStatSelectRange.value()))
-
-        self._connectSignals()
 
         # adding slider -------------------------------------------
         self.trimmerSlider = QtSliderFilterWidgetPlugin(self, self.model)
@@ -57,7 +55,6 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.dockFileInfo = FileInfoDockWidget(self, self.tcxLoader)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFileInfo)
-        self.dockFileInfo.statusMessage.connect(self.progress.updateTimerMessage)
 
         self.dockFilter = FilterDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFilter)
@@ -73,57 +70,37 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.tabifyDockWidget(self.dockFileInfo, self.dockProcessing)
         self.tabifyDockWidget(self.dockFileInfo, self.dockMarking)
         # connect signals
+        self._connectSignalsToStatusBar()
         self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)
         self.model.clearData()
 
+    def _connectSignalsToStatusBar(self):
+        self.model.mainSeriesLengthChanged.connect(self.statusInfoBar.updateTackLen)
+        self.model.trimRangeChanged.connect(self.statusInfoBar.updateTrimmerLen)
 
-
-    # def _markStationarySelectColor(self):
-    #     color = QColorDialog.getColor()
-    #     if color.isValid():
-    #         pal = QPalette()
-    #         pal.setColor(QPalette.ColorRole.Button, color)
-    #         self.markStatSelColor.setPalette(pal)
-
-    def _connectSignals(self):
-        # self.model.mainSeriesLengthChanged.connect(lambda x: self.slider.setMainRange(1 if x!=0 else 0, x))
-        # self.slider.selectedIntervalChanged.connect(self.model.trimRows)
-
-        # self.slider.selectedIntervalChanged.connect(lambda val: print("selectedIntervalChanged", val))
-        # self.slider.selectedIntervalChanged.connect(lambda val: self._noDataDisable(val[1]-val[0]>0))
-        # self.slider.selectionCountChanged.connect(self.progress.updateSelection)
-        # self.model.mainSeriesLengthChanged.connect(self.progress.updateTackPoints)
-        # self.timerClear.timeout.connect(lambda: self.progress.updateTimerMessage.emit(''))
-        # self.timerClear.timeout.connect(lambda: self.progress.updateProgress.emit(0))
-        self.model.statusMessage.connect(self.progress.updateTimerMessage)
-        # self.editFindBySpeed.textChanged.connect(lambda x: print(x))
-        self.model.workingProgress.connect(self.progress.updateProgress)
-        #debug
-        # self.slider.selectedMaxIntervalChanged.connect(lambda val: print("maxChanged", val))
-        # self.slider.selectedMinIntervalChanged.connect(lambda val: print("minChanged", val))
-
-    # def _noDataDisable(self, enabled:bool):
-    #     self.slider.setEnabled(enabled)
-        # self.tabProcessing.setEnabled(enabled)
-        # self.tabFiltering.setEnabled(enabled)
+        self.model.statusMessage.connect(self.statusInfoBar.updateMessage)
+        self.model.workingProgress.connect(self.statusInfoBar.updateProgress)
+        for _, item in vars(self).items():
+            if isinstance(item, AbstractModelWidget):
+                item.statusMessage.connect(self.statusInfoBar.updateMessage)
+                pass
 
     def _onOpenFile(self):
+        self.statusInfoBar.updateMessage.emit(StatusMessage('Loading file...'))
         file_dialog = QFileDialog()
         file_name, _ = file_dialog.getOpenFileName(self, 'Open File', '', 'All Files (*.tcx)')
         if not file_name:
             return
         self.fileName = file_name
-        # self.labelFilePath.setText(file_name)
-
-        self.tcxLoader.workingProgress.connect(self.progress.updateProgress)
+        self.tcxLoader.workingProgress.connect(self.statusInfoBar.updateProgress)
         self.tcxLoader.load_tcx_file(file_name)
         self.model.loadData(self.tcxLoader.getTrackPoints())
         self.tableView.resizeColumnsToContents()
+        self.statusInfoBar.updateMessage.emit(None)
 
 
     def _onSaveFile(self):
-        self.progress.hide()
-        print('Save file')
+        self.statusInfoBar.updateMessage.emit(StatusMessage('Loading file...', 10000, QColor('green')))
 
     def _onExit(self):
         self.app.exit()

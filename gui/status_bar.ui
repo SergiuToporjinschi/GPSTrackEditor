@@ -55,9 +55,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="labelTimmerMessage">
-     <property name="styleSheet">
-      <string notr="true">color: red</string>
+    <widget class="QLabel" name="labelMessage">
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </item>
@@ -100,7 +100,7 @@
         </size>
        </property>
        <property name="text">
-        <string>Track points:</string>
+        <string>Trim: </string>
        </property>
        <property name="scaledContents">
         <bool>true</bool>
@@ -128,7 +128,7 @@
         <string>0</string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
        </property>
        <property name="textInteractionFlags">
         <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -143,17 +143,11 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="minimumSize">
-        <size>
-         <width>8</width>
-         <height>0</height>
-        </size>
-       </property>
        <property name="text">
-        <string>/</string>
+        <string>Points: </string>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -259,7 +253,7 @@
   </connection>
   <connection>
    <sender>GroupBox</sender>
-   <signal>updateSelection(int)</signal>
+   <signal>updateTrimmerLen(int)</signal>
    <receiver>labelSelectionCntVal</receiver>
    <slot>setNum(int)</slot>
    <hints>
@@ -275,7 +269,7 @@
   </connection>
   <connection>
    <sender>GroupBox</sender>
-   <signal>updateTackPoints(int)</signal>
+   <signal>updateTackLen(int)</signal>
    <receiver>labelTotalCntVal</receiver>
    <slot>setNum(int)</slot>
    <hints>
@@ -289,28 +283,11 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>GroupBox</sender>
-   <signal>updateTimerMessage(QString)</signal>
-   <receiver>labelTimmerMessage</receiver>
-   <slot>setText(QString)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>444</x>
-     <y>12</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>202</x>
-     <y>12</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
  <slots>
   <signal>updateProgress(int)</signal>
-  <signal>updateSelection(int)</signal>
-  <signal>updateTackPoints(int)</signal>
-  <signal>updateTimerMessage(QString)</signal>
+  <signal>updateTrimmerLen(int)</signal>
+  <signal>updateTackLen(int)</signal>
   <slot>selectionLenChanged(int)</slot>
   <slot>progressChanged(int)</slot>
  </slots>
