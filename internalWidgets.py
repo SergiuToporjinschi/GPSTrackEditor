@@ -1,21 +1,22 @@
-import typing, os, json
-from qtpy.QtCore import Signal, QUrl
+# https://pyapp-kit.github.io/superqt/widgets/
+
+from qtpy.QtCore import Signal
 from superqt import QRangeSlider
+
+from AbstractModelWidget import AbstractModelWidget
 
 from gui.slider_filter_ui import Ui_SliderFilter
 from gui.status_bar_ui import Ui_GroupBox
-from gui.map_dock_ui import Ui_DockWidget
 
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtWidgets import QFrame, QWidget, QDockWidget
-from PySide6.QtWebEngineCore import QWebEngineSettings
-from PySide6.QtWebChannel import QWebChannel
+from PySide6.QtWidgets import QFrame
 
 class StatusBarGroupBox(QFrame, Ui_GroupBox):
     updateProgress = Signal(int)
     updateSelection = Signal(int)
     updateTackPoints = Signal(int)
     updateTimerMessage = Signal(str)
+
     def __init__(self, parent = None) -> None:
         super().__init__(parent)
         self.setupUi(self)
@@ -27,79 +28,104 @@ class StatusBarGroupBox(QFrame, Ui_GroupBox):
         self.timerClear.timeout.connect(lambda: self.updateTimerMessage.emit(''))
         self.timerClear.timeout.connect(lambda: self.updateProgress.emit(0))
 
-class QtSliderFilterWidgetPlugin(QFrame, Ui_SliderFilter):
-    selectedIntervalChanged = Signal(tuple) #spinner changed or slider changed in any way or any cain
-    selectedMinIntervalChanged = Signal(int) #min spinner changed
-    selectedMaxIntervalChanged = Signal(int) #max spinner changed
+class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
+    trimmerChanged = Signal(tuple) #spinner changed or slider changed in any way or any cain
 
     selectionCountChanged = Signal(int) #When selection in slider changed
     selectionCnt = 0
 
-    def __init__(self, parent = None) -> None:
-        super().__init__(parent)
-        self.setupUi(self)
+    mainSeriesMin: 1 # min value on current main series
+    mainSeriesMax: 1 # max value on current main series
+
+    _min = 1 # current min value
+    _max = 1 # current max value
+
+    def _setupUi(self) -> None:
         self._insertRangeSlider()
-        self.min = 0
-        self.max = 0
+        self._min = 1
+        self._max = 1
+        self.trimmerChanged.connect(self.model.trimRows)
+        self.model.mainSeriesLengthChanged.connect(lambda value: self.setMainRange(1, value))
 
     def _insertRangeSlider(self):
+        self.setEnabled(False)
         self.sliderFilter = QRangeSlider(self)
         self.sliderFilter.setOrientation(Qt.Orientation.Horizontal)
         self.sliderFilter.setObjectName("verticalSlider")
         self.sliderFilter.setRange(1, 2)
         self.sliderFilter.applyMacStylePatch()
-        self.sliderFilter.setSliderPosition([1, 1])
-
+        self.sliderFilter.setSliderPosition([self._max, self._min])
+        self.spinBoxRangeMax.setValue(self._max)
+        self.spinBoxRangeMin.setValue(self._min)
         self.horizontalLayout.insertWidget(1, self.sliderFilter, 1)
-        self.sliderFilter.valueChanged.connect(self.sliderChanged)
-        self.sliderFilter.valueChanged.connect(self.selectedIntervalChanged)
 
         self.spinBoxRangeMax.valueChanged.connect(self.maxSpinnerChanged)
-        self.spinBoxRangeMax.valueChanged.connect(self.selectedMaxIntervalChanged)
-
         self.spinBoxRangeMin.valueChanged.connect(self.minSpinnerChanged)
-        self.spinBoxRangeMin.valueChanged.connect(self.selectedMinIntervalChanged)
+        self.sliderFilter.valueChanged.connect(self.sliderValueChanged)
 
     def setMainRange(self, min:int, max:int):
         if min > max: raise ValueError("Value error for setting range Max < Min!!!")
-        if min == self.min and max == self.max: return
-        self.min = min
-        self.max = max
-        self.spinBoxRangeMin.setRange(min, max)
-        self.spinBoxRangeMax.setRange(min, max)
-        self.sliderFilter.setRange(min, max if max != min else min + 1)
+        if min == self._min and max == self._max: return
+
+        self.mainSeriesMin = min
+        self.mainSeriesMax = max
+        self._min = min
+        self._max = max
+
+        self._blockAllSignals(True)
+        self.spinBoxRangeMin.setRange(min, max - 1)
+        self.spinBoxRangeMax.setRange(min + 1, max)
+
+        self.sliderFilter.setRange(min, max if max > min else min + 1)
 
         self.spinBoxRangeMin.setValue(min)
         self.spinBoxRangeMax.setValue(max)
+
         self.sliderFilter.setSliderPosition([min, max])
-        self._updateSelectionCnt(max-min)
-        self.setEnabled(self.selectionCnt > 1)
+        self._blockAllSignals(False)
+        self._trimmerChanged()
+        self.setEnabled(self._max - self._min > 1)
 
-    def minSpinnerChanged(self, value):
-        min, max = self.sliderFilter.sliderPosition()
-        min = int(min)
-        max = int(max)
-        self.sliderFilter.setSliderPosition((value, max))
-        self._updateSelectionCnt(max - value)
 
-    def maxSpinnerChanged(self, value):
-        min, max = self.sliderFilter.sliderPosition()
-        min = int(min)
-        max = int(max)
-        self.sliderFilter.setSliderPosition((min, value))
-        self._updateSelectionCnt(value - min)
-
-    def sliderChanged(self, val):
-        min, max = val
+    def sliderValueChanged(self, tuple):
+        min, max = tuple
+        self._blockAllSignals(True)
         if self.spinBoxRangeMin.value() != int(min):
             self.spinBoxRangeMin.setValue(int(min))
+            self.spinBoxRangeMax.setRange(int(min) + 1, self.mainSeriesMax)
 
         if self.spinBoxRangeMax.value() != int(max):
             self.spinBoxRangeMax.setValue(int(max))
+            self.spinBoxRangeMin.setRange(self.mainSeriesMin, int(max) - 1)
+        self._blockAllSignals(False)
+        self._trimmerChanged()
+        pass
 
-    def _updateSelectionCnt(self, val):
-        val = val + 1
-        if self.selectionCnt != val:
-            self.selectionCnt = val
-            self.selectionCountChanged.emit(val)
+    def minSpinnerChanged(self, value):
+        self._blockAllSignals(True)
+        self.sliderFilter.setSliderPosition((value, self._max))
+        self.spinBoxRangeMax.setRange(value + 1, self.mainSeriesMax)
+        self._blockAllSignals(False)
+        self._trimmerChanged()
+        pass
 
+    def maxSpinnerChanged(self, value):
+        self._blockAllSignals(True)
+        self.sliderFilter.setSliderPosition((self._min, value))
+        self.spinBoxRangeMin.setRange(self.mainSeriesMin, value-1)
+        self._blockAllSignals(False)
+        self._trimmerChanged()
+        pass
+
+    def _trimmerChanged(self):
+        if (self.spinBoxRangeMin.value() != int(self._min) or
+            self.spinBoxRangeMax.value() != int(self._max)):
+            self._min = self.spinBoxRangeMin.value()
+            self._max = self.spinBoxRangeMax.value()
+            self.trimmerChanged.emit((self._min, self._max))
+            pass
+
+    def _blockAllSignals(self, isBlocked: bool):
+        self.spinBoxRangeMax.blockSignals(isBlocked)
+        self.spinBoxRangeMin.blockSignals(isBlocked)
+        self.sliderFilter.blockSignals(isBlocked)

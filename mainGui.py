@@ -1,7 +1,7 @@
 import sys
 
 from tcxmodel import TrackPointsModel, TrackPointModel, TCXLoader
-from internalWidgets import StatusBarGroupBox
+from internalWidgets import StatusBarGroupBox, QtSliderFilterWidgetPlugin
 
 from gui.DockWidget import MapDockWidget, StatisticsDockWidget, FileInfoDockWidget, FilterDockWidget, ProcessingDockWidget, MarkingDockWidget
 from gui.main_remaster_ui import Ui_MainWindow
@@ -12,11 +12,9 @@ from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication, QAbstractI
 import gpstracker_rc
 
 sys.argv.append("--disable-web-security")
-# class itDel(QAbstractItemDelegate):
-#     def __init__(self, parent: QObject | None = ...) -> None:
-#         super().__init__()
-#     pass
+
 gpstracker_rc.qInitResources()
+
 class mainGUI(QMainWindow, Ui_MainWindow):
     fileName = ''
     tcx = None
@@ -38,7 +36,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self._applyDelegates()
         self.progress = StatusBarGroupBox(parent=self.statusbar)
         self.statusbar.addPermanentWidget(self.progress, 1)
-        self._noDataDisable(False)
+        # self._noDataDisable(False)
         # self.pushButtonFind.clicked.connect(self._onFindButton)
         # self.pushButtonFindClear.clicked.connect(self._onFindButton)
 
@@ -46,11 +44,15 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self._connectSignals()
 
+        # adding slider -------------------------------------------
+        self.trimmerSlider = QtSliderFilterWidgetPlugin(self, self.model)
+        self.sliderLayout.addWidget(self.trimmerSlider)
+
         # adding docks---------------------------------------------
-        self.mapWindow = MapDockWidget(parent=self, model=self.model, selectionModel=self.tableView.selectionModel())
+        self.mapWindow = MapDockWidget(self, self.model, self.tableView.selectionModel())
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.mapWindow)
 
-        self.dockStatistics = StatisticsDockWidget(parent=self, model=self.model)
+        self.dockStatistics = StatisticsDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockStatistics)
 
         self.dockFileInfo = FileInfoDockWidget(self, self.tcxLoader)
@@ -60,7 +62,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.dockFilter = FilterDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFilter)
 
-        self.dockProcessing = ProcessingDockWidget(parent=self, model=self.model)
+        self.dockProcessing = ProcessingDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockProcessing)
 
         self.dockMarking = MarkingDockWidget(self, self.model)
@@ -84,13 +86,13 @@ class mainGUI(QMainWindow, Ui_MainWindow):
     #         self.markStatSelColor.setPalette(pal)
 
     def _connectSignals(self):
-        self.model.mainSeriesLengthChanged.connect(lambda x: self.slider.setMainRange(1 if x!=0 else 0, x))
-        self.slider.selectedIntervalChanged.connect(self.model.trimRows)
+        # self.model.mainSeriesLengthChanged.connect(lambda x: self.slider.setMainRange(1 if x!=0 else 0, x))
+        # self.slider.selectedIntervalChanged.connect(self.model.trimRows)
 
         # self.slider.selectedIntervalChanged.connect(lambda val: print("selectedIntervalChanged", val))
-        self.slider.selectedIntervalChanged.connect(lambda val: self._noDataDisable(val[1]-val[0]>0))
-        self.slider.selectionCountChanged.connect(self.progress.updateSelection)
-        self.model.mainSeriesLengthChanged.connect(self.progress.updateTackPoints)
+        # self.slider.selectedIntervalChanged.connect(lambda val: self._noDataDisable(val[1]-val[0]>0))
+        # self.slider.selectionCountChanged.connect(self.progress.updateSelection)
+        # self.model.mainSeriesLengthChanged.connect(self.progress.updateTackPoints)
         # self.timerClear.timeout.connect(lambda: self.progress.updateTimerMessage.emit(''))
         # self.timerClear.timeout.connect(lambda: self.progress.updateProgress.emit(0))
         self.model.statusMessage.connect(self.progress.updateTimerMessage)
@@ -100,8 +102,8 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         # self.slider.selectedMaxIntervalChanged.connect(lambda val: print("maxChanged", val))
         # self.slider.selectedMinIntervalChanged.connect(lambda val: print("minChanged", val))
 
-    def _noDataDisable(self, enabled:bool):
-        self.slider.setEnabled(enabled)
+    # def _noDataDisable(self, enabled:bool):
+    #     self.slider.setEnabled(enabled)
         # self.tabProcessing.setEnabled(enabled)
         # self.tabFiltering.setEnabled(enabled)
 

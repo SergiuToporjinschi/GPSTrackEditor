@@ -20,8 +20,6 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QFrame, QHeaderV
     QMainWindow, QMenu, QMenuBar, QSizePolicy,
     QStatusBar, QTableView, QToolBar, QVBoxLayout,
     QWidget)
-
-from internalWidgets import QtSliderFilterWidgetPlugin
 import gpstracker_rc
 
 class Ui_MainWindow(object):
@@ -100,15 +98,10 @@ class Ui_MainWindow(object):
 
         self.verticalTableLayout.addWidget(self.tableView)
 
-        self.slider = QtSliderFilterWidgetPlugin(self.frame)
-        self.slider.setObjectName(u"slider")
-        self.slider.setFrameShape(QFrame.StyledPanel)
-        self.slider.setFrameShadow(QFrame.Raised)
-        self.verticalLayout = QVBoxLayout(self.slider)
-        self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalLayout.setContentsMargins(0, 0, 0, 0)
+        self.sliderLayout = QVBoxLayout()
+        self.sliderLayout.setObjectName(u"sliderLayout")
 
-        self.verticalTableLayout.addWidget(self.slider)
+        self.verticalTableLayout.addLayout(self.sliderLayout)
 
 
         self.verticalLayout_2.addWidget(self.frame)

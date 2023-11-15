@@ -1,13 +1,13 @@
 import xml.etree.ElementTree as ET
-import pytz, re, typing
+import pytz, typing
 from datetime import datetime
 from typing import List, Any, Union
-from qtpy.QtCore import Signal, Slot
+from qtpy.QtCore import Signal
 
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersistentModelIndex
 
-from Utilities import TrimmerInterval
+from TrimmerInterval import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 
 
@@ -53,6 +53,8 @@ class Marker:
             return self.name == other.name
         return False
 
+
+
 class TrackPointModel:
     colNames =  ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Distance (m)', 'Calculated distance (m)', 'Speed (km/h)', 'Calculated speed (km/h)', 'Hart rate (bpm)', 'Sensor state']
     colInfo = {
@@ -81,8 +83,6 @@ class TrackPointModel:
             'sensorState': sensorState
         }
         pass
-
-
 
     def getValueByColumnIndex(self, index: int):
         return self.getValueByColumnName(TrackPointModel.indexToName(index))
@@ -140,26 +140,26 @@ class TrackPointsModel(QAbstractTableModel):
     statusMessage = Signal(str)
     workingProgress = Signal(int)
 
-    trimmerInterval = TrimmerInterval(0,0)
-    trackPoints = []
+    trimmerInterval = TrimmerInterval(1, 1)
+    # trackPoints = []
     allTrackPoints = []
 
     def __init__(self, trackPoints: List[TrackPointModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
         self.allTrackPoints = trackPoints or []
-        self.trackPoints = self.allTrackPoints
+        # self.trackPoints = self.allTrackPoints
         self.palette = palette
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
-        # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
 
     def loadData(self, trackPoints: List[TrackPointModel]):
         self.beginResetModel()
         self.allTrackPoints.clear()
         self.allTrackPoints.extend(trackPoints)
-        self.trackPoints = self.allTrackPoints
+        # self.trackPoints = self.allTrackPoints
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
+
         # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
 
         # self.trimerInterval.min = 1

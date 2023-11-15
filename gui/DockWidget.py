@@ -1,6 +1,7 @@
 import typing, os, json, re
 from qtpy.QtCore import Signal, Slot
-from tcxmodel import TrackPointsModel, TCXLoader, TrackPointModel, Marker
+from tcxmodel import TrackPointsModel, TCXLoader, Marker
+from AbstractModelWidget import AbstractModelWidget
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -8,7 +9,6 @@ from gui.file_info_dock_ui import Ui_DockWidget as fileInfoDock
 from gui.filter_dock_ui import Ui_DockWidget as filterDock
 from gui.processing_dock_ui import Ui_DockWidget as processingDock
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
-from abc import ABC, abstractmethod
 
 from PySide6.QtGui import QPalette, QColor, QColorConstants
 from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
@@ -16,25 +16,9 @@ from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
-class AbstractModelDockWidget:
-    startProcessing = Signal() #before processing data (to clear the status maybe)
-    statusMessage = Signal(str) #sending messages for status bar
-    progressUpdate = Signal(int) #incrementing the progress bar
-    finishedProcessing = Signal() #processing finished (for resetting the status bar maybe)
-
-    def __init__(self, parent: typing.Optional[QWidget] = ..., model:typing.Optional[TrackPointsModel]=...) -> None:
-        super().__init__(parent)
-        self.model = model
-        self.setupUi(self)
-        self._setupUi()
-
-    @abstractmethod
-    def _setupUi(self):
-        pass
 
 
-
-class MarkingDockWidget(AbstractModelDockWidget, QDockWidget, markingDock):
+class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
     colorStationaryMarking: QColor = QColorConstants.Yellow
     pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
@@ -147,7 +131,7 @@ class MarkingDockWidget(AbstractModelDockWidget, QDockWidget, markingDock):
 
 
 
-class ProcessingDockWidget(AbstractModelDockWidget, QDockWidget, processingDock):
+class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
 
     def _setupUi(self):
         self.buttonCalculateSpeed.clicked.connect(self._calculateSpeed)
@@ -169,13 +153,13 @@ class ProcessingDockWidget(AbstractModelDockWidget, QDockWidget, processingDock)
 
 
 
-class FilterDockWidget(AbstractModelDockWidget, QDockWidget, filterDock):
+class FilterDockWidget(AbstractModelWidget, QDockWidget, filterDock):
     def _setupUi(self):
         self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
 
 
 
-class FileInfoDockWidget(AbstractModelDockWidget, QDockWidget, fileInfoDock):
+class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
 
     def __init__(self, parent: typing.Optional[QWidget] = ..., tcxLoader:typing.Optional[TCXLoader]=...):
         super().__init__(parent, None)
@@ -193,7 +177,7 @@ class FileInfoDockWidget(AbstractModelDockWidget, QDockWidget, fileInfoDock):
 
 
 
-class StatisticsDockWidget(AbstractModelDockWidget, QDockWidget, statisticsDock):
+class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
 
     @Slot()
     def calculateStatistics(self):
@@ -247,7 +231,7 @@ class StatisticsDockWidget(AbstractModelDockWidget, QDockWidget, statisticsDock)
 
 
 
-class MapDockWidget(AbstractModelDockWidget, QDockWidget, mapDock):
+class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
 
     mainSeriesChanged = Signal(str)
     markPoint = Signal(str)
