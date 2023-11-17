@@ -1,16 +1,17 @@
-import xml.etree.ElementTree as ET
-import pytz, typing
+import typing
 from datetime import datetime
-from typing import List, Any, Union
+from typing import Any, Union, Type
+import types
 from qtpy.QtCore import Signal
 from statusBar import StatusMessage
 
 from PySide6.QtGui import QPalette, QColor
-from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QObject, QPersistentModelIndex
+from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QPersistentModelIndex
 
 from TrimmerInterval import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
-
+from TrackDataDTO import TrackDataDTO
+from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget
 
 class Marker:
     _name: str = None
@@ -54,80 +55,144 @@ class Marker:
             return self.name == other.name
         return False
 
+class TCXColInfoModel:
+    columnTitle: str = None
+    dataType: Type = None
+    delegate: QStyledItemDelegate = None
+    dtoAttribute: str = None
+
+    def __init__(self, dtoAttribute: str, colTile: str, dataType: Type, cellDelegate: QStyledItemDelegate) -> None:
+        self.columnTitle = colTile
+        self.dataType = dataType
+        self.delegate = cellDelegate
+        self.dtoAttribute = dtoAttribute
 
 
-class TrackPointModel:
-    colNames =  ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Distance (m)', 'Calculated distance (m)', 'Speed (km/h)', 'Calculated speed (km/h)', 'Hart rate (bpm)', 'Sensor state']
-    colInfo = {
-            'time': (datetime, DateTimeDelegate('dd-MM-yyyy HH:mm:ss.z t','%d-%m-%Y %H:%M:%S.%f %Z')),
-            'latitude': (float, FloatDelegate(-90, 90, 8)),
-            'longitude': (float, FloatDelegate(-180, 180, 8)),
-            'altitude': (float, FloatDelegate(-200, 9000, 3)),
-            'distance': (float, FloatDelegate(-20000, 20000, 16)),
-            'calculatedDistance': (float, FloatDelegate(-20000, 20000, 16)),
-            'speed': (float, FloatDelegate(0, 1000, 12)),
-            'calculatedSpeed': (float, FloatDelegate(0, 1000, 12)),
-            'hartRate': (int, FloatDelegate(0, 250, 0)),
-            'sensorState': (str, ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent')))
-        }
-    def __init__(self, time: datetime, latitude: float, longitude:float, altitude:float, hartRate: int, distance: float, speed: float, sensorState: str=None, calculatedDistance:float=None, calculatedSpeed: float=None) -> None:
-        self.data = {
-            'time': time,
-            'latitude': latitude,
-            'longitude': longitude,
-            'altitude': altitude,
-            'distance': distance,
-            'calculatedDistance': calculatedDistance,
-            'speed': speed,
-            'calculatedSpeed': calculatedSpeed,
-            'hartRate': hartRate,
-            'sensorState': sensorState
-        }
+
+class TCXColModel:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._buildModel()
+        return cls._instance
+
+    def _buildModel(self) -> None:
+        self._colInfo: list[TCXColInfoModel] = []
+        self._colInfo.append(TCXColInfoModel('time', 'Time', datetime, DateTimeDelegate('dd-MM-yyyy HH:mm:ss.z t','%d-%m-%Y %H:%M:%S.%f %Z')))
+        self._colInfo.append(TCXColInfoModel('latitude', 'Latitude', float, FloatDelegate(-90, 90, 8)))
+        self._colInfo.append(TCXColInfoModel('longitude', 'Longitude', float, FloatDelegate(-180, 180, 8)))
+        self._colInfo.append(TCXColInfoModel('altitude', 'Altitude (m)', float, FloatDelegate(-200, 9000, 3)))
+        self._colInfo.append(TCXColInfoModel('distance', 'Distance (m)', float, FloatDelegate(-20000, 20000, 16)))
+        self._colInfo.append(TCXColInfoModel('calculatedDistance', 'Calculated distance (m)', float, FloatDelegate(-20000, 20000, 16)))
+        self._colInfo.append(TCXColInfoModel('speed', 'Speed (km/h)', float, FloatDelegate(0, 1000, 12)))
+        self._colInfo.append(TCXColInfoModel('calculatedSpeed', 'Calculated speed (km/h)', float, FloatDelegate(0, 1000, 12)))
+        self._colInfo.append(TCXColInfoModel('hartRate', 'Hart rate (bpm)', int, FloatDelegate(0, 250, 0)))
+        self._colInfo.append(TCXColInfoModel('sensorState', 'Sensor state', str, ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))))
         pass
 
-    def getValueByColumnIndex(self, index: int):
-        return self.getValueByColumnName(TrackPointModel.indexToName(index))
-
-    def getValueByColumnName(self, colName: str):
-        return self.data[colName]
-
-    def setValue(self, col:str|int, value: Any):
-        if isinstance(col, int):
-            col = TrackPointModel.indexToName(col)
-        self.data[col] = self._checkValueType(col, value)
-        pass
-
-    def _checkValueType(self, col: str, value: Any):
-        colType, _ = TrackPointModel.colInfo[col]
-        if isinstance(value, int) and colType == float:
-            value = float(value)
-        if isinstance(value, float) and colType == int:
-            value = int(value)
-        if not isinstance(value, colType):
-            raise ValueError(f'The {col} should be {colType}')
-        return value
-
-    @staticmethod
-    def getNoOfColumns():
-        return len(TrackPointModel.colInfo)
-
-    @staticmethod
-    def getColDelegate(index: int):
-        _, delegate = TrackPointModel.colInfo[TrackPointModel.indexToName(index)]
-        return delegate
-
-    @staticmethod
-    def indexToName(index: int):
-        return list(TrackPointModel.colInfo.keys())[index]
-
-    @staticmethod
-    def nameToIndex(colName: str):
-        index = 0
-        for key in TrackPointModel.colInfo:
-            if key == colName:
+    def getIndexOfColumnName(self, colName: str):
+        model = TCXColModel()
+        for index in range(0, len(model)):
+            if model[index].dtoAttribute == colName:
                 return index
-            index += 1
-        return -1
+        return None
+
+    def __getitem__(self, index):
+        return self._colInfo[index]
+
+    def __len__(self):
+        return len(self._colInfo)
+
+
+class TCXRowModel:
+    def __init__(self, row: TrackDataDTO) -> None:
+        self.rowData = row
+
+    def __getitem__(self, index):
+        colName = TCXColModel()[index].dtoAttribute
+        return getattr(self.rowData, colName)
+
+    def getValueByColName(self, colName):
+        # [maker for maker in self.markers if maker.name != name]
+        col = [colModel for colModel in TCXColModel() if colModel.dtoAttribute == colName]
+        if col is None:
+            raise Exception('Column does not exists!')
+        return getattr(self.rowData, colName)
+
+# class TrackPointModel:
+#     colNames =  ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Distance (m)', 'Calculated distance (m)', 'Speed (km/h)', 'Calculated speed (km/h)', 'Hart rate (bpm)', 'Sensor state']
+#     colInfo = {
+#             'time': (datetime, DateTimeDelegate('dd-MM-yyyy HH:mm:ss.z t','%d-%m-%Y %H:%M:%S.%f %Z')),
+#             'latitude': (float, FloatDelegate(-90, 90, 8)),
+#             'longitude': (float, FloatDelegate(-180, 180, 8)),
+#             'altitude': (float, FloatDelegate(-200, 9000, 3)),
+#             'distance': (float, FloatDelegate(-20000, 20000, 16)),
+#             'calculatedDistance': (float, FloatDelegate(-20000, 20000, 16)),
+#             'speed': (float, FloatDelegate(0, 1000, 12)),
+#             'calculatedSpeed': (float, FloatDelegate(0, 1000, 12)),
+#             'hartRate': (int, FloatDelegate(0, 250, 0)),
+#             'sensorState': (str, ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent')))
+#         }
+#     def __init__(self, time: datetime, latitude: float, longitude:float, altitude:float, hartRate: int, distance: float, speed: float, sensorState: str=None, calculatedDistance:float=None, calculatedSpeed: float=None) -> None:
+#         self.data = {
+#             'time': time,
+#             'latitude': latitude,
+#             'longitude': longitude,
+#             'altitude': altitude,
+#             'distance': distance,
+#             'calculatedDistance': calculatedDistance,
+#             'speed': speed,
+#             'calculatedSpeed': calculatedSpeed,
+#             'hartRate': hartRate,
+#             'sensorState': sensorState
+#         }
+#         pass
+
+#     def getValueByColumnIndex(self, index: int):
+#         return self.getValueByColumnName(TrackPointModel.indexToName(index))
+
+#     def getValueByColumnName(self, colName: str):
+#         return self.data[colName]
+
+#     def setValue(self, col:str|int, value: Any):
+#         if isinstance(col, int):
+#             col = TrackPointModel.indexToName(col)
+#         self.data[col] = self._checkValueType(col, value)
+#         pass
+
+#     def _checkValueType(self, col: str, value: Any):
+#         colType, _ = TrackPointModel.colInfo[col]
+#         if isinstance(value, int) and colType == float:
+#             value = float(value)
+#         if isinstance(value, float) and colType == int:
+#             value = int(value)
+#         if not isinstance(value, colType):
+#             raise ValueError(f'The {col} should be {colType}')
+#         return value
+
+#     @staticmethod
+#     def getNoOfColumns():
+#         return len(TrackPointModel.colInfo)
+
+#     @staticmethod
+#     def getColDelegate(index: int):
+#         _, delegate = TrackPointModel.colInfo[TrackPointModel.indexToName(index)]
+#         return delegate
+
+#     @staticmethod
+#     def indexToName(index: int):
+#         return list(TrackPointModel.colInfo.keys())[index]
+
+#     @staticmethod
+#     def nameToIndex(colName: str):
+#         index = 0
+#         for key in TrackPointModel.colInfo:
+#             if key == colName:
+#                 return index
+#             index += 1
+#         return -1
 
 
 
@@ -145,11 +210,9 @@ class TrackPointsModel(QAbstractTableModel):
     updateTrackPoints = Signal(int)
     trimmerInterval = TrimmerInterval(1, 1)
 
+    allTrackPoints = list[TCXRowModel]
 
-    # trackPoints = []
-    allTrackPoints = []
-
-    def __init__(self, trackPoints: List[TrackPointModel] = None, palette: QPalette=None ) -> None:
+    def __init__(self, trackPoints: list[TCXRowModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
         self.allTrackPoints = trackPoints or []
         # self.trackPoints = self.allTrackPoints
@@ -157,10 +220,10 @@ class TrackPointsModel(QAbstractTableModel):
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
 
-    def loadData(self, trackPoints: List[TrackPointModel]):
+    def loadData(self, trackPoints: list[TrackDataDTO]):
         self.beginResetModel()
         self.allTrackPoints.clear()
-        self.allTrackPoints.extend(trackPoints)
+        self.allTrackPoints.extend(self._decorateData(trackPoints))
         # self.trackPoints = self.allTrackPoints
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
@@ -174,10 +237,12 @@ class TrackPointsModel(QAbstractTableModel):
         self.mainSeriesChanged.emit()
         self.endResetModel()
 
+    def _decorateData(self, data: list [TrackDataDTO]) -> list[TCXRowModel]:
+        return  [TCXRowModel(item) for item in data][:]
+
     def clearData(self):
         self.beginResetModel()
         self.allTrackPoints.clear()
-        self.trackPoints = self.allTrackPoints
 
         self.trimmerInterval.max = 0
 
@@ -190,15 +255,11 @@ class TrackPointsModel(QAbstractTableModel):
         self.endResetModel()
 
     def indexByColName(self, row: int, column: str, parent: Union[QModelIndex, QPersistentModelIndex] = ...) -> QModelIndex:
-        return self.index(row, TrackPointModel.nameToIndex('calculatedSpeed'))
+        return self.index(row, TCXColModel().getIndexOfColumnName(column))
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
-        if role == Qt.ItemDataRole.DisplayRole:
-            return self.allTrackPoints[self.trimmerInterval.index(index.row())].getValueByColumnIndex(index.column())
-            # return self.allTrackPoints[ index.row()].getValueByColumnIndex(index.column())
-        if role == Qt.ItemDataRole.EditRole:
-            return self.allTrackPoints[self.trimmerInterval.index(index.row())].getValueByColumnIndex(index.column())
-            # return self.trackPoints[index.row()].getValueByColumnIndex(index.column())
+        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
+            return self.allTrackPoints[self.trimmerInterval.index(index.row())][index.column()]
         if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
             selectedColor = None
             for marker in self.markers:
@@ -206,17 +267,17 @@ class TrackPointsModel(QAbstractTableModel):
                     selectedColor = marker.color
             if selectedColor is not None: return selectedColor
 
-    def dataByColNames(self, row: int, colNames: [str], role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
+    def dataByColNames(self, row: int, colNames: [str]) -> Any:
         response = ()
         for colName in colNames:
-            response += (self.data(self.index(row, TrackPointModel.nameToIndex(colName)), role), )
+            response += (self.allTrackPoints[row].getValueByColName(colName), )
         return response
 
     def dataByColName(self, row: int, colName: str, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
-        return self.data(self.index(row, TrackPointModel.nameToIndex(colName)), role)
+        return self.data(self.index(row, TCXColModel().getIndexOfColumnName(colName)), role)
 
-    def dataByIndex(self, row: int, col: int, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
-        return self.data(self.index(row, col), role), TrackPointModel.indexToName(col)
+    def dataAndAttributeByIndex(self, row: int, col: int, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
+        return self.data(self.index(row, col), role), TCXColModel()[col].dtoAttribute
 
     def setData(self, index: QModelIndex, value: Any, role: int = ...) -> bool:
         if role == Qt.ItemDataRole.EditRole:
@@ -229,15 +290,14 @@ class TrackPointsModel(QAbstractTableModel):
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.trimmerInterval)
-        # return len(self.allTrackPoints)
 
     def columnCount(self, parent: QModelIndex = ...) -> int:
-        return TrackPointModel.getNoOfColumns()
+        return len(TCXColModel())
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> Any:
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal:
-                return TrackPointModel.colNames[section]
+                return TCXColModel()[section].columnTitle
         return super().headerData(section, orientation, role)
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
@@ -245,16 +305,16 @@ class TrackPointsModel(QAbstractTableModel):
 
     def sortBy(self, column:str, order: Qt.SortOrder = ...):
         self.beginResetModel()
-        def key_function(item):
-            val = item.data[column]
+        def key_function(item:TCXRowModel):
+            val = item.getValueByColName(column)
             return val if val is not None else 0
 
-        self.trackPoints.sort(key=key_function, reverse=order == Qt.SortOrder.DescendingOrder)
+        self.allTrackPoints.sort(key=key_function, reverse=order == Qt.SortOrder.DescendingOrder)
         self.contentChanged.emit()
         self.endResetModel()
 
     def sort(self, column:int, order: Qt.SortOrder = ...):
-        self.sortBy(TrackPointModel.indexToName(column), order)
+        self.sortBy(TCXColModel()[column].dtoAttribute, order)
 
     def trimRows(self, interval: tuple = None):
         self.beginResetModel()
@@ -279,156 +339,3 @@ class TrackPointsModel(QAbstractTableModel):
         self.markers[:] = [maker for maker in self.markers if maker.name != name]
         self.endResetModel()
         pass
-
-class TCXLoader(QObject):
-    workingProgress = Signal(int)
-    fileDataChanged = Signal(dict)
-    def __init__(self, file_path = None):
-        super().__init__()
-        self.data = {
-            'activity': {
-                'file': file_path,
-                'lapsCount': None,
-                'trackPointsCount': None,
-                'type': None,
-                'id': None,
-                'notes': None,
-                'start_time': None
-            },
-            'laps': [],
-            'trackpoints': [],
-        }
-        self.fileDataChanged.emit(self.data['activity'])
-
-    def load_tcx_file(self, file_path):
-        try:
-            tree = ET.parse(file_path)
-            root = tree.getroot()
-            # Extract activity information
-            activity = root.find(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Activity")
-            self.data['activity']['file'] = file_path
-            self.data['activity']['type'] = activity.attrib['Sport']
-            self.data['activity']['id'] = activity.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Id").text
-            self.data['activity']['notes'] = self._getNotes(activity)
-            # self.data['calories'] = lap.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Calories").text
-            # Extract lap data
-            laps = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Lap")
-            for index, lap in enumerate(laps):
-                lap_data = {
-                    'start_time': datetime.strptime(lap.get("StartTime"), "%Y-%m-%dT%H:%M:%S.%fZ"),
-                    'total_time': float(lap.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}TotalTimeSeconds").text),
-                    'average_hart_rate' : self._getAverageHartRate(lap),
-                    'distance_meters': self._getDistance(lap),
-                    'trigger_method': self._getTriggerMethod(lap),
-                    'max_hart_rate': self._getMaxHartRate(lap),
-                    'max_speed': self._getMaxSpeed(lap),
-                    'intensity': self._getIntensity(lap),
-                    'calories': self._getCalories(lap),
-                    # Add more lap data as needed
-                }
-                self.data['laps'].append(lap_data)
-                self.workingProgress.emit(int((index + 1) * 25 / len(laps)))
-            self.data['activity']['lapsCount'] = len(self.data['laps'])
-
-            # Extract trackpoint data (GPS data, heart rate, etc.)
-            trackpoints = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint")
-            for index, trackpoint in enumerate(trackpoints):
-                time = self._getDateTimeUTC(trackpoint)
-                latitude = self._getLatitude(trackpoint)
-                longitude = self._getLongitude(trackpoint)
-                altitude = self._getAltitude(trackpoint)
-                heart_rate = self._getHartRate(trackpoint)
-                distance = self._getDistance(trackpoint)
-                speed =  self._getSpeedExtension(trackpoint)
-                sensorState = self._getSensorState(trackpoint)
-                self.data['trackpoints'].append(TrackPointModel(time, latitude, longitude, altitude, heart_rate, distance, speed, sensorState))
-                self.workingProgress.emit(int(25 + (index + 1) * 75 / len(trackpoints)))
-            self.data['activity']['start_time'] = self.data['trackpoints'][0].getValueByColumnName('time')
-            self.data['activity']['trackPointsCount'] = len(self.data['trackpoints'])
-            self.fileDataChanged.emit(self.data['activity'])
-        except ET.ParseError as e:
-            print(f"Error parsing TCX file: {e}")
-
-    def getTrackPoints(self):
-        return self.data['trackpoints']
-
-    def getLaps(self):
-        return self.data['laps']
-
-    def getType(self):
-        return self.data['activity']['type']
-
-    def getId(self):
-        return self.data['activity']['id']
-
-    def getNotes(self):
-        return self.data['activity']['notes']
-
-    def getStartTime(self):
-        return self.data['activity']['start_time']
-
-    def _getDateTimeUTC(self, node):
-        strVal = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Time")
-        if strVal.text is None: return None
-        dt = datetime.strptime(strVal.text[:-1] + ' UTC', "%Y-%m-%dT%H:%M:%S.%f %Z")
-        dt = dt.replace(tzinfo=pytz.UTC)
-        return dt
-
-    def _getLatitude(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Position/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}LatitudeDegrees")
-        return  float(value.text) if value is not None else None
-
-    def _getLongitude(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Position/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}LongitudeDegrees")
-        return  float(value.text) if value is not None else None
-
-    def _getNotes(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Notes")
-        return value.text if value is not None else None
-
-    def _getAverageHartRate(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}AverageHeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value")
-        return int(value.text) if value is not None else None
-
-    def _getTriggerMethod(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}TriggerMethod")
-        return value.text if value is not None else None
-
-    def _getMaxSpeed(self,node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaximumSpeed")
-        return float(value.text) if value is not None else None
-
-    def _getMaxHartRate(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}MaximumHeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value")
-        return int(value.text) if value is not None else None
-
-    def _getIntensity(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Intensity")
-        return value.text if value is not None else None
-
-    def _getCalories(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Calories")
-        return int(value.text) if value is not None else None
-
-    def _getAltitude(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}AltitudeMeters")
-        return float(value.text) if value is not None else None
-
-    def _getHartRate(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}HeartRateBpm/{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Value")
-        return int(value.text) if value is not None else None
-
-    def _getDistance(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}DistanceMeters")
-        return float(value.text) if value is not None else None
-
-    def _getSpeedExtension(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Extensions/{http://www.garmin.com/xmlschemas/ActivityExtension/v2}TPX/{http://www.garmin.com/xmlschemas/ActivityExtension/v2}Speed")
-        return float(value.text) if value is not None else None
-
-    def _getSensorState(self, node):
-        value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}SensorState")
-        return value.text if value is not None else None
-
-
-

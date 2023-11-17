@@ -1,6 +1,7 @@
 import typing, os, json, re
 from qtpy.QtCore import Signal, Slot
-from tcxmodel import TrackPointsModel, TCXLoader, Marker
+from tcxmodel import TrackPointsModel, Marker
+from FileLoader import TCXLoader
 from AbstractModelWidget import AbstractModelWidget
 from statusBar import StatusMessage
 
@@ -58,13 +59,13 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         marker = Marker('stationary', [], color, tolerance) if not isinstance(marker, Marker) or marker is None else marker
         marker.indexes.clear()
         prevItem = None
-        for index, item in enumerate(self.model.trackPoints):
+        for index, item in enumerate(self.model.allTrackPoints):
             self.statusMessage.emit(StatusMessage(f'Marking... index {index}'))
-            dist = item.data['distance']
-            prevDist = prevItem.data['distance'] if prevItem is not None else None
+            dist = item.getValueByColName('distance')
+            prevDist = prevItem.getValueByColName('distance') if prevItem is not None else None
             if dist is not None and prevDist is not None and abs(prevDist - dist) <= marker.expression:
                 marker.indexes.append(index)
-                marker.indexes.append(index-1)
+                marker.indexes.append(index - 1)
             prevItem = item
         self._applyMarker(marker)
         self.statusMessage.emit(None)
@@ -80,10 +81,10 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         marker = self._buildCustomMarker() if not isinstance(marker, Marker) or marker is None else marker
         try:
             marker.indexes = []
-            for index, item in enumerate(self.model.trackPoints):
+            for index, item in enumerate(self.model.allTrackPoints):
                 if eval(marker.expression):
                     marker.indexes.append(index)
-        except Exception as e:
+        except Exception:
             self._lastFindDataExpression = None
             self.statusMessage.emit(f"Syntax error (syntax: <=,<,<>><value><&,|>)")
         self._applyMarker(marker)
@@ -112,7 +113,8 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
 
     def _buildCustomMarkerKey(self, key:str, expression: list[tuple]):
         result = ''
-        key = 'item.data["'+key+'"]'
+        # key = 'item.data["'+key+'"]'
+        key = f'item.getValueByColName("{key}")'
         for item in expression:
             item = [key] + [(val.replace('&', 'and').replace('|', 'or').replace('=', '==')) for val in item]
             result += ' '.join(item) + ' '
@@ -169,7 +171,7 @@ class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
 
     def __init__(self, parent: typing.Optional[QWidget] = ..., tcxLoader:typing.Optional[TCXLoader]=...):
         super().__init__(parent, None)
-        tcxLoader.fileDataChanged.connect(self._loadInfo)
+        # tcxLoader.fileDataChanged.connect(self._loadInfo)
 
     @Slot()
     def _loadInfo(self, activityData):
@@ -201,7 +203,7 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
         }
         for row in range(0, self.model.rowCount()):
             for col in range(0, self.model.columnCount()):
-                val, colName = self.model.dataByIndex(row, col, Qt.ItemDataRole.EditRole)
+                val, colName = self.model.dataAndAttributeByIndex(row, col, Qt.ItemDataRole.EditRole)
                 ent = values.get(colName)
                 if val is None:
                     ent['missing'] = ent['missing'] + 1

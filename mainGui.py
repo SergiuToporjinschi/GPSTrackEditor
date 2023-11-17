@@ -1,6 +1,8 @@
 import sys
 
-from tcxmodel import TrackPointsModel, TrackPointModel, TCXLoader
+from tcxmodel import TrackPointsModel, TCXColModel # TrackPointModel
+from FileLoader import TCXLoader
+
 from internalWidgets import QtSliderFilterWidgetPlugin
 from gui.main_remaster_ui import Ui_MainWindow
 from statusBar import StatusBarGroupBox, StatusMessage
@@ -15,6 +17,7 @@ import gpstracker_rc
 sys.argv.append("--disable-web-security")
 
 gpstracker_rc.qInitResources()
+
 
 class mainGUI(QMainWindow, Ui_MainWindow):
     fileName = ''
@@ -80,6 +83,8 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.model.statusMessage.connect(self.statusInfoBar.updateMessage)
         self.model.workingProgress.connect(self.statusInfoBar.updateProgress)
+
+        self.model.mainSeriesChanged.connect(self.tableView.resizeColumnsToContents)
         for _, item in vars(self).items():
             if isinstance(item, AbstractModelWidget):
                 item.statusMessage.connect(self.statusInfoBar.updateMessage)
@@ -92,10 +97,13 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         if not file_name:
             return
         self.fileName = file_name
-        self.tcxLoader.workingProgress.connect(self.statusInfoBar.updateProgress)
+        # self.tcxLoader.fileDataChanged.connect(self.model.loadData)
+        # self.tcxLoader.workingProgress.connect(self.statusInfoBar.updateProgress)
+        # thread = MyThread(self.tcxLoader.load_tcx_file, (file_name))
+        # thread.start()
+        self.tcxLoader.trackPointsChanged.connect(self.model.loadData)
         self.tcxLoader.load_tcx_file(file_name)
-        self.model.loadData(self.tcxLoader.getTrackPoints())
-        self.tableView.resizeColumnsToContents()
+        # self.model.loadData(self.tcxLoader.getTrackPoints())
         self.statusInfoBar.updateMessage.emit(None)
 
 
@@ -108,7 +116,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
     def _applyDelegates(self):
         for i in range(self.model.columnCount()):
-            self.tableView.setItemDelegateForColumn(i, TrackPointModel.getColDelegate(i))
+            self.tableView.setItemDelegateForColumn(i, TCXColModel()[i].delegate)
 
     def _onClear(self):
         self.model.clearData()# = TrackPointsModel()
