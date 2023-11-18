@@ -54,12 +54,15 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
 
     def _markStationary(self, marker: typing.Optional[Marker] = None):
         self.statusMessage.emit(StatusMessage('Marking...'))
+        self.updateProgress.emit(0)
         color = self.pushStatMarkSelColor.palette().button().color()
         tolerance = self.spinBoxMarkStatTolerance.value()
         marker = Marker('stationary', [], color, tolerance) if not isinstance(marker, Marker) or marker is None else marker
         marker.indexes.clear()
         prevItem = None
+        trackPointsCount = len(self.model.allTrackPoints)
         for index, item in enumerate(self.model.allTrackPoints):
+            self.updateProgress.emit(int((index + 1)/trackPointsCount))
             self.statusMessage.emit(StatusMessage(f'Marking... index {index}'))
             dist = item.getValueByColName('distance')
             prevDist = prevItem.getValueByColName('distance') if prevItem is not None else None
@@ -68,6 +71,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
                 marker.indexes.append(index - 1)
             prevItem = item
         self._applyMarker(marker)
+        self.updateProgress.emit(0)
         self.statusMessage.emit(None)
         pass
 
@@ -81,14 +85,18 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         marker = self._buildCustomMarker() if not isinstance(marker, Marker) or marker is None else marker
         try:
             marker.indexes = []
+            trackPointsCount = len(self.model.allTrackPoints)
             for index, item in enumerate(self.model.allTrackPoints):
+                self.updateProgress.emit(int((index + 1)/trackPointsCount))
                 if eval(marker.expression):
                     marker.indexes.append(index)
+            self.updateProgress.emit(0)
         except Exception:
             self._lastFindDataExpression = None
             self.statusMessage.emit(f"Syntax error (syntax: <=,<,<>><value><&,|>)")
         self._applyMarker(marker)
         self.statusMessage.emit(None)
+        self.updateProgress.emit(0)
         pass
 
     def _buildCustomMarker(self):
