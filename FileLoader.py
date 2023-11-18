@@ -40,6 +40,7 @@ class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
             # Extract lap data
             laps = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Lap")
             self.statusMessage.emit(StatusMessage('Loading laps'))
+            lapCount = len(laps)
             for index, lap in enumerate(laps):
                 lapDto = LapDataDTO()
                 lapDto.startTime = datetime.strptime(lap.get("StartTime"), "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -52,10 +53,11 @@ class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
                 lapDto.intensity = self._getIntensity(lap)
                 lapDto.calories = self._getCalories(lap)
                 dto.laps.append(lapDto)
-                self.updateProgress.emit(int((index + 1) * 25 / len(laps)))
+                self.updateProgress.emit(int((index + 1) * 25 / lapCount))
             # Extract track point data (GPS data, heart rate, etc.)
             self.statusMessage.emit(StatusMessage('Loading track points'))
             trackPoints = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint")
+            trackPointsCount = len(trackPoints)
             for index, trackPoint in enumerate(trackPoints):
                 track = TrackDataDTO()
                 track.time = self._getDateTimeUTC(trackPoint)
@@ -67,11 +69,12 @@ class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
                 track.speed =  self._getSpeedExtension(trackPoint)
                 track.sensorState = self._getSensorState(trackPoint)
                 dto.trackPoints.append(track)
-                self.updateProgress.emit(int(25 + (index + 1) * 75 / len(trackPoints)))
+                self.updateProgress.emit(int(25 + (index + 1) * 75 / trackPointsCount))
+            self.updateProgress.emit(100)
             self.trackPointsChanged.emit(dto.trackPoints)
-            self.fileDataChanged.emit(dto)
-            self.updateProgress.emit(0)
             self.statusMessage.emit(None)
+            self.updateProgress.emit(0)
+            self.fileDataChanged.emit(dto)
         except ET.ParseError as e:
             print(f"Error parsing TCX file: {e}")
 

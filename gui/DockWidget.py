@@ -9,6 +9,7 @@ from PySide6.QtWebChannel import QWebChannel
 from TCXModel import TrackPointsModel, Marker
 from AbstractModelWidget import AbstractModelWidget
 from StatusBar import StatusMessage
+from TrackDataDTO import FileDataDTO
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -173,15 +174,13 @@ class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
         # tcxLoader.fileDataChanged.connect(self._loadInfo)
 
     @Slot()
-    def _loadInfo(self, activityData):
-        self.statusMessage.emit(StatusMessage('Loading file ...'))
-        self.inputFilePath.setText(str(activityData['file']))
-        self.inputNotes.setText(activityData['notes'])
-        self.inputId.setText(activityData['id'])
-        self.inputSport.setText(activityData['type'])
-        self.inputLaps.setText(str(activityData['lapsCount']))
-        self.inputTrackPoints.setText(str(activityData['trackPointsCount']))
-        self.statusMessage.emit(None)
+    def loadInfo(self, activityData:FileDataDTO):
+        self.inputFilePath.setText(activityData.filePath)
+        self.inputNotes.setText(activityData.notes)
+        self.inputId.setText(activityData.id)
+        self.inputSport.setText(activityData.activityType)
+        self.inputLaps.setText(str(activityData.lapsCount))
+        self.inputTrackPoints.setText(str(activityData.trackPointsCount))
 
 
 

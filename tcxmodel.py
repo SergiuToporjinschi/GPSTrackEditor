@@ -110,8 +110,7 @@ class TCXRowModel:
         self.rowData = row
 
     def __getitem__(self, index):
-        colName = TCXColModel()[index].dtoAttribute
-        return getattr(self.rowData, colName)
+        return getattr(self.rowData, TCXColModel()[index].dtoAttribute)
 
     def getValueByColName(self, colName):
         # [maker for maker in self.markers if maker.name != name]
@@ -120,6 +119,8 @@ class TCXRowModel:
             raise Exception('Column does not exists!')
         return getattr(self.rowData, colName)
 
+    def setValue(self, colIndex: int, val: any):
+        setattr(self.rowData, TCXColModel()[colIndex].dtoAttribute, val)
 
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal()           # when the entire track changed, track without any filters or markers

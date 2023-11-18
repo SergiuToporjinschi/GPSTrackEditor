@@ -60,6 +60,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.dockFileInfo = FileInfoDockWidget(self)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFileInfo)
+        self.tcxLoader.fileDataChanged.connect(self.dockFileInfo.loadInfo)
 
         self.dockFilter = FilterDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFilter)
