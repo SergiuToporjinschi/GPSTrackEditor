@@ -119,7 +119,7 @@ class Ui_GroupBox(object):
         self.progressBar.setMaximumSize(QSize(100, 19))
         self.progressBar.setValue(0)
         self.progressBar.setAlignment(Qt.AlignJustify|Qt.AlignVCenter)
-        self.progressBar.setTextVisible(False)
+        self.progressBar.setTextVisible(True)
         self.progressBar.setTextDirection(QProgressBar.TopToBottom)
 
         self.horizontalLayout.addWidget(self.progressBar)

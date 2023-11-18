@@ -1,14 +1,14 @@
 import sys
 
-from tcxmodel import TrackPointsModel, TCXColModel # TrackPointModel
+from TCXModel import TrackPointsModel, TCXColModel # TrackPointModel
 from FileLoader import TCXLoader
 
 from internalWidgets import QtSliderFilterWidgetPlugin
 from gui.main_remaster_ui import Ui_MainWindow
-from statusBar import StatusBarGroupBox, StatusMessage
+from StatusBar import StatusBarGroupBox, StatusMessage
 
 from gui.DockWidget import MapDockWidget, StatisticsDockWidget, FileInfoDockWidget, FilterDockWidget, ProcessingDockWidget, MarkingDockWidget
-from AbstractModelWidget import AbstractModelWidget
+from AbstractModelWidget import AbstractModelWidget, AbstractNotificationWidget
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
@@ -26,24 +26,26 @@ class mainGUI(QMainWindow, Ui_MainWindow):
     def __init__(self, app:QApplication):
         super().__init__()
         self.setupUi(self)
-        self.tcxLoader = TCXLoader()
-        # self.buttonCalculateSpeed.clicked.connect(self._calculateSpeed)
+        self.app = app
+
         self.actionSave.triggered.connect(self._onSaveFile)
         self.actionOpen.triggered.connect(self._onOpenFile)
         self.actionExit.triggered.connect(self._onExit)
         self.actionClear.triggered.connect(self._onClear)
-        self.app = app
+
         self.model = TrackPointsModel(palette=app.palette())
         self.tableView.setModel(self.model)
-        self.tableView.resizeColumnsToContents()
+        self.model.mainSeriesChanged.connect(self.tableView.resizeColumnsToContents)
+
         self._applyDelegates()
+
+        # adding statusBar ----------------------------------------
         self.statusInfoBar = StatusBarGroupBox(parent=self.statusbar)
         self.statusbar.addPermanentWidget(self.statusInfoBar, 1)
-        # self._noDataDisable(False)
-        # self.pushButtonFind.clicked.connect(self._onFindButton)
-        # self.pushButtonFindClear.clicked.connect(self._onFindButton)
 
-        # self.pushButtonMarkStat.clicked.connect(lambda: self.model.markStationary(self.spinBoxMarkStatSelectRange.value()))
+        # adding fileLoader ---------------------------------------
+        self.tcxLoader = TCXLoader()
+        self.tcxLoader.trackPointsChanged.connect(self.model.loadData)
 
         # adding slider -------------------------------------------
         self.trimmerSlider = QtSliderFilterWidgetPlugin(self, self.model)
@@ -56,7 +58,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.dockStatistics = StatisticsDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockStatistics)
 
-        self.dockFileInfo = FileInfoDockWidget(self, self.tcxLoader)
+        self.dockFileInfo = FileInfoDockWidget(self)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockFileInfo)
 
         self.dockFilter = FilterDockWidget(self, self.model)
@@ -72,7 +74,8 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.tabifyDockWidget(self.dockFileInfo, self.dockFilter)
         self.tabifyDockWidget(self.dockFileInfo, self.dockProcessing)
         self.tabifyDockWidget(self.dockFileInfo, self.dockMarking)
-        # connect signals
+
+        # connect signals -----------------------------------------
         self._connectSignalsToStatusBar()
         self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)
         self.model.clearData()
@@ -86,8 +89,9 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.model.mainSeriesChanged.connect(self.tableView.resizeColumnsToContents)
         for _, item in vars(self).items():
-            if isinstance(item, AbstractModelWidget):
+            if isinstance(item, AbstractNotificationWidget):
                 item.statusMessage.connect(self.statusInfoBar.updateMessage)
+                item.updateProgress.connect(self.statusInfoBar.updateProgress)
                 pass
 
     def _onOpenFile(self):
@@ -97,15 +101,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         if not file_name:
             return
         self.fileName = file_name
-        # self.tcxLoader.fileDataChanged.connect(self.model.loadData)
-        # self.tcxLoader.workingProgress.connect(self.statusInfoBar.updateProgress)
-        # thread = MyThread(self.tcxLoader.load_tcx_file, (file_name))
-        # thread.start()
-        self.tcxLoader.trackPointsChanged.connect(self.model.loadData)
-        self.tcxLoader.load_tcx_file(file_name)
-        # self.model.loadData(self.tcxLoader.getTrackPoints())
-        self.statusInfoBar.updateMessage.emit(None)
-
+        self.tcxLoader.loadTCXAsync(file_name)
 
     def _onSaveFile(self):
         self.statusInfoBar.updateMessage.emit(StatusMessage('Loading file...', 10000, QColor('green')))

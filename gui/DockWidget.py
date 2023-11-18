@@ -1,9 +1,14 @@
 import typing, os, json, re
 from qtpy.QtCore import Signal, Slot
-from tcxmodel import TrackPointsModel, Marker
-from FileLoader import TCXLoader
+from PySide6.QtGui import QPalette, QColor, QColorConstants
+from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
+from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog
+from PySide6.QtWebEngineCore import QWebEngineSettings
+from PySide6.QtWebChannel import QWebChannel
+
+from TCXModel import TrackPointsModel, Marker
 from AbstractModelWidget import AbstractModelWidget
-from statusBar import StatusMessage
+from StatusBar import StatusMessage
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -11,12 +16,6 @@ from gui.file_info_dock_ui import Ui_DockWidget as fileInfoDock
 from gui.filter_dock_ui import Ui_DockWidget as filterDock
 from gui.processing_dock_ui import Ui_DockWidget as processingDock
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
-
-from PySide6.QtGui import QPalette, QColor, QColorConstants
-from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
-from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog
-from PySide6.QtWebEngineCore import QWebEngineSettings
-from PySide6.QtWebChannel import QWebChannel
 
 
 
@@ -169,7 +168,7 @@ class FilterDockWidget(AbstractModelWidget, QDockWidget, filterDock):
 
 class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
 
-    def __init__(self, parent: typing.Optional[QWidget] = ..., tcxLoader:typing.Optional[TCXLoader]=...):
+    def __init__(self, parent: typing.Optional[QWidget] = ...):
         super().__init__(parent, None)
         # tcxLoader.fileDataChanged.connect(self._loadInfo)
 

@@ -1,19 +1,21 @@
 import typing
 from abc import abstractmethod
-from qtpy.QtCore import Signal
-from tcxmodel import TrackPointsModel
-from statusBar import StatusMessage
 
+from qtpy.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
-class AbstractModelWidget:
-    startProcessing = Signal()                  # before processing data (to clear the status maybe)
-    statusMessage = Signal(StatusMessage)       # sending messages for status bar (text, time, color)
-    progressUpdate = Signal(int)                # incrementing the progress bar
-    finishedProcessing = Signal()               # processing finished (for resetting the status bar maybe)
+from TCXModel import TrackPointsModel
+from StatusBar import StatusMessage
 
+class AbstractNotificationWidget:
+    startProcessing = Signal()            # before processing data (to clear the status maybe)
+    statusMessage = Signal(StatusMessage) # sending messages for status bar (text, time, color)
+    updateProgress = Signal(int)          # incrementing the progress bar
+    finishedProcessing = Signal()         # processing finished (for resetting the status bar maybe)
+
+class AbstractModelWidget(AbstractNotificationWidget):
     def __init__(self, parent: typing.Optional[QWidget] = ..., model:typing.Optional[TrackPointsModel]=...) -> None:
-        super().__init__(parent)
+        super().__init__()
         self.model = model
         self.setupUi(self)
         self._setupUi()

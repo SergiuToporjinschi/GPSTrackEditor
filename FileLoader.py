@@ -1,35 +1,45 @@
 import xml.etree.ElementTree as ET
-import pytz, threading
-from typing import List
+import pytz
 from datetime import datetime
+
 from qtpy.QtCore import Signal
-
 from PySide6.QtCore import QObject
-from TrackDataDTO import FileDataDTO, LapDataDTO, TrackDataDTO
 
-class TCXLoader(QObject):
-    workingProgress = Signal(int)
+from TrackDataDTO import FileDataDTO, LapDataDTO, TrackDataDTO
+from StatusBar import StatusMessage
+from AbstractModelWidget import AbstractNotificationWidget
+from ThreadExecutor import AsyncExecutor, AsyncManager
+
+class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
     fileDataChanged = Signal(FileDataDTO)
     trackPointsChanged = Signal(list)
 
-    def __init__(self):
+    _threads: list[AsyncExecutor] = []
+    def __init__(self, fileName: str = None):
         super().__init__()
+        self.fileName = fileName
 
-    def load_tcx_file(self, file_path):
+    def loadTCXAsync(self, fileName:str):
+        val = self._executeOnThread(self._loadTCXFile, (fileName))
+        self.statusMessage.emit(val.value)
+
+    def _loadTCXFile(self, file_path):
         try:
             dto = FileDataDTO()
             tree = ET.parse(file_path)
             root = tree.getroot()
+
             # Extract activity information
             activity = root.find(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Activity")
             dto.filePath = file_path
             dto.activityType = activity.attrib['Sport']
             dto.id = activity.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Id").text
             dto.notes = self._getNotes(activity)
+            self.statusMessage.emit(StatusMessage('Parsing schema...'))
 
-            # self.data['calories'] = lap.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Calories").text
             # Extract lap data
             laps = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Lap")
+            self.statusMessage.emit(StatusMessage('Loading laps'))
             for index, lap in enumerate(laps):
                 lapDto = LapDataDTO()
                 lapDto.startTime = datetime.strptime(lap.get("StartTime"), "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -42,11 +52,11 @@ class TCXLoader(QObject):
                 lapDto.intensity = self._getIntensity(lap)
                 lapDto.calories = self._getCalories(lap)
                 dto.laps.append(lapDto)
-                # self.workingProgress.emit(int((index + 1) * 25 / len(laps)))
-
-            # Extract trackpoint data (GPS data, heart rate, etc.)
-            trackpoints = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint")
-            for index, trackPoint in enumerate(trackpoints):
+                self.updateProgress.emit(int((index + 1) * 25 / len(laps)))
+            # Extract track point data (GPS data, heart rate, etc.)
+            self.statusMessage.emit(StatusMessage('Loading track points'))
+            trackPoints = root.findall(".//{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}Trackpoint")
+            for index, trackPoint in enumerate(trackPoints):
                 track = TrackDataDTO()
                 track.time = self._getDateTimeUTC(trackPoint)
                 track.latitude = self._getLatitude(trackPoint)
@@ -57,10 +67,11 @@ class TCXLoader(QObject):
                 track.speed =  self._getSpeedExtension(trackPoint)
                 track.sensorState = self._getSensorState(trackPoint)
                 dto.trackPoints.append(track)
-                # self.data['trackpoints'].append(TrackPointModel(time, latitude, longitude, altitude, heart_rate, distance, speed, sensorState))
-                # self.workingProgress.emit(int(25 + (index + 1) * 75 / len(trackpoints)))
+                self.updateProgress.emit(int(25 + (index + 1) * 75 / len(trackPoints)))
             self.trackPointsChanged.emit(dto.trackPoints)
             self.fileDataChanged.emit(dto)
+            self.updateProgress.emit(0)
+            self.statusMessage.emit(None)
         except ET.ParseError as e:
             print(f"Error parsing TCX file: {e}")
 

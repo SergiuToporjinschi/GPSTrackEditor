@@ -1,17 +1,16 @@
 import typing
 from datetime import datetime
 from typing import Any, Union, Type
-import types
 from qtpy.QtCore import Signal
-from statusBar import StatusMessage
+from StatusBar import StatusMessage
 
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QPersistentModelIndex
+from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
-from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
+from Delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 from TrackDataDTO import TrackDataDTO
-from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget
 
 class Marker:
     _name: str = None
@@ -121,101 +120,26 @@ class TCXRowModel:
             raise Exception('Column does not exists!')
         return getattr(self.rowData, colName)
 
-# class TrackPointModel:
-#     colNames =  ['Time', 'Latitude', 'Longitude', 'Altitude (m)', 'Distance (m)', 'Calculated distance (m)', 'Speed (km/h)', 'Calculated speed (km/h)', 'Hart rate (bpm)', 'Sensor state']
-#     colInfo = {
-#             'time': (datetime, DateTimeDelegate('dd-MM-yyyy HH:mm:ss.z t','%d-%m-%Y %H:%M:%S.%f %Z')),
-#             'latitude': (float, FloatDelegate(-90, 90, 8)),
-#             'longitude': (float, FloatDelegate(-180, 180, 8)),
-#             'altitude': (float, FloatDelegate(-200, 9000, 3)),
-#             'distance': (float, FloatDelegate(-20000, 20000, 16)),
-#             'calculatedDistance': (float, FloatDelegate(-20000, 20000, 16)),
-#             'speed': (float, FloatDelegate(0, 1000, 12)),
-#             'calculatedSpeed': (float, FloatDelegate(0, 1000, 12)),
-#             'hartRate': (int, FloatDelegate(0, 250, 0)),
-#             'sensorState': (str, ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent')))
-#         }
-#     def __init__(self, time: datetime, latitude: float, longitude:float, altitude:float, hartRate: int, distance: float, speed: float, sensorState: str=None, calculatedDistance:float=None, calculatedSpeed: float=None) -> None:
-#         self.data = {
-#             'time': time,
-#             'latitude': latitude,
-#             'longitude': longitude,
-#             'altitude': altitude,
-#             'distance': distance,
-#             'calculatedDistance': calculatedDistance,
-#             'speed': speed,
-#             'calculatedSpeed': calculatedSpeed,
-#             'hartRate': hartRate,
-#             'sensorState': sensorState
-#         }
-#         pass
-
-#     def getValueByColumnIndex(self, index: int):
-#         return self.getValueByColumnName(TrackPointModel.indexToName(index))
-
-#     def getValueByColumnName(self, colName: str):
-#         return self.data[colName]
-
-#     def setValue(self, col:str|int, value: Any):
-#         if isinstance(col, int):
-#             col = TrackPointModel.indexToName(col)
-#         self.data[col] = self._checkValueType(col, value)
-#         pass
-
-#     def _checkValueType(self, col: str, value: Any):
-#         colType, _ = TrackPointModel.colInfo[col]
-#         if isinstance(value, int) and colType == float:
-#             value = float(value)
-#         if isinstance(value, float) and colType == int:
-#             value = int(value)
-#         if not isinstance(value, colType):
-#             raise ValueError(f'The {col} should be {colType}')
-#         return value
-
-#     @staticmethod
-#     def getNoOfColumns():
-#         return len(TrackPointModel.colInfo)
-
-#     @staticmethod
-#     def getColDelegate(index: int):
-#         _, delegate = TrackPointModel.colInfo[TrackPointModel.indexToName(index)]
-#         return delegate
-
-#     @staticmethod
-#     def indexToName(index: int):
-#         return list(TrackPointModel.colInfo.keys())[index]
-
-#     @staticmethod
-#     def nameToIndex(colName: str):
-#         index = 0
-#         for key in TrackPointModel.colInfo:
-#             if key == colName:
-#                 return index
-#             index += 1
-#         return -1
-
-
 
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal()           # when the entire track changed, track without any filters or markers
     mainSeriesLengthChanged = Signal(int)  # when the entire track changes in length (number of items)
-    trimRangeChanged = Signal(int)          # when trimming has changed spinners|slider, length|position (length, number of elements)
+    trimRangeChanged = Signal(int)         # when trimming has changed spinners|slider, length|position (length, number of elements)
     contentChanged = Signal()              # content has changed its position ex: sorting
-    markers: [Marker] = []
 
     statusMessage = Signal(StatusMessage)
     workingProgress = Signal(int)
 
     updateSelection = Signal(int)          # signal emited
     updateTrackPoints = Signal(int)
-    trimmerInterval = TrimmerInterval(1, 1)
 
+    markers: list[Marker] = []
+    trimmerInterval = TrimmerInterval(1, 1)
     allTrackPoints = list[TCXRowModel]
 
     def __init__(self, trackPoints: list[TCXRowModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
         self.allTrackPoints = trackPoints or []
-        # self.trackPoints = self.allTrackPoints
         self.palette = palette
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
@@ -224,18 +148,10 @@ class TrackPointsModel(QAbstractTableModel):
         self.beginResetModel()
         self.allTrackPoints.clear()
         self.allTrackPoints.extend(self._decorateData(trackPoints))
-        # self.trackPoints = self.allTrackPoints
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
-
-        # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
-
-        # self.trimerInterval.min = 1
-        # self.trimerInterval.max = len(self.allTrackPoints)
-        # self.rowCountChanged.emit(len(self.allTrackPoints))
-        # self.allTrackPointsCountChanged.emit(len(self.allTrackPoints))
-        self.mainSeriesChanged.emit()
         self.endResetModel()
+        self.mainSeriesChanged.emit()
 
     def _decorateData(self, data: list [TrackDataDTO]) -> list[TCXRowModel]:
         return  [TCXRowModel(item) for item in data][:]
@@ -243,16 +159,10 @@ class TrackPointsModel(QAbstractTableModel):
     def clearData(self):
         self.beginResetModel()
         self.allTrackPoints.clear()
-
         self.trimmerInterval.max = 0
-
-        # self.rowCountChanged.emit(len(self.allTrackPoints))
-        # self.allTrackPointsCountChanged.emit(0)
-        self.mainSeriesChanged.emit()
-
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
-        # self.mainSeriesLengthChanged.emit(len(self.allTrackPoints))
         self.endResetModel()
+        self.mainSeriesChanged.emit()
 
     def indexByColName(self, row: int, column: str, parent: Union[QModelIndex, QPersistentModelIndex] = ...) -> QModelIndex:
         return self.index(row, TCXColModel().getIndexOfColumnName(column))
@@ -319,7 +229,6 @@ class TrackPointsModel(QAbstractTableModel):
     def trimRows(self, interval: tuple = None):
         self.beginResetModel()
         self.trimmerInterval.val = interval
-        # self.trackPoints = [i for index, i in enumerate(self.allTrackPoints) if index in range(min-1, max)]
         self.trimRangeChanged.emit(1) # TODO add the number of rows
         self.endResetModel()
 
