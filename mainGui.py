@@ -14,7 +14,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
 import gpstracker_rc
 
-sys.argv.append("--disable-web-security")
+# sys.argv.append("--disable-web-security")
 
 gpstracker_rc.qInitResources()
 
@@ -35,6 +35,8 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.model = TrackPointsModel(palette=app.palette())
         self.tableView.setModel(self.model)
+        # self.tableView.header().setSectionResizeMode(0, QHeaderView.Stretch)
+
         self.model.mainSeriesChanged.connect(self.tableView.resizeColumnsToContents)
 
         self._applyDelegates()

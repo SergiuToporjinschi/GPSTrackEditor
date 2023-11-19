@@ -1,40 +1,27 @@
-// function init() {
-//     var map = new ol.Map({
-//         target: 'basicMap', // ID of the div element where the map will be rendered
-//         layers: [
-//             new ol.layer.Tile({
-//                 source: new ol.source.OSM()
-//             })
-//         ],
-//         view: new ol.View({
-//             center: ol.proj.fromLonLat([0, 0]), // Center of the map
-//             zoom: 2 // Initial zoom level
-//         })
-//     });
-//     var coordinates = [
-//         [24.19399667, 45.81218000],
-//         [24.19401500, 45.81217000],
-//         [24.19403167, 45.81216000]
-//         // Add more coordinates as needed
-//     ];
-
-//     var lineString = new ol.geom.LineString(coordinates).transform('EPSG:4326', 'EPSG:3857');
-//     var feature = new ol.Feature({
-//         geometry: lineString
-//     });
-//     var vectorLayer = new ol.layer.Vector({
-//         source: new ol.source.Vector({
-//             features: [feature]
-//         })
-//     });
-//     map.addLayer(vectorLayer);
-//     map.getView().fit(lineString.getExtent(), map.getSize());
-// }
 var map;
-var vectorLayer;
-var markPositionVectorLayer;
-var zoom;
+
+var mainTrackVectorLayer;
+var currentPositionPointVectorLayer;
+var trimmedTrackVectorLayer;
+
+var zoomLevel = 2;
+
+var styleConfig = {
+    mainTrack: { stroke: { color: 'gray', width: 4 } },
+    currentPositionPoint: {
+        radius: 6,
+        fill: { color: 'red' },
+        stroke: { color: 'white', width: 2 }
+    },
+    trimmedTrack: { stroke: { color: 'lightgray', width: 4 } },
+    stationaryMarker: { stroke: { color: 'red', width: 4 } },
+    customMarker: { stroke: { color: 'yellow', width: 4 } },
+}
+
 function initMap(coordinates) {
+    btn = new SettingsControl({
+        target: 'your-target-element', // Specify the target element to render the control
+    });
     map = new ol.Map({
         target: 'basicMap', // ID of the div element where the map will be rendered
         layers: [
@@ -44,17 +31,19 @@ function initMap(coordinates) {
         ],
         view: new ol.View({
             center: ol.proj.fromLonLat([0, 0]), // Center of the map
-            zoom: 2 // Initial zoom level
+            zoom: zoomLevel
         })
     });
-
-    loadTrack(coordinates);
+    map.getView().on('change:resolution', saveZoom);
+    map.addControl(btn)
 }
 
-function loadTrack(newCoordinates) {
+function setMainTrack(newCoordinates) {
+    clearAllLayers()
+
     // Clear existing vector layer
-    if (vectorLayer) {
-        map.removeLayer(vectorLayer);
+    if (mainTrackVectorLayer) {
+        map.removeLayer(mainTrackVectorLayer);
     }
     if (!newCoordinates || !Array.isArray(JSON.parse(newCoordinates)) || !JSON.parse(newCoordinates).length) {
         return;
@@ -66,52 +55,122 @@ function loadTrack(newCoordinates) {
     });
 
     var trackStyle = new ol.style.Style({
-        stroke: new ol.style.Stroke({
-            color: 'gray', // Set the desired color here
-            width: 4
-        })
+        stroke: new ol.style.Stroke(styleConfig.mainTrack.stroke)
     });
     feature.setStyle(trackStyle);
-    vectorLayer = new ol.layer.Vector({
+
+    mainTrackVectorLayer = new ol.layer.Vector({
         source: new ol.source.Vector({
             features: [feature]
         })
     });
 
-    map.addLayer(vectorLayer);
+    map.addLayer(mainTrackVectorLayer);
+
+    var extent = feature.getGeometry().getExtent();
+
+    // Zoom to fit the extent of the feature
+    map.getView().fit(extent, { padding: [20, 20, 20, 20] }); // Adjust padding as needed
 }
 
-function markPoint(pointCoordinates) {
-    if (markPositionVectorLayer) {
-        map.removeLayer(markPositionVectorLayer);
+function setCurrentPositionPoint(pointCoordinates) {
+    if (currentPositionPointVectorLayer) {
+        map.removeLayer(currentPositionPointVectorLayer);
     }
     var point = new ol.geom.Point(ol.proj.fromLonLat(JSON.parse(pointCoordinates)));
+
     var pointFeature = new ol.Feature({
         geometry: point
     });
 
     // Define a style for the marker
-    var markerStyle = new ol.style.Style({
+    var style = new ol.style.Style({
         image: new ol.style.Circle({
-            radius: 6,
-            fill: new ol.style.Fill({
-                color: 'red' // Set the desired color for the marker
-            }),
-            stroke: new ol.style.Stroke({
-                color: 'white',
-                width: 2
-            })
+            radius: styleConfig.currentPositionPoint.radius,
+            fill: new ol.style.Fill(styleConfig.currentPositionPoint.fill),
+            stroke: new ol.style.Stroke(styleConfig.currentPositionPoint.stroke)
         })
     });
 
-    pointFeature.setStyle(markerStyle);
+    pointFeature.setStyle(style);
 
     // Create a vector layer for the marker
-    markPositionVectorLayer = new ol.layer.Vector({
+    currentPositionPointVectorLayer = new ol.layer.Vector({
         source: new ol.source.Vector({
             features: [pointFeature]
         })
     });
-    map.getView().fit(point, { maxZoom: 14 })
-    map.addLayer(markPositionVectorLayer);
+    map.addLayer(currentPositionPointVectorLayer);
+    map.getView().fit(point, { maxZoom: zoomLevel })
+}
+
+function setTrimmedTrack(newCoordinates) {
+    // Clear existing vector layer
+    if (trimmedTrackVectorLayer) {
+        map.removeLayer(trimmedTrackVectorLayer);
+    }
+    if (!newCoordinates || !Array.isArray(JSON.parse(newCoordinates)) || !JSON.parse(newCoordinates).length) {
+        return;
+    }
+    newCoordinates = JSON.parse(newCoordinates)
+    var lineString = new ol.geom.LineString(newCoordinates).transform('EPSG:4326', 'EPSG:3857');
+    var feature = new ol.Feature({
+        geometry: lineString,
+    });
+
+    var trackStyle = new ol.style.Style({
+        stroke: new ol.style.Stroke(styleConfig.trimmedTrack.stroke)
+    });
+    feature.setStyle(trackStyle);
+
+    trimmedTrackVectorLayer = new ol.layer.Vector({
+        source: new ol.source.Vector({
+            features: [feature]
+        })
+    });
+
+    map.addLayer(trimmedTrackVectorLayer);
+
+    var extent = feature.getGeometry().getExtent();
+
+    // Zoom to fit the extent of the feature
+    map.getView().fit(extent, { padding: [20, 20, 20, 20] }); // Adjust padding as needed
+}
+
+function saveZoom(event) {
+    zoomLevel = map.getView().getZoom();
+}
+
+function configChanged(newConfig) {
+    styleConfig = JSON.parse(newConfig)
+
+    if (currentPositionPointVectorLayer) {
+        var markerStyle = new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: styleConfig.currentPositionPoint.radius,
+                fill: new ol.style.Fill(styleConfig.currentPositionPoint.fill),
+                stroke: new ol.style.Stroke(styleConfig.currentPositionPoint.stroke)
+            })
+        });
+        currentPositionPointVectorLayer.getSource().getFeatures()[0].setStyle(markerStyle);
+        currentPositionPointVectorLayer.changed()
+    }
+
+    if (mainTrackVectorLayer) {
+        var trackStyle = new ol.style.Style({
+            stroke: new ol.style.Stroke(styleConfig.mainTrack.stroke)
+        });
+        mainTrackVectorLayer.getSource().getFeatures()[0].setStyle(trackStyle);
+        mainTrackVectorLayer.changed()
+    }
+}
+
+function clearAllLayers() {
+    map.removeLayer(mainTrackVectorLayer);
+    map.removeLayer(trimmedTrackVectorLayer);
+    map.removeLayer(currentPositionPointVectorLayer);
+
+    mainTrackVectorLayer = undefined;
+    trimmedTrackVectorLayer = undefined;
+    currentPositionPointVectorLayer = undefined;
 }

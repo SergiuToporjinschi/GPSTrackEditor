@@ -1,0 +1,23 @@
+.control-container {
+  display: hidden;
+  position: relative;
+  float: right;
+  border: 1px solid rgba(15, 15, 15, 0.397);
+  padding: 2px;
+  margin-top: 2.5em;
+  margin-right: 0.5em;
+  font-weight: bold;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+.control-container ul {
+  margin: 0;
+  padding: 1px 0.5em;
+  color: var(--ol-foreground-color);
+  text-shadow: 0 0 2px var(--ol-background-color);
+  font-size: 12px;
+}
+
+.control-container li {
+  display: block;
+  list-style: none;
+}

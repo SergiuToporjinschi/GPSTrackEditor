@@ -226,6 +226,9 @@
           <property name="title">
            <string>Mark stationary</string>
           </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
           <layout class="QFormLayout" name="formLayout">
            <property name="leftMargin">
             <number>0</number>

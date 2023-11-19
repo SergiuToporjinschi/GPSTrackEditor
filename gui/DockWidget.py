@@ -1,8 +1,8 @@
-import typing, os, json, re
+import typing, json, re
 from qtpy.QtCore import Signal, Slot
 from PySide6.QtGui import QPalette, QColor, QColorConstants
 from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
-from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog
+from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
@@ -10,6 +10,8 @@ from TCXModel import TrackPointsModel, Marker
 from AbstractModelWidget import AbstractModelWidget
 from StatusBar import StatusMessage
 from TrackDataDTO import FileDataDTO
+from JSONTreeModel import JsonTreeModel
+from Delegates import MapSettingsDelegate
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -249,9 +251,10 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
 
 
 class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
-
-    mainSeriesChanged = Signal(str)
-    markPoint = Signal(str)
+    configChanged = Signal(str)        # map configuration changes, updates map
+    mainSeriesChanged = Signal(str)    # main series has changed in table, updates current main track on map
+    currentPositionPoint = Signal(str) # current position changed on table, updates current position on map
+    trimmedSeriesChanged = Signal(str) # trimmed series has changed in table, updates current trimmed track on map
 
     def __init__(self, parent: QWidget | None = ..., model: TrackPointsModel | None = ..., selectionModel: QItemSelectionModel | None = ...) -> None:
         self.tableSelectionModel = selectionModel
@@ -260,8 +263,10 @@ class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
     def _setupUi(self):
         self.model.mainSeriesLengthChanged.connect(self._loadMainTrack)
         self.tableSelectionModel.currentRowChanged.connect(self._sendMarkPoint)
+        self.model.trimRangeChanged.connect(self._loadTrimmedTrack)
 
-        self.file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ":/resources/index.html"))
+        # self.file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ":/resources/index.html"))
+        self.file_path = "E:/IOT/Projects/Python/GPSTrackEditor/resources/index.html"
 
         self.browser.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
         self.browser.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
@@ -270,21 +275,34 @@ class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
         self.channel.registerObject("backEnd", self)
 
         self.browser.page().setWebChannel(self.channel)
-        # self.browser.setUrl(QUrl.fromLocalFile(self.file_path))
-        self.browser.setUrl(QUrl.fromLocalFile(":/resources/index.html"))
-        self.browser.setHtml(self._getHTML())
+        self.browser.setUrl(QUrl.fromLocalFile(self.file_path))
+
+        # self.browser.setHtml(self._getResourceContent(':/resources/index.html'))
         self.browser.show()
+
+        # settings tab ------------------------------------------------
+        self.treeViewMapPropertiesModel = JsonTreeModel()
+        self.treeViewMapPropertiesModel.load(json.loads(self._getResourceContent(':/resources/mapDefaultProperties.json')))
+
+        self.treeViewMapProperties.setModel(self.treeViewMapPropertiesModel)
+        self.treeViewMapProperties.setItemDelegate(MapSettingsDelegate())
+        self.treeViewMapProperties.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self.treeViewMapProperties.expandAll()
+        self.treeViewMapPropertiesModel.configChanged.connect(self.configChanged)
+
+    def _loadTrimmedTrack(self):
+        self.trimmedSeriesChanged.emit(json.dumps(self._getCoordinates()))
 
     def _loadMainTrack(self):
         self.mainSeriesChanged.emit(json.dumps(self._getCoordinates()))
 
     def _sendMarkPoint(self, new:QModelIndex, old:QModelIndex):
         (longitude, latitude) = self.model.dataByColNames(new.row(), ('longitude', 'latitude'))
-        self.markPoint.emit(json.dumps([longitude, latitude]))
+        self.currentPositionPoint.emit(json.dumps([longitude, latitude]))
 
-    def _getHTML(self):
+    def _getResourceContent(self, resourceFilePath: str):
         htmlContent = ""
-        html_resource = QFile(':/resources/index.html')  # Assuming 'index.html' is the file in your qrc
+        html_resource = QFile(resourceFilePath)
         if html_resource.open(QIODevice.ReadOnly | QIODevice.Text):
             html_content = html_resource.readAll().data().decode('utf-8')
             htmlContent = html_content

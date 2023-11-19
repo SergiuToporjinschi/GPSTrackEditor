@@ -181,11 +181,11 @@ class TrackPointsModel(QAbstractTableModel):
     def dataByColNames(self, row: int, colNames: [str]) -> Any:
         response = ()
         for colName in colNames:
-            response += (self.allTrackPoints[row].getValueByColName(colName), )
+            response += (self.allTrackPoints[self.trimmerInterval.index(row)].getValueByColName(colName), )
         return response
 
     def dataByColName(self, row: int, colName: str, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
-        return self.data(self.index(row, TCXColModel().getIndexOfColumnName(colName)), role)
+        return self.data(self.index(self.trimmerInterval.index(row), TCXColModel().getIndexOfColumnName(colName)), role)
 
     def dataAndAttributeByIndex(self, row: int, col: int, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
         return self.data(self.index(row, col), role), TCXColModel()[col].dtoAttribute
@@ -230,7 +230,7 @@ class TrackPointsModel(QAbstractTableModel):
     def trimRows(self, interval: tuple = None):
         self.beginResetModel()
         self.trimmerInterval.val = interval
-        self.trimRangeChanged.emit(1) # TODO add the number of rows
+        self.trimRangeChanged.emit(len(self.trimmerInterval)) # TODO add the number of rows
         self.endResetModel()
 
     def addMarker(self, maker: Marker):

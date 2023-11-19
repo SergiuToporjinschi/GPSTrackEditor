@@ -182,6 +182,7 @@ class Ui_DockWidget(object):
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.groupBox_28.sizePolicy().hasHeightForWidth())
         self.groupBox_28.setSizePolicy(sizePolicy)
+        self.groupBox_28.setFlat(True)
         self.formLayout = QFormLayout(self.groupBox_28)
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setContentsMargins(0, 9, -1, 0)

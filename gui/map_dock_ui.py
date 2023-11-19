@@ -16,8 +16,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWidgets import (QApplication, QDockWidget, QHBoxLayout, QSizePolicy,
-    QTabWidget, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QDockWidget, QFrame, QHBoxLayout,
+    QHeaderView, QSizePolicy, QTabWidget, QTreeView,
+    QVBoxLayout, QWidget)
 
 class Ui_DockWidget(object):
     def setupUi(self, DockWidget):
@@ -48,6 +49,25 @@ class Ui_DockWidget(object):
         self.tabWidget.addTab(self.tab, "")
         self.tab_2 = QWidget()
         self.tab_2.setObjectName(u"tab_2")
+        self.verticalLayout_2 = QVBoxLayout(self.tab_2)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
+        self.treeViewMapProperties = QTreeView(self.tab_2)
+        self.treeViewMapProperties.setObjectName(u"treeViewMapProperties")
+        self.treeViewMapProperties.setFrameShape(QFrame.NoFrame)
+        self.treeViewMapProperties.setFrameShadow(QFrame.Plain)
+        self.treeViewMapProperties.setLineWidth(0)
+        self.treeViewMapProperties.setAlternatingRowColors(True)
+        self.treeViewMapProperties.setIndentation(15)
+        self.treeViewMapProperties.setUniformRowHeights(True)
+        self.treeViewMapProperties.setAnimated(True)
+        self.treeViewMapProperties.setAllColumnsShowFocus(True)
+        self.treeViewMapProperties.header().setCascadingSectionResizes(True)
+        self.treeViewMapProperties.header().setHighlightSections(True)
+        self.treeViewMapProperties.header().setStretchLastSection(True)
+
+        self.verticalLayout_2.addWidget(self.treeViewMapProperties)
+
         self.tabWidget.addTab(self.tab_2, "")
 
         self.horizontalLayout.addWidget(self.tabWidget)

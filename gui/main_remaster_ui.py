@@ -95,6 +95,7 @@ class Ui_MainWindow(object):
         self.tableView.setAlternatingRowColors(True)
         self.tableView.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.tableView.setSortingEnabled(True)
+        self.tableView.horizontalHeader().setStretchLastSection(True)
 
         self.verticalTableLayout.addWidget(self.tableView)
 

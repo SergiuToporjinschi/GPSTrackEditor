@@ -13,25 +13,73 @@
             }
         </style>
         <script src="qrc:///qtwebchannel/qwebchannel.js"></script>
-        <!-- <script src="ol.js"></script>
-        <link rel="stylesheet" href="ol.css"> -->
         <script src="https://cdn.jsdelivr.net/npm/ol@v8.1.0/dist/ol.js"></script>
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.1.0/ol.css">
-        <script src="qrc:/resources/openLayerHandler.js"></script>
+        <!-- <script src="qrc:/resources/openLayerHandler.js"></script> --> <!-- For runtime -->
+
+        <link rel="stylesheet" href="E:\IOT\Projects\Python\GPSTrackEditor\resources\control.css">
+        <script src="E:\IOT\Projects\Python\GPSTrackEditor\resources\SettingsControl.js"></script> <!-- For debugging -->
+
+        <script src="E:\IOT\Projects\Python\GPSTrackEditor\resources\testData.js"></script> <!-- For debugging -->
+        <script src="E:\IOT\Projects\Python\GPSTrackEditor\resources\openLayerHandler.js"></script> <!-- For debugging -->
     </head>
 
 
 
     <body onload="initMap();">
+        <!-- <button onClick="test();">ssssdasasda</button> -->
         <div id="basicMap"></div>
+        <div class="control-container ol-control" style="pointer-events: auto;">
+            <ul>
+                <li>
+                    <input type="checkbox" id="mainTrackVisible" name="mainTrackVisible" class="" checked>
+                    <svg width="25" height="12" id="mainTrackVisibleLine">
+                        <line x1="0" y1="50%" x2="100%" y2="50%" stroke="blue" stroke-width="2">
+                            <title>Main track</title>
+                        </line>
+                    </svg>
+                </li>
+                <li>
+                    <input type="checkbox" id="trimmedTrackVisible" name="trimmedTrackVisible" class="" checked>
+                    <svg width="25" height="12" id="trimmedTrackVisibleLine">
+                        <line x1="0" y1="50%" x2="100%" y2="50%" stroke="blue" stroke-width="2">
+                            <title>Trimmed track</title>
+                        </line>
+                    </svg>
+                </li>
+                <li>
+                    <input type="checkbox" id="currentPositionPointVisible" name="currentPositionPointVisible" title="Current position" checked>
+                    <svg width="25" height="12" id="currentPositionPointVisiblePoint">
+                        <circle cx="50%" cy="50%" r="5" fill="blue" stroke-width="2">
+                            <title>Current position</title>
+                        </circle>
+                        <!-- <line x1="0" y1="50%" x2="100%" y2="50%" stroke="blue" stroke-width="2">
+                            <title>Current position</title>
+                        </line> -->
+                    </svg>
+                </li>
+            </ul>
+        </div>
         <script>
+
+
             var placeholder = document.getElementById('message');
 
             new QWebChannel(qt.webChannelTransport, function (channel) {
                 window.backEnd = channel.objects.backEnd
-                window.backEnd.mainSeriesChanged.connect(loadTrack)
+                window.backEnd.configChanged.connect(configChanged)
+                window.backEnd.mainSeriesChanged.connect(setMainTrack)
+                // window.backEnd.trimmedSeriesChanged.connect(setTrimmedTrack)
                 // window.backEnd.markPoint.connect(markPoint)
-                window.backEnd.markPoint.connect(markPoint)
+                // window.backEnd.currentPositionPoint.connect(setCurrentPositionPoint)
+                window.backEnd.addTracking
+                window.backEnd.removeTracking
+                window.backEnd.updateTracking
+
+                window.backEnd.addPoint
+                window.backEnd.removePoint
+                window.backEnd.updatePoint
+
             });
         </script>
     </body>

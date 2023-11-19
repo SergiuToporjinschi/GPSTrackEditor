@@ -1,0 +1,36 @@
+{
+    "mainTrack": {
+        "stroke": {
+            "color": "gray",
+            "width": 4
+        }
+    },
+    "currentPositionPoint": {
+        "radius": 6,
+        "fill": {
+            "color": "red"
+        },
+        "stroke": {
+            "color": "white",
+            "width": 2
+        }
+    },
+    "trimmedTrack": {
+        "stroke": {
+            "color": "black",
+            "width": 4
+        }
+    },
+    "stationaryMarker": {
+        "stroke": {
+            "color": "red",
+            "width": 4
+        }
+    },
+    "customMarker": {
+        "stroke": {
+            "color": "yellow",
+            "width": 4
+        }
+    }
+}

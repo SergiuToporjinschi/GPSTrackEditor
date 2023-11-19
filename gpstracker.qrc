@@ -2,6 +2,7 @@
   <qresource prefix="/">
     <file>resources/index.html</file>
     <file>resources/openLayerHandler.js</file>
+    <file>resources/mapDefaultProperties.json</file>
   </qresource>
   <qresource prefix="/">
     <file>resources/icons/close-circle-outline.svg</file>
