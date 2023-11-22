@@ -1,11 +1,11 @@
 import pytz, enum
 from datetime import datetime
-from typing import Any, Union
+from typing import Any
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QModelIndex, QSize, QLocale, QObject, QPersistentModelIndex
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget, QComboBox, QSpinBox, QHBoxLayout, QLineEdit, QColorDialog
+from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget, QComboBox, QSpinBox, QColorDialog
 
 class ExtRoles(enum.Enum):
     ValueType = Qt.ItemDataRole.UserRole + 1

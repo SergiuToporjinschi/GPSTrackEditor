@@ -1,6 +1,6 @@
 import threading, enum
 from PySide6.QtGui import QColor
-from StatusBar import StatusMessage
+from StatusMessage import StatusMessage
 
 class ExecutorStatus(enum.Enum):
     AlreadyRunning = StatusMessage('Already running...', color=QColor('red'))

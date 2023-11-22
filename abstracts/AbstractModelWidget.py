@@ -5,8 +5,7 @@ from qtpy.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
 from models import TrackPointsModel
-from StatusBar import StatusMessage
-from shiboken6 import Shiboken
+from StatusMessage import StatusMessage
 
 class AbstractNotificationWidget:
     startProcessing = Signal()            # before processing data (to clear the status maybe)

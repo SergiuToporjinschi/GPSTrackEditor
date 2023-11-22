@@ -10,7 +10,7 @@ from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
-from TrackDataDTO import TrackDataDTO
+from dto import TrackDataDTO
 
 class Marker:
     _name: str = None

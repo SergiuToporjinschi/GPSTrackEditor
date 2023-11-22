@@ -3,7 +3,9 @@ from loaders import TCXLoader
 
 from internalWidgets import QtSliderFilterWidgetPlugin
 from gui.main_remaster_ui import Ui_MainWindow
-from StatusBar import StatusBarGroupBox, StatusMessage
+
+from gui.StatusBar import StatusBarGroupBox
+from StatusMessage import StatusMessage
 
 from gui.DockWidget import *
 from abstracts import AbstractNotificationWidget

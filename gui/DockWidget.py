@@ -9,7 +9,7 @@ from PySide6.QtWebChannel import QWebChannel
 from models import TrackPointsModel, Marker, TCXRowModel, JsonTreeModel
 from abstracts import AbstractModelWidget
 from StatusMessage import StatusMessage
-from TrackDataDTO import FileDataDTO
+from dto import FileDataDTO
 from delegates import MapSettingsDelegate
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock

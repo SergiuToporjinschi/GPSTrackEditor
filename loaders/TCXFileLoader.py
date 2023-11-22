@@ -5,7 +5,7 @@ from datetime import datetime
 from qtpy.QtCore import Signal
 from PySide6.QtCore import QObject
 
-from TrackDataDTO import FileDataDTO, LapDataDTO, TrackDataDTO
+from dto import *
 from StatusMessage import StatusMessage
 from abstracts import AbstractNotificationWidget
 from ThreadExecutor import AsyncExecutor, AsyncManager
