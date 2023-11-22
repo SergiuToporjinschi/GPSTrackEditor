@@ -1,23 +1,23 @@
 import typing
 from datetime import datetime
-from typing import Any, Union, Type
+from typing import Any, Union, Type, Generator
 from qtpy.QtCore import Signal
-from StatusBar import StatusMessage
+from StatusMessage import StatusMessage
 
 from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QPersistentModelIndex
 from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
-from Delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
+from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 from TrackDataDTO import TrackDataDTO
 
 class Marker:
     _name: str = None
-    _indexes: [int] = None
-    _color: [QColor] = None
+    _indexes: list[int] = None
+    _color: QColor = None
     _expression: str = None
-    def __init__(self, name: str, indexes:[int], color:QColor, expression: typing.Optional[str] = None) -> None:
+    def __init__(self, name: str, indexes:list[int], color:QColor, expression: typing.Optional[str] = None) -> None:
         self._name = name
         self._indexes = indexes
         self._color = color
@@ -105,22 +105,21 @@ class TCXColModel:
         return len(self._colInfo)
 
 
-class TCXRowModel:
+class TCXRowModel(TrackDataDTO):
     def __init__(self, row: TrackDataDTO) -> None:
-        self.rowData = row
+        for name in vars(TrackDataDTO):
+            if isinstance(getattr(TrackDataDTO, name), property):
+                setattr(self, name, getattr(row, name))
 
     def __getitem__(self, index):
-        return getattr(self.rowData, TCXColModel()[index].dtoAttribute)
+        return getattr(self, TCXColModel()[index].dtoAttribute)
 
     def getValueByColName(self, colName):
         # [maker for maker in self.markers if maker.name != name]
         col = [colModel for colModel in TCXColModel() if colModel.dtoAttribute == colName]
         if col is None:
             raise Exception('Column does not exists!')
-        return getattr(self.rowData, colName)
-
-    def setValue(self, colIndex: int, val: any):
-        setattr(self.rowData, TCXColModel()[colIndex].dtoAttribute, val)
+        return getattr(self, colName)
 
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal()           # when the entire track changed, track without any filters or markers
@@ -178,14 +177,16 @@ class TrackPointsModel(QAbstractTableModel):
                     selectedColor = marker.color
             if selectedColor is not None: return selectedColor
 
-    def dataByColNames(self, row: int, colNames: [str]) -> Any:
-        response = ()
-        for colName in colNames:
-            response += (self.allTrackPoints[self.trimmerInterval.index(row)].getValueByColName(colName), )
-        return response
+    def getTrimmedDataItem(self, row: int) -> TCXRowModel:
+        return self.allTrackPoints[self.trimmerInterval.index(row)]
 
-    def dataByColName(self, row: int, colName: str, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
-        return self.data(self.index(self.trimmerInterval.index(row), TCXColModel().getIndexOfColumnName(colName)), role)
+    def iterateTrimmedTracks(self) -> Generator[TCXRowModel, None, None]:
+        for index in range(0, self.rowCount()):
+            yield self.allTrackPoints[self.trimmerInterval.index(index)]
+
+    def iterateAllTracks(self) -> Generator[TCXRowModel, None, None]:
+        for item in self.allTrackPoints:
+            yield item
 
     def dataAndAttributeByIndex(self, row: int, col: int, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
         return self.data(self.index(row, col), role), TCXColModel()[col].dtoAttribute

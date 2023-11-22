@@ -3,6 +3,7 @@
     <file>resources/index.html</file>
     <file>resources/openLayerHandler.js</file>
     <file>resources/mapDefaultProperties.json</file>
+    <file>/resources/statisticTreeStructure.json</file>
   </qresource>
   <qresource prefix="/">
     <file>resources/icons/close-circle-outline.svg</file>

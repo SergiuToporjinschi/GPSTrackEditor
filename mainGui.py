@@ -1,14 +1,12 @@
-import sys
-
-from TCXModel import TrackPointsModel, TCXColModel # TrackPointModel
+from models import TrackPointsModel, TCXColModel # TrackPointModel
 from FileLoader import TCXLoader
 
 from internalWidgets import QtSliderFilterWidgetPlugin
 from gui.main_remaster_ui import Ui_MainWindow
 from StatusBar import StatusBarGroupBox, StatusMessage
 
-from gui.DockWidget import MapDockWidget, StatisticsDockWidget, FileInfoDockWidget, FilterDockWidget, ProcessingDockWidget, MarkingDockWidget
-from AbstractModelWidget import AbstractModelWidget, AbstractNotificationWidget
+from gui.DockWidget import *
+from abstracts import AbstractNotificationWidget
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
@@ -73,11 +71,10 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.dockMarking = MarkingDockWidget(self, self.model)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dockMarking)
 
-        self.tabifyDockWidget(self.dockFileInfo, self.dockStatistics)
         self.tabifyDockWidget(self.dockFileInfo, self.dockFilter)
         self.tabifyDockWidget(self.dockFileInfo, self.dockProcessing)
         self.tabifyDockWidget(self.dockFileInfo, self.dockMarking)
-
+        self.tabifyDockWidget(self.dockFileInfo, self.dockStatistics)
         # connect signals -----------------------------------------
         self._connectSignalsToStatusBar()
         self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)

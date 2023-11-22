@@ -2,16 +2,98 @@ from datetime import datetime
 from typing import List
 
 class TrackDataDTO:
-    time: datetime = None
-    latitude: float = None
-    longitude: float = None
-    altitude: float = None
-    hartRate: int = None
-    distance: float = None
-    calculatedDistance: float = None
-    speed: float = None
-    calculatedSpeed: float = None
-    sensorState: str = None
+    def __init__(self):
+        self._time: datetime = None
+        self._latitude: float = None
+        self._longitude: float = None
+        self._altitude: float = None
+        self._hartRate: int = None
+        self._distance: float = None
+        self._calculatedDistance: float = None
+        self._speed: float = None
+        self._calculatedSpeed: float = None
+        self._sensorState: str = None
+
+    @property
+    def time(self):
+        return self._time
+
+    @time.setter
+    def time(self, time: datetime):
+        self._time = time
+
+    @property
+    def latitude(self):
+        return self._latitude
+
+    @latitude.setter
+    def latitude(self, latitude: float):
+        self._latitude = latitude
+
+    @property
+    def longitude(self):
+        return self._longitude
+
+    @longitude.setter
+    def longitude(self, longitude: float):
+        self._longitude = longitude
+
+    @property
+    def altitude(self):
+        return self._altitude
+
+    @altitude.setter
+    def altitude(self, altitude: float):
+        self._altitude = altitude
+
+    @property
+    def hartRate(self):
+        return self._hartRate
+
+    @hartRate.setter
+    def hartRate(self, hartRate: int):
+        self._hartRate = hartRate
+
+    @property
+    def distance(self):
+        return self._distance
+
+    @distance.setter
+    def distance(self, distance: float):
+        self._distance = distance
+
+    @property
+    def calculatedDistance(self):
+        return self._calculatedDistance
+
+    @calculatedDistance.setter
+    def calculatedDistance(self, calculatedDistance: float):
+        self._calculatedDistance = calculatedDistance
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @speed.setter
+    def speed(self, speed: float):
+        self._speed = speed
+
+    @property
+    def calculatedSpeed(self):
+        return self._calculatedSpeed
+
+    @calculatedSpeed.setter
+    def calculatedSpeed(self, calculatedSpeed: float):
+        self._calculatedSpeed = calculatedSpeed
+
+    @property
+    def sensorState(self):
+        return self._sensorState
+
+    @sensorState.setter
+    def sensorState(self, sensorState: float):
+        self._sensorState = sensorState
+
 
     def __repr__(self) -> str:
         return f'time: {self.time}, altitude: {self.altitude}, heartRate: {self.hartRate}'

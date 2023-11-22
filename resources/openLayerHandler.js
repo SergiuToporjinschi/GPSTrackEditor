@@ -105,8 +105,9 @@ function setCurrentPositionPoint(pointCoordinates) {
 }
 
 function setTrimmedTrack(newCoordinates) {
-    // Clear existing vector layer
+    firstLoad = true
     if (trimmedTrackVectorLayer) {
+        firstLoad = false
         map.removeLayer(trimmedTrackVectorLayer);
     }
     if (!newCoordinates || !Array.isArray(JSON.parse(newCoordinates)) || !JSON.parse(newCoordinates).length) {
@@ -131,10 +132,12 @@ function setTrimmedTrack(newCoordinates) {
 
     map.addLayer(trimmedTrackVectorLayer);
 
-    var extent = feature.getGeometry().getExtent();
-
     // Zoom to fit the extent of the feature
-    map.getView().fit(extent, { padding: [20, 20, 20, 20] }); // Adjust padding as needed
+    // map.getView().fit(extent, { padding: [20, 20, 20, 20] }); // Adjust padding as needed
+    if (firstLoad) {
+        var extent = feature.getGeometry().getExtent();
+        map.getView().fit(extent, { padding: [20, 20, 20, 20] }); // Adjust padding as needed
+    }
 }
 
 function saveZoom(event) {

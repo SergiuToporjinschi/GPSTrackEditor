@@ -69,16 +69,17 @@
                 window.backEnd = channel.objects.backEnd
                 window.backEnd.configChanged.connect(configChanged)
                 window.backEnd.mainSeriesChanged.connect(setMainTrack)
-                // window.backEnd.trimmedSeriesChanged.connect(setTrimmedTrack)
+                window.backEnd.trimmedSeriesChanged.connect(setTrimmedTrack)
                 // window.backEnd.markPoint.connect(markPoint)
-                // window.backEnd.currentPositionPoint.connect(setCurrentPositionPoint)
-                window.backEnd.addTracking
-                window.backEnd.removeTracking
-                window.backEnd.updateTracking
+                window.backEnd.currentPositionPoint.connect(setCurrentPositionPoint)
 
-                window.backEnd.addPoint
-                window.backEnd.removePoint
-                window.backEnd.updatePoint
+                // window.backEnd.addTracking
+                // window.backEnd.removeTracking
+                // window.backEnd.updateTracking
+
+                // window.backEnd.addPoint
+                // window.backEnd.removePoint
+                // window.backEnd.updatePoint
 
             });
         </script>

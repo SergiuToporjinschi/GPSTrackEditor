@@ -6,8 +6,8 @@ from qtpy.QtCore import Signal
 from PySide6.QtCore import QObject
 
 from TrackDataDTO import FileDataDTO, LapDataDTO, TrackDataDTO
-from StatusBar import StatusMessage
-from AbstractModelWidget import AbstractNotificationWidget
+from StatusMessage import StatusMessage
+from abstracts import AbstractNotificationWidget
 from ThreadExecutor import AsyncExecutor, AsyncManager
 
 class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):

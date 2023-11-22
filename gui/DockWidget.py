@@ -2,16 +2,15 @@ import typing, json, re
 from qtpy.QtCore import Signal, Slot
 from PySide6.QtGui import QPalette, QColor, QColorConstants
 from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
-from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView
+from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, QTableWidget, QVBoxLayout, QTableWidgetItem, QAbstractItemView, QStyledItemDelegate
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
-from TCXModel import TrackPointsModel, Marker
-from AbstractModelWidget import AbstractModelWidget
-from StatusBar import StatusMessage
+from models import TrackPointsModel, Marker, TCXRowModel, JsonTreeModel
+from abstracts import AbstractModelWidget
+from StatusMessage import StatusMessage
 from TrackDataDTO import FileDataDTO
-from JSONTreeModel import JsonTreeModel
-from Delegates import MapSettingsDelegate
+from delegates import MapSettingsDelegate
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -20,7 +19,7 @@ from gui.filter_dock_ui import Ui_DockWidget as filterDock
 from gui.processing_dock_ui import Ui_DockWidget as processingDock
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
 
-
+from trackStatistics import StatisticsDto, StatisticsModel
 
 class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
@@ -147,8 +146,6 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
             self.model.addMarker(marker)
         pass
 
-
-
 class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
 
     def _setupUi(self):
@@ -157,25 +154,22 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
 
     def _calculateSpeed(self):
         self.statusMessage.emit(StatusMessage('Calculating speed...'))
+        self.model.beginResetModel()
         self.model.sortBy('time', Qt.SortOrder.AscendingOrder)
-        self.model.setDataByColumnName(0, 'calculatedSpeed', 0, Qt.ItemDataRole.EditRole)
-        for row in range(1, self.model.rowCount()):
-            prevData = self.model.dataByColName(row-1, 'distance')
-            data = self.model.dataByColName(row, 'distance')
-            if prevData is not None and data is not None:
-                newVal = ((data - prevData) * 360) / 100
+        prevDistance = None
+        for item in self.model.iterateAllTracks():
+            if prevDistance is not None and item is not None and item.distance is not None:
+                newSpeed = ((item.distance - prevDistance) * 360) / 100
             else:
-                newVal = 0
-            self.model.setDataByColumnName(row, 'calculatedSpeed', newVal, Qt.ItemDataRole.EditRole)
+                newSpeed = 0
+            prevDistance = item.distance
+            item.calculatedSpeed = newSpeed
+        self.model.endResetModel()
         self.statusMessage.emit(None)
-
-
 
 class FilterDockWidget(AbstractModelWidget, QDockWidget, filterDock):
     def _setupUi(self):
         self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
-
-
 
 class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
 
@@ -192,62 +186,48 @@ class FileInfoDockWidget(AbstractModelWidget, QDockWidget, fileInfoDock):
         self.inputLaps.setText(str(activityData.lapsCount))
         self.inputTrackPoints.setText(str(activityData.trackPointsCount))
 
-
-
 class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
+
+    class RightAlignmentDelegate(QStyledItemDelegate):
+        def initStyleOption(self, option, index):
+            super().initStyleOption(option, index)
+            option.displayAlignment = Qt.AlignmentFlag.AlignRight
+
+    def _setupUi(self):
+        self.statisticsModel = StatisticsModel()
+        self.tableStatistics.setModel(self.statisticsModel)
+        self.tableStatistics.setItemDelegate(StatisticsDockWidget.RightAlignmentDelegate())
+        self.statisticsModel.modelReset.connect(self.tableStatistics.resizeColumnsToContents)
+        self.tableStatistics.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
     @Slot()
     def calculateStatistics(self):
         self.statusMessage.emit(StatusMessage('Calculating statistics...'))
-        values = {
-            "latitude": {"max": 0,"min": 0,"missing": 0},
-            "longitude": {"max": 0,"min": 0,"missing": 0},
-            "altitude": {"max": 0,"min": 0,"missing": 0},
-            "hartRate": {"max": 0,"min": 0,"missing": 0},
-            "distance": {"max": 0,"min": 0,"missing": 0},
-            "calculatedDistance": {"max": 0,"min": 0,"missing": 0},
-            "speed": {"max": 0,"min": 0,"missing": 0},
-            "calculatedSpeed": {"max": 0,"min": 0,"missing": 0}
-        }
-        for row in range(0, self.model.rowCount()):
-            for col in range(0, self.model.columnCount()):
-                val, colName = self.model.dataAndAttributeByIndex(row, col, Qt.ItemDataRole.EditRole)
-                ent = values.get(colName)
+        self.statisticsModel.beginResetModel()
+        for dataItem in self.model.iterateTrimmedTracks():
+            for item in self.statisticsModel.iterateIndexes():
+                if item.dataType is str: continue
+                if item.dtoAttribute is None:
+                    # eval(f'self.{item.func}(dataItem, item)')
+                    continue
+                val = getattr(dataItem, item.dtoAttribute)
                 if val is None:
-                    ent['missing'] = ent['missing'] + 1
-                elif ent is not None:
-                    ent['max'] = val if val > ent['max'] else ent['max']
-                    ent['min'] = val if val < ent['min'] else ent['min']
-
-        self._updateGroup("speed", values, 12, [('MPH',1),('KMPH',100)])
-        self._updateGroup("calculatedSpeed", values, 16, [('MPH',1),('KMPH',100)])
-        self._updateGroup("distance", values, 16, [('M',1),('KM',100)])
-        self._updateGroup("calculatedDistance", values, 16, [('M',1),('KM',100)])
-        self._updateGroup("hartRate", values, 2)
-        self._updateGroup("longitude", values, 8)
-        self._updateGroup("latitude", values, 8)
-        self._updateGroup("altitude", values, 3)
+                    item.missing = item.missing + 1
+                    continue
+                if val is None or item.min is None or item.min > val: item.min = val
+                if val is None or item.max is None or item.max < val: item.max = val
+                item.avg  = (item.min + item.max) / 2
+        self.statisticsModel.endResetModel()
         self.statusMessage.emit(None)
 
-
-
-    def _updateGroup(self, name:str, values:dict, dec:int, sufix:[tuple] = [("",1)]):
-        ent = values.get(name)
-        fieldName = name[0].upper() + name[1:]
-        for item in sufix:
-            suf, div = item
-            vars(self)['label'+fieldName+'Min'+suf].setText(f'{ent.get("min")/div:.{dec}f}')
-            vars(self)['label'+fieldName+'Max'+suf].setText(f'{ent.get("max")/div:.{dec}f}')
-            vars(self)['label'+fieldName+'Avg'+suf].setText(f'{(ent.get("max") + ent.get("min"))/div / 2:.{dec}f}')
-
-        missField = vars(self)['label'+fieldName+'Missing']
-        missVal = str(ent.get("missing")) if ent.get("missing") > 0 else "None"
-        missField.setText(missVal)
-        if missVal != 'None':
-            missField.setStyleSheet("color: rgb(255, 0, 0);")
-        else:
-            missField.setStyleSheet("")
-
+    def toKm(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
+        pass
+    def findMax(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
+        pass
+    def findAvg(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
+        pass
+    def findMissing(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
+        pass
 
 
 class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
@@ -291,14 +271,14 @@ class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
         self.treeViewMapPropertiesModel.configChanged.connect(self.configChanged)
 
     def _loadTrimmedTrack(self):
-        self.trimmedSeriesChanged.emit(json.dumps(self._getCoordinates()))
+        self.trimmedSeriesChanged.emit(json.dumps(self._getTrimmedTrackPointsCoordinates()))
 
     def _loadMainTrack(self):
-        self.mainSeriesChanged.emit(json.dumps(self._getCoordinates()))
+        self.mainSeriesChanged.emit(json.dumps(self._getAllTrackPointsCoordinates()))
 
     def _sendMarkPoint(self, new:QModelIndex, old:QModelIndex):
-        (longitude, latitude) = self.model.dataByColNames(new.row(), ('longitude', 'latitude'))
-        self.currentPositionPoint.emit(json.dumps([longitude, latitude]))
+        item = self.model.getTrimmedDataItem(new.row())
+        self.currentPositionPoint.emit(json.dumps([item.longitude, item.latitude]))
 
     def _getResourceContent(self, resourceFilePath: str):
         htmlContent = ""
@@ -309,10 +289,16 @@ class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
             html_resource.close()
         return htmlContent
 
-    def _getCoordinates(self):
+    def _getAllTrackPointsCoordinates(self):
         coordinates = []
-        for row in range(0, self.model.rowCount()):
-            (longitude, latitude) = self.model.dataByColNames(row, ('longitude', 'latitude'))
-            if longitude is not None and latitude is not None:
-                coordinates.append([longitude, latitude])
+        for item in self.model.iterateAllTracks():
+            if item.longitude is not None and item.latitude is not None:
+                coordinates.append([item.longitude, item.latitude])
+        return coordinates
+
+    def _getTrimmedTrackPointsCoordinates(self):
+        coordinates = []
+        for item in self.model.iterateTrimmedTracks():
+            if item.longitude is not None and item.latitude is not None:
+                coordinates.append([item.longitude, item.latitude])
         return coordinates

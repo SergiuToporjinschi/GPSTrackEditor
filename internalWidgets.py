@@ -3,7 +3,7 @@
 from qtpy.QtCore import Signal
 from superqt import QRangeSlider
 
-from AbstractModelWidget import AbstractModelWidget
+from abstracts import AbstractModelWidget
 
 from gui.slider_filter_ui import Ui_SliderFilter
 from PySide6.QtCore import Qt

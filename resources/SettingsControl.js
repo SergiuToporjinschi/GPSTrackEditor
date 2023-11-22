@@ -41,7 +41,7 @@ var SettingsControl = function (options) {
         trimmedTrackVectorLayer.setVisible(event.target.checked)
     }
     function _onCurrentPositionPointVisible(event) {
-        currentPositionPointVectorLayer.setVisible(event.target.checked)
+        // currentPositionPointVectorLayer.setVisible(event.target.checked)
     }
     return control; // Return the control instance
 };

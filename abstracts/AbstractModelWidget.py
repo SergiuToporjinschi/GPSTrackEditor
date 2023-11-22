@@ -4,8 +4,9 @@ from abc import abstractmethod
 from qtpy.QtCore import Signal
 from PySide6.QtWidgets import QWidget
 
-from TCXModel import TrackPointsModel
+from models import TrackPointsModel
 from StatusBar import StatusMessage
+from shiboken6 import Shiboken
 
 class AbstractNotificationWidget:
     startProcessing = Signal()            # before processing data (to clear the status maybe)

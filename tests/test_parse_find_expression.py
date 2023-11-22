@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QApplication, QTreeView, QVBoxLayout, QWidget, QLabel, QLineEdit, QComboBox, QSpinBox, QStyledItemDelegate
 from PySide6.QtGui import QStandardItemModel, QStandardItem
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QFile, QIODevice, QModelIndex
 import sys
 import json
 
@@ -15,24 +15,40 @@ class JsonEditor(QWidget):
         # Create a QTreeView with two columns
         self.tree_view = QTreeView()
         self.model = QStandardItemModel()
-        self.model.setColumnCount(2)  # Set the column count to 2
+        self.model.setColumnCount(5)  # Set the column count to 2
         self.tree_view.setModel(self.model)
 
         # Populate the tree view based on JSON data
-        self.populate_treeview(self.model.invisibleRootItem(), self.json_data)
-
+        self.populate_treeview2(self.model.invisibleRootItem(), self.json_data)
+        self.tree_view.expanded.connect(self.test)
         # Set headers for columns
         # self.tree_view.setHeaderLabels(['Attribute', 'Value'])
 
         # Set custom delegate to allow for custom widgets within the tree
-        self.tree_view.setItemDelegate(TreeDelegate(self))
+        # self.tree_view.setItemDelegate(TreeDelegate(self))
 
         # Add tree view to layout
         main_layout = QVBoxLayout()
         main_layout.addWidget(self.tree_view)
         self.setLayout(main_layout)
+    def test(self, x):
+        self.tree_view.rowHeight(x)
+        self.tree_view.font().
+        pass
+    def populate_treeview2(self, parent: QStandardItem, data, p:QStandardItem=None):
+        columns = ['min', 'avg', 'max', 'missing']
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if key in columns:
+                    p.setChild(parent.row(), columns.index(key) + 1, QStandardItem(str(value)))
+                    continue
+                else:
+                    item = QStandardItem(str(key))
+                    parent.appendRow(item)
+                    if isinstance(value, dict):
+                        self.populate_treeview2(item, value, parent)
 
-    def populate_treeview(self, parent, data):
+    def populate_treeview(self, parent: QStandardItem, data):
         if isinstance(data, dict):
             for key, value in data.items():
                 item = QStandardItem(str(key))
@@ -85,27 +101,26 @@ class TreeDelegate(QStyledItemDelegate):
         else:
             super().setModelData(editor, model, index)
 
+def _getResourceContent(resourceFilePath: str):
+    htmlContent = ""
+    html_resource = QFile(resourceFilePath)
+    if html_resource.open(QIODevice.ReadOnly | QIODevice.Text):
+        html_content = html_resource.readAll().data().decode('utf-8')
+        htmlContent = html_content
+        html_resource.close()
+    return htmlContent
 
 def main():
     app = QApplication(sys.argv)
 
     # JSON data
-    json_data = {
-        "mainTrack": {"stroke": {"color": 'gray', "width": 4}},
-        "currentPositionPoint": {
-            "radius": 6,
-            "fill": {"color": 'red'},
-            "stroke": {"color": 'white', "width": 2}
-        },
-        "trimmedTrack": {"stroke": {"color": 'lightgray', "width": 4}},
-        "stationaryMarker": {"stroke": {"color": 'red', "width": 4}},
-        "customMarker": {"stroke": {"color": 'yellow', "width": 4}},
-    }
 
-    editor = JsonEditor(json_data)
+    data = json.loads(_getResourceContent("E:/IOT/Projects/Python/GPSTrackEditor/resources/statisticTreeStructure.json"))
+    editor = JsonEditor(data)
     editor.show()
 
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()
