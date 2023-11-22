@@ -123,9 +123,6 @@ class TrackPointsModel(QAbstractTableModel):
         self.endResetModel()
         self.mainSeriesChanged.emit()
 
-    def indexByColName(self, row: int, column: str, parent: Union[QModelIndex, QPersistentModelIndex] = ...) -> QModelIndex:
-        return self.index(row, TCXColModel().getIndexOfColumnName(column))
-
     def data(self, index: QModelIndex, role: int = ...) -> Any:
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             return self.allTrackPoints[self.trimmerInterval.index(index.row())][index.column()]
@@ -147,17 +144,11 @@ class TrackPointsModel(QAbstractTableModel):
         for item in self.allTrackPoints:
             yield item
 
-    def dataAndAttributeByIndex(self, row: int, col: int, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> Any:
-        return self.data(self.index(row, col), role), TCXColModel()[col].dtoAttribute
-
     def setData(self, index: QModelIndex, value: Any, role: int = ...) -> bool:
         if role == Qt.ItemDataRole.EditRole:
             self.allTrackPoints[self.trimmerInterval.index(index.row())].setValue(index.column(), value)
             return True
         return super().setData(index, value, role)
-
-    def setDataByColumnName(self, row: int, colName: str, value: Any, role: typing.Optional[int] = Qt.ItemDataRole.EditRole) -> bool:
-        return self.setData(self.indexByColName(row, colName), value, role)
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.trimmerInterval)
