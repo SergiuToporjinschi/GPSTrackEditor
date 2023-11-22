@@ -6,11 +6,13 @@ from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, Q
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
-from models import TrackPointsModel, Marker, TCXRowModel, JsonTreeModel
+from marking import MarkerDto
+from models import TrackPointsModel, TCXRowModel, JsonTreeModel
 from abstracts import AbstractModelWidget
 from StatusMessage import StatusMessage
 from dto import FileDataDTO
 from delegates import MapSettingsDelegate
+from trackStatistics import StatisticsDto, StatisticsModel
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -19,13 +21,12 @@ from gui.filter_dock_ui import Ui_DockWidget as filterDock
 from gui.processing_dock_ui import Ui_DockWidget as processingDock
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
 
-from trackStatistics import StatisticsDto, StatisticsModel
 
 class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
     colorStationaryMarking: QColor = QColorConstants.Yellow
     pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
-    markers : [Marker] = []
+    markers : [MarkerDto] = []
     def _setupUi(self):
         self._setColor(self.pushStatMarkSelColor, self.colorStationaryMarking)
         self._setColor(self.pushCustomMarkSelColor, self.colorCustomMarking)
@@ -53,12 +54,12 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
             control.setPalette(pal)
         pass
 
-    def _markStationary(self, marker: typing.Optional[Marker] = None):
+    def _markStationary(self, marker: typing.Optional[MarkerDto] = None):
         self.statusMessage.emit(StatusMessage('Marking...'))
         self.updateProgress.emit(0)
         color = self.pushStatMarkSelColor.palette().button().color()
         tolerance = self.spinBoxMarkStatTolerance.value()
-        marker = Marker('stationary', [], color, tolerance) if not isinstance(marker, Marker) or marker is None else marker
+        marker = MarkerDto('stationary', [], color, tolerance) if not isinstance(marker, MarkerDto) or marker is None else marker
         marker.indexes.clear()
         prevItem = None
         trackPointsCount = len(self.model.allTrackPoints)
@@ -81,9 +82,9 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
         self.model.clearMarker(name)
         pass
 
-    def _onCustomMarkButton(self, marker: typing.Optional[Marker] = None):
+    def _onCustomMarkButton(self, marker: typing.Optional[MarkerDto] = None):
         self.statusMessage.emit(StatusMessage('Marking...'))
-        marker = self._buildCustomMarker() if not isinstance(marker, Marker) or marker is None else marker
+        marker = self._buildCustomMarker() if not isinstance(marker, MarkerDto) or marker is None else marker
         try:
             marker.indexes = []
             trackPointsCount = len(self.model.allTrackPoints)
@@ -118,7 +119,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
             if value is not None and value.strip() != "":
                 expression.append(self._buildCustomMarkerKey(key, self.pattern.findall(value)))
         color = self.pushCustomMarkSelColor.palette().button().color()
-        return Marker('custom', [], color, ' or '.join(expression))
+        return MarkerDto('custom', [], color, ' or '.join(expression))
 
     def _buildCustomMarkerKey(self, key:str, expression: list[tuple]):
         result = ''
@@ -129,7 +130,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
             result += ' '.join(item) + ' '
         return key + ' is not None and ' + result.strip()
 
-    def _applyMarker(self, marker: Marker):
+    def _applyMarker(self, marker: MarkerDto):
         if marker not in self.markers:
             self.markers.append(marker)
         self.model.addMarker(marker)

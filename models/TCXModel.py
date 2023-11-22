@@ -4,55 +4,15 @@ from typing import Any, Union, Type, Generator
 from qtpy.QtCore import Signal
 from StatusMessage import StatusMessage
 
-from PySide6.QtGui import QPalette, QColor
+from PySide6.QtGui import QPalette
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QPersistentModelIndex
 from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 from dto import TrackDataDTO
+from marking import MarkerDto
 
-class Marker:
-    _name: str = None
-    _indexes: list[int] = None
-    _color: QColor = None
-    _expression: str = None
-    def __init__(self, name: str, indexes:list[int], color:QColor, expression: typing.Optional[str] = None) -> None:
-        self._name = name
-        self._indexes = indexes
-        self._color = color
-        self._expression = expression
-        pass
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def indexes(self):
-        return self._indexes
-
-    @indexes.setter
-    def indexes(self, indexes: []):
-        self._indexes = indexes
-
-    @property
-    def color(self):
-        return self._color
-
-    @property
-    def expression(self):
-        return self._expression
-
-    @expression.setter
-    def expression(self, expression: str):
-        self._expression = expression
-
-    def __eq__(self, other):
-        # Customize the equality comparison based on your requirements
-        if isinstance(other, Marker):
-            return self.name == other.name
-        return False
 
 class TCXColInfoModel:
     columnTitle: str = None
@@ -65,7 +25,6 @@ class TCXColInfoModel:
         self.dataType = dataType
         self.delegate = cellDelegate
         self.dtoAttribute = dtoAttribute
-
 
 
 class TCXColModel:
@@ -133,7 +92,7 @@ class TrackPointsModel(QAbstractTableModel):
     updateSelection = Signal(int)          # signal emited
     updateTrackPoints = Signal(int)
 
-    markers: list[Marker] = []
+    markers: list[MarkerDto] = []
     trimmerInterval = TrimmerInterval(1, 1)
     allTrackPoints = list[TCXRowModel]
 
@@ -234,7 +193,7 @@ class TrackPointsModel(QAbstractTableModel):
         self.trimRangeChanged.emit(len(self.trimmerInterval)) # TODO add the number of rows
         self.endResetModel()
 
-    def addMarker(self, maker: Marker):
+    def addMarker(self, maker: MarkerDto):
         self.beginResetModel()
         self.markers.append(maker)
         self.endResetModel()
