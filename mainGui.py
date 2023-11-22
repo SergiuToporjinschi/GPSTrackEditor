@@ -1,5 +1,5 @@
 from models import TrackPointsModel, TCXColModel # TrackPointModel
-from FileLoader import TCXLoader
+from loaders import TCXLoader
 
 from internalWidgets import QtSliderFilterWidgetPlugin
 from gui.main_remaster_ui import Ui_MainWindow

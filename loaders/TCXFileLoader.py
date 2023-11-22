@@ -140,5 +140,3 @@ class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
     def _getSensorState(self, node):
         value = node.find("{http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2}SensorState")
         return value.text if value is not None else None
-
-

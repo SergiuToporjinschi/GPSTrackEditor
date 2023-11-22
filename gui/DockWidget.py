@@ -2,7 +2,7 @@ import typing, json, re
 from qtpy.QtCore import Signal, Slot
 from PySide6.QtGui import QPalette, QColor, QColorConstants
 from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
-from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, QTableWidget, QVBoxLayout, QTableWidgetItem, QAbstractItemView, QStyledItemDelegate
+from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, QStyledItemDelegate
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
@@ -228,7 +228,6 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
         pass
     def findMissing(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
         pass
-
 
 class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
     configChanged = Signal(str)        # map configuration changes, updates map
