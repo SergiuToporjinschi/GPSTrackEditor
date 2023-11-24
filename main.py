@@ -1,14 +1,10 @@
 import sys
-import Utils
-import gpstracker_rc
 
 from mainGui import mainGUI
-from PySide6.QtCore import Qt, QSettings, QByteArray, QRect
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
-from PySide6.QtGui import QPalette, QColor, QColorConstants, QIcon, QSessionManager
+from PySide6.QtGui import QPalette, QColor, QColorConstants, QIcon
 from config import *
-
-from PySide6.QtGui import QScreen
 
 def closing(window: mainGUI):
     Config.setValueG(ConfigGroup.MainWindow, ConfigAttribute.Geometry, window.saveGeometry())
@@ -25,7 +21,6 @@ def main():
 
     gui.setWindowFlags(Qt.WindowType.Window | Qt.WindowType.WindowSystemMenuHint | Qt.WindowType.WindowMinMaxButtonsHint | Qt.WindowType.WindowCloseButtonHint)
 
-    # gui.setGeometry(Config.valueG(ConfigGroup.MainWindow, ConfigAttribute.Geometry, Utils.defaultGeometry()))
     gui.restoreState(Config.valueG(ConfigGroup.MainWindow, ConfigAttribute.State, None))
     gui.restoreGeometry(Config.valueG(ConfigGroup.MainWindow, ConfigAttribute.Geometry, None))
     gui.show()
