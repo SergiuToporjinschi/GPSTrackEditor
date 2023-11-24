@@ -27,6 +27,7 @@ class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
     colorStationaryMarking: QColor = QColorConstants.Yellow
     pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
     markers : [MarkerDto] = []
+
     def _setupUi(self):
         self._setColor(self.pushStatMarkSelColor, self.colorStationaryMarking)
         self._setColor(self.pushCustomMarkSelColor, self.colorCustomMarking)

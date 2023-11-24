@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>853</width>
-    <height>885</height>
+    <width>497</width>
+    <height>547</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -89,6 +89,9 @@
          <attribute name="horizontalHeaderStretchLastSection">
           <bool>true</bool>
          </attribute>
+         <attribute name="verticalHeaderMinimumSectionSize">
+          <number>30</number>
+         </attribute>
         </widget>
        </item>
        <item>
@@ -109,7 +112,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>853</width>
+     <width>497</width>
      <height>22</height>
     </rect>
    </property>
@@ -142,7 +145,7 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset resource="../gpstracker.qrc">
+    <iconset>
      <normaloff>:/resources/icons/open-file.png</normaloff>:/resources/icons/open-file.png</iconset>
    </property>
    <property name="text">
@@ -154,7 +157,7 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset resource="../gpstracker.qrc">
+    <iconset>
      <normaloff>:/resources/icons/save-file.png</normaloff>:/resources/icons/save-file.png</iconset>
    </property>
    <property name="text">
@@ -166,7 +169,7 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset resource="../gpstracker.qrc">
+    <iconset>
      <normaloff>:/resources/icons/exit.png</normaloff>:/resources/icons/exit.png</iconset>
    </property>
    <property name="text">
@@ -178,7 +181,7 @@
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset resource="../gpstracker.qrc">
+    <iconset>
      <normaloff>:/resources/icons/new-file.png</normaloff>:/resources/icons/new-file.png</iconset>
    </property>
    <property name="text">
@@ -193,7 +196,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset theme="application-x-executable" resource="../gpstracker.qrc">
+    <iconset theme="application-x-executable">
      <normaloff>:/resources/icons/exit.png</normaloff>:/resources/icons/exit.png</iconset>
    </property>
    <property name="text">

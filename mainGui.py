@@ -6,12 +6,12 @@ from gui.main_remaster_ui import Ui_MainWindow
 
 from gui.StatusBar import StatusBarGroupBox
 from StatusMessage import StatusMessage
-
+from config import *
 from gui.DockWidget import *
 from abstracts import AbstractNotificationWidget
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
+from PySide6.QtCore import Qt, QByteArray
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication, QSplitter, QTabBar, QDockWidget
 import gpstracker_rc
 
 # sys.argv.append("--disable-web-security")
@@ -35,10 +35,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
 
         self.model = TrackPointsModel(palette=app.palette())
         self.tableView.setModel(self.model)
-        # self.tableView.header().setSectionResizeMode(0, QHeaderView.Stretch)
-
-        self.model.mainSeriesChanged.connect(self.tableView.resizeColumnsToContents)
-
+        self._settingsTable()
         self._applyDelegates()
 
         # adding statusBar ----------------------------------------
@@ -82,6 +79,12 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)
         self.model.clearData()
 
+    def _onSaveFile(self):
+        self.statusInfoBar.updateMessage.emit(StatusMessage('Saving file...', 10000, QColor('green')))
+        # docks = [i for i in self.children() if isinstance(i, QDockWidget)][:]
+        # Config.setValueG(ConfigGroup.MainWindow, ConfigAttribute.State1, self.saveState())
+        # self.saveState()?
+
     def _connectSignalsToStatusBar(self):
         self.model.mainSeriesLengthChanged.connect(self.statusInfoBar.updateTackLen)
         self.model.trimRangeChanged.connect(self.statusInfoBar.updateTrimmerLen)
@@ -103,10 +106,10 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         if not file_name:
             return
         self.fileName = file_name
+        self.model.sort(0, Qt.SortOrder.AscendingOrder)
         self.tcxLoader.loadTCXAsync(file_name)
 
-    def _onSaveFile(self):
-        self.statusInfoBar.updateMessage.emit(StatusMessage('Loading file...', 10000, QColor('green')))
+
 
     def _onExit(self):
         self.app.exit()
@@ -119,3 +122,15 @@ class mainGUI(QMainWindow, Ui_MainWindow):
     def _onClear(self):
         self.model.clearData()# = TrackPointsModel()
         self.tableView.resizeColumnsToContents()
+
+    def _settingsTable(self):
+        self.tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+
+        col, direction = Config.valueG(ConfigGroup.TrackGrid, ConfigAttribute.Sorting, (-1, Qt.SortOrder.AscendingOrder))
+
+        self.model.mainSeriesChanged.connect(self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch))
+
+        self.tableView.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+
+        self.tableView.horizontalHeader().setSortIndicator(col, direction)
+        self.tableView.horizontalHeader().sortIndicatorChanged.connect(lambda colNo, direction: Config.setValueG(ConfigGroup.TrackGrid, ConfigAttribute.Sorting, (colNo, direction)))

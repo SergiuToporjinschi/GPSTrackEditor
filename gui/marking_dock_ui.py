@@ -25,6 +25,8 @@ class Ui_DockWidget(object):
         if not DockWidget.objectName():
             DockWidget.setObjectName(u"DockWidget")
         DockWidget.resize(676, 767)
+        DockWidget.setFloating(False)
+        DockWidget.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
         self.dockWidgetContents = QWidget()
         self.dockWidgetContents.setObjectName(u"dockWidgetContents")
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
