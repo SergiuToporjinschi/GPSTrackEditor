@@ -1,16 +1,15 @@
 import typing, json, re
 from qtpy.QtCore import Signal, Slot
-from PySide6.QtGui import QPalette, QColor, QColorConstants
-from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
-from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, QStyledItemDelegate
+from PySide6.QtGui import QPalette, QColor, QColorConstants, QMouseEvent, QAction, QContextMenuEvent
+from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel, QEvent
+from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, QStyledItemDelegate,  QMenu
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
-from marking import MarkerDto
 from models import TrackPointsModel, TCXRowModel, JsonTreeModel
-from abstracts import AbstractModelWidget
+from abstracts import AbstractModelWidget, AbstractWidgetMaximizeable
 from StatusMessage import StatusMessage
-from dto import FileDataDTO
+from dto import FileDataDTO, MarkerDto
 from delegates import MapSettingsDelegate
 from trackStatistics import StatisticsDto, StatisticsModel
 
@@ -22,7 +21,7 @@ from gui.processing_dock_ui import Ui_DockWidget as processingDock
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
 
 
-class MarkingDockWidget(AbstractModelWidget, QDockWidget, markingDock):
+class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
     colorStationaryMarking: QColor = QColorConstants.Yellow
     pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')

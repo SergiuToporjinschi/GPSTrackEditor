@@ -1,3 +1,3 @@
-from .AbstractModelWidget import AbstractModelWidget, AbstractNotificationWidget
+from .AbstractModelWidget import AbstractModelWidget, AbstractNotificationWidget, AbstractWidgetMaximizeable
 
-__all__ = ["AbstractModelWidget", "AbstractNotificationWidget"]
+__all__ = ["AbstractModelWidget", "AbstractNotificationWidget", "AbstractWidgetMaximizeable"]

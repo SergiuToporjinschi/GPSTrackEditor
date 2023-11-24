@@ -10,8 +10,8 @@ from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
-from dto import TrackDataDTO
-from marking import MarkerDto
+from dto import TrackDataDTO, MarkerDto
+# from marking import MarkerDto
 
 
 class TCXColInfoModel:

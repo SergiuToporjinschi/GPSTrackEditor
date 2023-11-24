@@ -11,14 +11,15 @@
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
 from PySide6.QtWidgets import (QApplication, QDockWidget, QDoubleSpinBox, QFormLayout,
-    QFrame, QGroupBox, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QScrollArea, QSizePolicy,
-    QSpacerItem, QVBoxLayout, QWidget)
+    QFrame, QHBoxLayout, QLabel, QLineEdit,
+    QPushButton, QScrollArea, QSizePolicy, QSpacerItem,
+    QVBoxLayout, QWidget)
 
 class Ui_DockWidget(object):
     def setupUi(self, DockWidget):
@@ -27,6 +28,9 @@ class Ui_DockWidget(object):
         DockWidget.resize(676, 767)
         DockWidget.setFloating(False)
         DockWidget.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
+        self.actionMaximize = QAction(DockWidget)
+        self.actionMaximize.setObjectName(u"actionMaximize")
+        self.actionMaximize.setMenuRole(QAction.NoRole)
         self.dockWidgetContents = QWidget()
         self.dockWidgetContents.setObjectName(u"dockWidgetContents")
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
@@ -177,18 +181,17 @@ class Ui_DockWidget(object):
 
         self.verticalLayout_14.addWidget(self.frameFilders1_2)
 
-        self.groupBox_28 = QGroupBox(self.scrollAreaWidgetContents_4)
-        self.groupBox_28.setObjectName(u"groupBox_28")
+        self.frame_28 = QFrame(self.scrollAreaWidgetContents_4)
+        self.frame_28.setObjectName(u"frame_28")
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.groupBox_28.sizePolicy().hasHeightForWidth())
-        self.groupBox_28.setSizePolicy(sizePolicy)
-        self.groupBox_28.setFlat(True)
-        self.formLayout = QFormLayout(self.groupBox_28)
+        sizePolicy.setHeightForWidth(self.frame_28.sizePolicy().hasHeightForWidth())
+        self.frame_28.setSizePolicy(sizePolicy)
+        self.formLayout = QFormLayout(self.frame_28)
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setContentsMargins(0, 9, -1, 0)
-        self.label_163 = QLabel(self.groupBox_28)
+        self.label_163 = QLabel(self.frame_28)
         self.label_163.setObjectName(u"label_163")
         sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         sizePolicy1.setHorizontalStretch(0)
@@ -199,7 +202,7 @@ class Ui_DockWidget(object):
 
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_163)
 
-        self.spinBoxMarkStatTolerance = QDoubleSpinBox(self.groupBox_28)
+        self.spinBoxMarkStatTolerance = QDoubleSpinBox(self.frame_28)
         self.spinBoxMarkStatTolerance.setObjectName(u"spinBoxMarkStatTolerance")
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.spinBoxMarkStatTolerance)
@@ -207,7 +210,7 @@ class Ui_DockWidget(object):
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout_2.setContentsMargins(0, 0, -1, -1)
-        self.pushStatMarkSelColor = QPushButton(self.groupBox_28)
+        self.pushStatMarkSelColor = QPushButton(self.frame_28)
         self.pushStatMarkSelColor.setObjectName(u"pushStatMarkSelColor")
         self.pushStatMarkSelColor.setFocusPolicy(Qt.NoFocus)
         self.pushStatMarkSelColor.setAutoFillBackground(True)
@@ -215,12 +218,12 @@ class Ui_DockWidget(object):
 
         self.horizontalLayout_2.addWidget(self.pushStatMarkSelColor)
 
-        self.pushStatMark = QPushButton(self.groupBox_28)
+        self.pushStatMark = QPushButton(self.frame_28)
         self.pushStatMark.setObjectName(u"pushStatMark")
 
         self.horizontalLayout_2.addWidget(self.pushStatMark)
 
-        self.pushStatMarkClear = QPushButton(self.groupBox_28)
+        self.pushStatMarkClear = QPushButton(self.frame_28)
         self.pushStatMarkClear.setObjectName(u"pushStatMarkClear")
 
         self.horizontalLayout_2.addWidget(self.pushStatMarkClear)
@@ -229,7 +232,7 @@ class Ui_DockWidget(object):
         self.formLayout.setLayout(2, QFormLayout.FieldRole, self.horizontalLayout_2)
 
 
-        self.verticalLayout_14.addWidget(self.groupBox_28)
+        self.verticalLayout_14.addWidget(self.frame_28)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -248,6 +251,10 @@ class Ui_DockWidget(object):
 
     def retranslateUi(self, DockWidget):
         DockWidget.setWindowTitle(QCoreApplication.translate("DockWidget", u"Marking", None))
+        self.actionMaximize.setText(QCoreApplication.translate("DockWidget", u"Maximize", None))
+#if QT_CONFIG(shortcut)
+        self.actionMaximize.setShortcut(QCoreApplication.translate("DockWidget", u"Ctrl+M", None))
+#endif // QT_CONFIG(shortcut)
         self.label_167.setText(QCoreApplication.translate("DockWidget", u"Altitude:", None))
         self.label_168.setText(QCoreApplication.translate("DockWidget", u"Hart rate:", None))
         self.label_165.setText(QCoreApplication.translate("DockWidget", u"Latitude:", None))
@@ -261,7 +268,6 @@ class Ui_DockWidget(object):
         self.pushCustomMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
         self.pushCustomMark.setText(QCoreApplication.translate("DockWidget", u"Mark", None))
         self.pushCustomMarkClear.setText(QCoreApplication.translate("DockWidget", u"Clear", None))
-        self.groupBox_28.setTitle(QCoreApplication.translate("DockWidget", u"Mark stationary", None))
         self.label_163.setText(QCoreApplication.translate("DockWidget", u"Tolerance:", None))
         self.pushStatMarkSelColor.setText(QCoreApplication.translate("DockWidget", u"Color", None))
         self.pushStatMark.setText(QCoreApplication.translate("DockWidget", u"Mark ", None))

@@ -3,7 +3,8 @@ from abc import abstractmethod
 
 from qtpy.QtCore import Signal
 from PySide6.QtWidgets import QWidget
-
+from PySide6.QtGui import QPalette, QColor, QColorConstants, QMouseEvent, QAction, QContextMenuEvent
+from PySide6.QtWidgets import QWidget, QDockWidget, QColorDialog, QHeaderView, QStyledItemDelegate,  QMenu
 from models import TrackPointsModel
 from StatusMessage import StatusMessage
 
@@ -23,3 +24,22 @@ class AbstractModelWidget(AbstractNotificationWidget):
     @abstractmethod
     def _setupUi(self):
         pass
+
+class AbstractWidgetMaximizeable(QDockWidget):
+
+    def contextMenuEvent(self, event: QContextMenuEvent):
+        context_menu = QMenu(self)
+        # Connect actions to functions
+
+        action1 = QAction("Normalize" if self.isMaximized() else "Maximize", self)
+
+        action1.triggered.connect(self.maximize)
+
+        context_menu.addAction(action1)
+        context_menu.exec_(event.globalPos())
+
+    def maximize(self):
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()

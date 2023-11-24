@@ -1,63 +1,70 @@
-import sys
-import typing
-from PyQt6.QtCore import QUrl, QObject
-from PyQt6.QtWidgets import QApplication
-from PyQt6 import QtCore, QtWidgets
-from PyQt6.QtGui import QDesktopServices
-from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget
-from PyQt6.QtWebEngineCore import QWebEnginePage, QWebEngineSettings, QWebEngineScript
-from PyQt6.QtWebChannel import QWebChannel, QWebChannelAbstractTransport
-import os
-from qtpy.QtCore import Signal, Slot
+from PySide6.QtWidgets import QApplication, QMainWindow, QTreeView,  QStyledItemDelegate, QStyleOptionButton, QStyle
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItemModel, QStandardItem
 
-
-class MyObject(QObject):
+class RadioDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    textChanged = Signal(str)
+    def paint(self, painter, option, index):
+        checked = index.data(Qt.CheckStateRole)
+        if checked == Qt.Checked:
+            radio_state = "checked"
+        elif checked == Qt.Unchecked:
+            radio_state = "unchecked"
+        else:
+            radio_state = "none"
 
-    @Slot(result=str)
-    def getMessage(self):
-        return '{"test":"test"}'
+        style = QApplication.style()
+        QStyle.ControlElement.CE_RadioButton
+        style.drawControl(QStyle.ControlElement.CE_RadioButton, self.getRadioButtonStyle(option, radio_state), painter)
 
-    def sendData(self, data):
-        print(f"Received from JS: {data}")
+    def editorEvent(self, event, model, option, index):
+        if event.type() == event.MouseButtonRelease:
+            if event.button() == Qt.LeftButton:
+                model.setData(index, Qt.Checked, Qt.CheckStateRole)
+        return True
 
-    def doUpdate(self):
-        self.textChanged.emit("somethig")
+    def getRadioButtonStyle(self, option, state):
+        opt = QStyleOptionButton()
+        opt.state |= QStyle.State_Enabled
+        if state == "checked":
+            opt.state |= QStyle.State_On
+        elif state == "unchecked":
+            opt.state |= QStyle.State_Off
+        opt.rect = option.rect
+        opt.palette = option.palette
+        return opt
 
-class WebViewExample(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("QtWebEngine Example")
-        self.setGeometry(100, 100, 800, 600)
-        self.browser = QWebEngineView(self)
-        pushButton = QtWidgets.QPushButton()
-        pushButton.setText("PyButton")
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.browser)
-        layout.addWidget(pushButton)
-        container = QWidget(self)
-        container.setLayout(layout)
-        self.setCentralWidget(container)
 
-        file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "resources/index.html"))
-        self.browser.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
-        self.browser.settings().setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+# Example usage:
+app = QApplication([])
 
-        self.myObj = MyObject()
-        self.channel = QWebChannel()
-        self.channel.registerObject("content",self.myObj)
+main_window = QMainWindow()
 
-        self.browser.page().setWebChannel(self.channel)
-        self.browser.setUrl(QUrl.fromLocalFile(file_path))
-        self.browser.show()
+tree_view = QTreeView(main_window)
+model = QStandardItemModel()
+tree_view.setModel(model)
 
-        self.show()
+delegate = RadioDelegate(tree_view)
+tree_view.setItemDelegate(delegate)
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = WebViewExample()
-    sys.exit(app.exec())
+root_item = QStandardItem("Root")
+
+for i in range(5):
+    parent_item = QStandardItem(f"Parent {i}")
+
+    for j in range(3):
+        child_item = QStandardItem(f"Child {j}")
+        child_item.setCheckable(True)
+        parent_item.appendRow(child_item)
+
+    root_item.appendRow(parent_item)
+
+model.appendRow(root_item)
+
+tree_view.expandAll()
+main_window.setCentralWidget(tree_view)
+main_window.show()
+
+app.exec()
