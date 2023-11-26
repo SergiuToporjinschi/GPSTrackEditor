@@ -1,27 +1,27 @@
 import typing, enum
-
 from PySide6.QtGui import QColor
 
 class MarkerDto:
-
-    class MakerIteratorType(enum.Enum):
-        OneByOne = 1
-        FreeAtOnce = 2
-
     _name: str = None
     _category: str = None
     _indexes: list[int] = None
     _color: str = None
     _expression: str = None
-    _iteratorType: MakerIteratorType = MakerIteratorType.OneByOne
     _active: bool = None
+
+    @classmethod
+    def initFrom(cls, category: str, expression:str):
+        inst = cls(None, None, None, expression, None)
+        inst.category = category
+        inst.active = False
+        return inst
 
     def __init__(self, name: str, indexes:list[int], color:QColor, expression: typing.Optional[str] = None, active: bool = None) -> None:
         self._name = name
         self._indexes = indexes
         self._color = color
-        self._expression = expression
         self._active = active
+        self._expression = expression
         pass
 
     @property
@@ -65,14 +65,6 @@ class MarkerDto:
         self._expression = expression
 
     @property
-    def iteratorType(self) -> MakerIteratorType:
-        return self._iteratorType
-
-    @iteratorType.setter
-    def iteratorType(self, iteratorType: MakerIteratorType):
-        self._iteratorType = iteratorType
-
-    @property
     def active(self) -> bool:
         return self._active
 
@@ -82,7 +74,7 @@ class MarkerDto:
 
     @property
     def countIndexes(self):
-        return len(self.indexes)
+        return len(self.indexes) if self.indexes is not None else 0
 
     def __eq__(self, other):
         # Customize the equality comparison based on your requirements

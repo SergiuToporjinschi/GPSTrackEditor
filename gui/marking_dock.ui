@@ -85,10 +85,13 @@
           </property>
           <widget class="QFrame" name="frameTop">
            <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
+            <enum>QFrame::Plain</enum>
+           </property>
+           <property name="lineWidth">
+            <number>0</number>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
@@ -148,13 +151,13 @@
           </widget>
           <widget class="QFrame" name="frameBottom">
            <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <property name="frameShadow">
-            <enum>QFrame::Raised</enum>
+            <enum>QFrame::Plain</enum>
            </property>
            <property name="lineWidth">
-            <number>10</number>
+            <number>0</number>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
             <item>
@@ -225,12 +228,12 @@
                    <string>Altitude:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editAltitude</cstring>
+                   <cstring>editAttrAltitude</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="1" column="1">
-                 <widget class="QLineEdit" name="editAltitude"/>
+                 <widget class="QLineEdit" name="editAttrAltitude"/>
                 </item>
                 <item row="2" column="0">
                  <widget class="QLabel" name="label_164">
@@ -238,12 +241,12 @@
                    <string>Time:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editTime</cstring>
+                   <cstring>editAttrTime</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QLineEdit" name="editTime"/>
+                 <widget class="QLineEdit" name="editAttrTime"/>
                 </item>
                 <item row="3" column="0">
                  <widget class="QLabel" name="label_168">
@@ -251,12 +254,12 @@
                    <string>Hart rate:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editHartRate</cstring>
+                   <cstring>editAttrHartRate</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="3" column="1">
-                 <widget class="QLineEdit" name="editHartRate"/>
+                 <widget class="QLineEdit" name="editAttrHartRate"/>
                 </item>
                 <item row="4" column="0">
                  <widget class="QLabel" name="label_162">
@@ -264,12 +267,12 @@
                    <string>Sensor state</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editSensorState</cstring>
+                   <cstring>editAttrSensorState</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="4" column="1">
-                 <widget class="QLineEdit" name="editSensorState"/>
+                 <widget class="QLineEdit" name="editAttrSensorState"/>
                 </item>
                 <item row="5" column="0">
                  <widget class="QLabel" name="label_165">
@@ -277,12 +280,12 @@
                    <string>Latitude:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editLatitude</cstring>
+                   <cstring>editAttrLatitude</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="5" column="1">
-                 <widget class="QLineEdit" name="editLatitude"/>
+                 <widget class="QLineEdit" name="editAttrLatitude"/>
                 </item>
                 <item row="6" column="0">
                  <widget class="QLabel" name="label_166">
@@ -290,12 +293,12 @@
                    <string>Longitude:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editLongitude</cstring>
+                   <cstring>editAttrLongitude</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="6" column="1">
-                 <widget class="QLineEdit" name="editLongitude"/>
+                 <widget class="QLineEdit" name="editAttrLongitude"/>
                 </item>
                 <item row="7" column="0">
                  <widget class="QLabel" name="label_158">
@@ -303,12 +306,12 @@
                    <string>Distance:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editDistance</cstring>
+                   <cstring>editAttrDistance</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="7" column="1">
-                 <widget class="QLineEdit" name="editDistance"/>
+                 <widget class="QLineEdit" name="editAttrDistance"/>
                 </item>
                 <item row="8" column="0">
                  <widget class="QLabel" name="label_159">
@@ -316,12 +319,12 @@
                    <string>Calculated distance:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editCalculatedDistance</cstring>
+                   <cstring>editAttrCalculatedDistance</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="8" column="1">
-                 <widget class="QLineEdit" name="editCalculatedDistance"/>
+                 <widget class="QLineEdit" name="editAttrCalculatedDistance"/>
                 </item>
                 <item row="9" column="0">
                  <widget class="QLabel" name="label_160">
@@ -329,12 +332,12 @@
                    <string>Speed:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editSpeed</cstring>
+                   <cstring>editAttrSpeed</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="9" column="1">
-                 <widget class="QLineEdit" name="editSpeed"/>
+                 <widget class="QLineEdit" name="editAttrSpeed"/>
                 </item>
                 <item row="10" column="0">
                  <widget class="QLabel" name="label_161">
@@ -342,12 +345,12 @@
                    <string>Calculated speed:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editCalculatedSpeed</cstring>
+                   <cstring>editAttrCalculatedSpeed</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="10" column="1">
-                 <widget class="QLineEdit" name="editCalculatedSpeed"/>
+                 <widget class="QLineEdit" name="editAttrCalculatedSpeed"/>
                 </item>
                 <item row="0" column="0">
                  <widget class="QLabel" name="label_169">
@@ -355,12 +358,16 @@
                    <string>Name:</string>
                   </property>
                   <property name="buddy">
-                   <cstring>editAltitude</cstring>
+                   <cstring>editAttrAltitude</cstring>
                   </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QLineEdit" name="editMarkerName"/>
+                 <widget class="QLineEdit" name="editMarkerName">
+                  <property name="placeholderText">
+                   <string>Marker name</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -413,6 +420,26 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>toolDelete</tabstop>
+  <tabstop>toolActivate</tabstop>
+  <tabstop>treeViewMarker</tabstop>
+  <tabstop>pushAdd</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>editMarkerName</tabstop>
+  <tabstop>editAttrAltitude</tabstop>
+  <tabstop>editAttrTime</tabstop>
+  <tabstop>editAttrHartRate</tabstop>
+  <tabstop>editAttrSensorState</tabstop>
+  <tabstop>editAttrLatitude</tabstop>
+  <tabstop>editAttrLongitude</tabstop>
+  <tabstop>editAttrDistance</tabstop>
+  <tabstop>editAttrCalculatedDistance</tabstop>
+  <tabstop>editAttrSpeed</tabstop>
+  <tabstop>editAttrCalculatedSpeed</tabstop>
+  <tabstop>scrollArea_4</tabstop>
+  <tabstop>spinBoxStatTolerance</tabstop>
+ </tabstops>
  <resources>
   <include location="../gpstracker.qrc"/>
  </resources>

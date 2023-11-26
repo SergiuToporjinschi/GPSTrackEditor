@@ -28,7 +28,6 @@ class MarkerStatusModel(QAbstractItemModel):
         ColumnModel("Type",       False, None,         str,  'name'),
         ColumnModel("Color",      True,  QColorDialog, str,  'color'),
         ColumnModel("Expression", False, None,         str,  'expression'),
-        ColumnModel("Iterator",   False, None,         Enum, 'iteratorType'),
         ColumnModel("No.",        False, None,         int,  'countIndexes'),
         ColumnModel("Active",     True,  None,         bool, 'active')
     ]
@@ -39,13 +38,11 @@ class MarkerStatusModel(QAbstractItemModel):
         mCustom = markerGroup("Custom")
 
         marker = MarkerDto('over training', [], 'red', 'hartRate>0')
-        marker.iteratorType = MarkerDto.MakerIteratorType.OneByOne
         marker.category = "Custom"
         marker.active = True
         mCustom.markers.append(marker)
 
         marker2 = MarkerDto('over 2', [], 'red', 'hartRate>0')
-        marker2.iteratorType = MarkerDto.MakerIteratorType.OneByOne
         marker2.category = "Custom"
         marker2.active = True
         mCustom.markers.append(marker2)
@@ -54,7 +51,6 @@ class MarkerStatusModel(QAbstractItemModel):
 
         mSt = markerGroup("Stationary")
         marker3 = MarkerDto('over 2', [], 'red', 'hartRate>0')
-        marker3.iteratorType = MarkerDto.MakerIteratorType.OneByOne
         marker3.category = "Stationary"
         marker3.active = True
         mSt.markers.append(marker3)
@@ -205,6 +201,21 @@ class MarkerStatusModel(QAbstractItemModel):
         group:markerGroup = parent.internalPointer()
         del group.markers[row]
         self.endRemoveRows()
+        return True
+
+    def addRow(self, item: MarkerDto) -> bool:
+        parentIndex = None
+        grp:markerGroup = None
+        for row in range(self.rowCount(QModelIndex())):
+            index = self.index(row, 0, QModelIndex())
+            grp = self.data(index, ExtRoles.Item)
+            if grp.category == item.category:
+                parentIndex  = index
+                break
+        if parentIndex is not None and grp is not None:
+            self.beginInsertRows(parentIndex, len(grp.markers), 1)
+            grp.markers.append(item)
+            self.endInsertRows()
         return True
 
     def columnCount(self, parent: QModelIndex | QPersistentModelIndex = ...) -> int:

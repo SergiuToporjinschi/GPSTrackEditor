@@ -1,11 +1,12 @@
 import typing, re
-from typing import Union
-from PySide6.QtGui import QPalette, QColor, QColorConstants
+import random
+from typing import Optional, Union
+from PySide6.QtGui import QPalette, QColor, QColorConstants, QValidator, QRegularExpressionValidator
 from PySide6.QtWidgets import QColorDialog, QColorDialog, QHeaderView, QMessageBox
-from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection
+from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection, QRegularExpression
 
 from .MarkerListDelegate import MarkerListDelegate
-from dto import MarkerDto
+from dto import MarkerDto, TrackDataDTO
 from abstracts import AbstractModelWidget, AbstractWidgetMaximizeable
 from StatusMessage import StatusMessage
 from .MarkerStatusModel import MarkerStatusModel
@@ -25,7 +26,6 @@ class MarkerRecordSelectionModel(QItemSelectionModel):
             if not isinstance(selection.internalPointer(), MarkerDto):
                 return
         super().select(selection, command)  # Allow selection for other rows
-
 
 class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
@@ -80,11 +80,10 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
 
     def _resizeHeader(self, header:QHeaderView):
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
 
     def _onActivate(self, value:bool):
         currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
@@ -125,7 +124,12 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         pass
 
     def _onAddMarker(self):
-        pass
+        marker = self._buildMarkerBaseOnDto(TrackDataDTO)
+        marker.category = 'Custom'
+        marker.name = self.editMarkerName.text()
+        marker.color = self._generateRandomColor()
+
+        self.markerTreeModel.addRow(marker)
 
     def _setColor(self, control, color = None):
         if color is None:
@@ -183,25 +187,42 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         self.updateProgress.emit(0)
         pass
 
+    def _buildMarkerBaseOnDto(self, type: type) -> MarkerDto:
+        fields = [item for item in vars(self) if item.startswith('editAttr')][:]
+        found = []
+        for item in vars(type) :
+            if item[0] == '_' or f'editAttr{item[0].upper() + item[1:]}' not in fields: continue
+
+            value = eval(f'self.editAttr{item[0].upper() + item[1:]}.text()').strip()
+
+            if value != '':
+                found[:] = [f'item.{item}{value}']
+
+        if len(found) > 0:
+            return MarkerDto.initFrom('Custom', ' or '.join(found))
+
+        return None
+
     def _buildCustomMarker(self):
         findBy = {
-            "time": self.editFindByTime.text(),
-            "latitude": self.editFindByLatitude.text(),
-            "longitude": self.editFindByLongitude.text(),
-            "distance": self.editFindByDistance.text(),
-            "calculatedDistance": self.editFindByCalculatedDistance.text(),
-            "altitude": self.editFindByAltitude.text(),
-            "speed": self.editFindBySpeed.text(),
-            "calculatedSpeed": self.editFindByCalculatedSpeed.text(),
-            "hartRate": self.editFindByHartRate.text(),
-            "sensorState": self.editFindBySensorState.text()
+            "time": self.editTime.text(),
+            "latitude": self.editLatitude.text(),
+            "longitude": self.editLongitude.text(),
+            "distance": self.editDistance.text(),
+            "calculatedDistance": self.editCalculatedDistance.text(),
+            "altitude": self.editAltitude.text(),
+            "speed": self.editSpeed.text(),
+            "calculatedSpeed": self.editCalculatedSpeed.text(),
+            "hartRate": self.editHartRate.text(),
+            "sensorState": self.editSensorState.text()
         }
         expression = []
+        beautyExpr = []
         for key, value in findBy.items():
             if value is not None and value.strip() != "":
+                beautyExpr.append(f'{key}{value}')
                 expression.append(self._buildCustomMarkerKey(key, self.pattern.findall(value)))
-        color = self.pushCustomMarkSelColor.palette().button().color()
-        return MarkerDto('custom', [], color, ' or '.join(expression))
+        return MarkerDto.initFrom('Custom', ' or '.join(beautyExpr), ' or '.join(expression))
 
     def _buildCustomMarkerKey(self, key:str, expression: list[tuple]):
         result = ''
@@ -229,3 +250,8 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
             self.model.addMarker(marker)
         pass
 
+    def _generateRandomColor(self) -> str:
+        red = random.randint(0, 255)
+        green = random.randint(0, 255)
+        blue = random.randint(0, 255)
+        return QColor(red, green, blue).name()
