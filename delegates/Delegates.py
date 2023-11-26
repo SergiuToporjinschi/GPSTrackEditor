@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget
 class ExtRoles(enum.Enum):
     ValueType = Qt.ItemDataRole.UserRole + 1
     Item = ValueType + 1
+    ColModel = Item + 1
     pass
 
 
@@ -152,13 +153,6 @@ class MapSettingsDelegate(QStyledItemDelegate):
             editor.setValue(value)
             return editor
         return super().createEditor(parent, option, index)
-
-    def openColorDialog(self, line_edit):
-        color_dialog = QColorDialog()
-        color = color_dialog.getColor()
-
-        if color.isValid():
-            line_edit.setText(color.name())
 
     def setEditorData(self, editor: QWidget, index: QModelIndex | QPersistentModelIndex) -> None:
         dataType = index.model().data(index, ExtRoles.ValueType)

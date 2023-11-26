@@ -1,41 +1,16 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QTreeView,  QStyledItemDelegate, QStyleOptionButton, QStyle
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtWidgets import QApplication, QMainWindow, QTreeView,  QPushButton, QWidget, QVBoxLayout, QStyledItemDelegate
+from PySide6.QtCore import Qt, QAbstractItemModel
+from PySide6.QtGui import  QStandardItemModel, QStandardItem
 
-class RadioDelegate(QStyledItemDelegate):
+class ButtonDelegate(QStyledItemDelegate):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-    def paint(self, painter, option, index):
-        checked = index.data(Qt.CheckStateRole)
-        if checked == Qt.Checked:
-            radio_state = "checked"
-        elif checked == Qt.Unchecked:
-            radio_state = "unchecked"
-        else:
-            radio_state = "none"
-
-        style = QApplication.style()
-        QStyle.ControlElement.CE_RadioButton
-        style.drawControl(QStyle.ControlElement.CE_RadioButton, self.getRadioButtonStyle(option, radio_state), painter)
-
-    def editorEvent(self, event, model, option, index):
-        if event.type() == event.MouseButtonRelease:
-            if event.button() == Qt.LeftButton:
-                model.setData(index, Qt.Checked, Qt.CheckStateRole)
-        return True
-
-    def getRadioButtonStyle(self, option, state):
-        opt = QStyleOptionButton()
-        opt.state |= QStyle.State_Enabled
-        if state == "checked":
-            opt.state |= QStyle.State_On
-        elif state == "unchecked":
-            opt.state |= QStyle.State_Off
-        opt.rect = option.rect
-        opt.palette = option.palette
-        return opt
-
+    def createEditor(self, parent, option, index):
+        if index.column() == 0:  # Replace '1' with the column number where you want the button
+            button = QPushButton("Click Me", parent)
+            return button
+        return super().createEditor(parent, option, index)
 
 # Example usage:
 app = QApplication([])
@@ -46,24 +21,16 @@ tree_view = QTreeView(main_window)
 model = QStandardItemModel()
 tree_view.setModel(model)
 
-delegate = RadioDelegate(tree_view)
+delegate = ButtonDelegate(tree_view)
 tree_view.setItemDelegate(delegate)
 
 root_item = QStandardItem("Root")
-
-for i in range(5):
-    parent_item = QStandardItem(f"Parent {i}")
-
-    for j in range(3):
-        child_item = QStandardItem(f"Child {j}")
-        child_item.setCheckable(True)
-        parent_item.appendRow(child_item)
-
-    root_item.appendRow(parent_item)
+child_item1 = QStandardItem("Child 1")
+child_item2 = QStandardItem("Child 2")
 
 model.appendRow(root_item)
+root_item.appendRow([child_item1, child_item2])
 
-tree_view.expandAll()
 main_window.setCentralWidget(tree_view)
 main_window.show()
 

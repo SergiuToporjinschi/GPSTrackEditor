@@ -2,7 +2,6 @@ import typing, enum
 
 from PySide6.QtGui import QColor
 
-
 class MarkerDto:
 
     class MakerIteratorType(enum.Enum):
@@ -10,17 +9,19 @@ class MarkerDto:
         FreeAtOnce = 2
 
     _name: str = None
-    _typeName: str = None
+    _category: str = None
     _indexes: list[int] = None
-    _color: QColor = None
+    _color: str = None
     _expression: str = None
     _iteratorType: MakerIteratorType = MakerIteratorType.OneByOne
+    _active: bool = None
 
-    def __init__(self, name: str, indexes:list[int], color:QColor, expression: typing.Optional[str] = None) -> None:
+    def __init__(self, name: str, indexes:list[int], color:QColor, expression: typing.Optional[str] = None, active: bool = None) -> None:
         self._name = name
         self._indexes = indexes
         self._color = color
         self._expression = expression
+        self._active = active
         pass
 
     @property
@@ -32,12 +33,12 @@ class MarkerDto:
         self._name = name
 
     @property
-    def typeName(self):
-        return self._typeName
+    def category(self):
+        return self._category
 
-    @typeName.setter
-    def typeName(self, typeName:str):
-        self._typeName = typeName
+    @category.setter
+    def category(self, typeName:str):
+        self._category = typeName
 
     @property
     def indexes(self):
@@ -48,15 +49,15 @@ class MarkerDto:
         self._indexes = indexes
 
     @property
-    def color(self):
+    def color(self) -> str:
         return self._color
 
     @color.setter
-    def color(self, color:QColor):
+    def color(self, color: str):
         self._color = color
 
     @property
-    def expression(self):
+    def expression(self) -> str:
         return self._expression
 
     @expression.setter
@@ -64,12 +65,20 @@ class MarkerDto:
         self._expression = expression
 
     @property
-    def iteratorType(self):
+    def iteratorType(self) -> MakerIteratorType:
         return self._iteratorType
 
     @iteratorType.setter
     def iteratorType(self, iteratorType: MakerIteratorType):
         self._iteratorType = iteratorType
+
+    @property
+    def active(self) -> bool:
+        return self._active
+
+    @active.setter
+    def active(self, active: bool):
+        self._active = active
 
     @property
     def countIndexes(self):

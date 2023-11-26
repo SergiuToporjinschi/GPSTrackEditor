@@ -1,12 +1,30 @@
 import typing, re
+from typing import Union
 from PySide6.QtGui import QPalette, QColor, QColorConstants
-from PySide6.QtWidgets import QColorDialog
+from PySide6.QtWidgets import QColorDialog, QColorDialog, QHeaderView
+from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection
 
+from .MarkerListDelegate import MarkerListDelegate
 from dto import MarkerDto
 from abstracts import AbstractModelWidget, AbstractWidgetMaximizeable
 from StatusMessage import StatusMessage
-
+from .MarkerStatusModel import MarkerStatusModel
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
+
+class MarkerRecordSelectionModel(QItemSelectionModel):
+    def __init__(self, model):
+        super().__init__(model)
+
+    def select(self, selection: Union[QItemSelection, QModelIndex], command : QItemSelectionModel.SelectionFlag):
+        if isinstance(selection, QItemSelection):
+            selected_indexes = selection.indexes()
+            for index in selected_indexes:
+                if not isinstance(index.internalPointer(), MarkerDto):
+                    return  # Do not allow selection for this row
+        else:
+            if not isinstance(selection.internalPointer(), MarkerDto):
+                return
+        super().select(selection, command)  # Allow selection for other rows
 
 
 class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, markingDock):
@@ -16,21 +34,88 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
     markers : [MarkerDto] = []
 
     def _setupUi(self):
-        self._setColor(self.pushStatMarkSelColor, self.colorStationaryMarking)
-        self._setColor(self.pushCustomMarkSelColor, self.colorCustomMarking)
+        self.pushAdd.clicked.connect(self._onAddMarker)
+        self.treeViewMarker.setItemDelegate(MarkerListDelegate())
 
-        self.pushCustomMark.clicked.connect(self._onCustomMarkButton)
-        self.pushCustomMarkClear.clicked.connect(lambda: self._clearMarker('custom'))
-        self.pushCustomMarkSelColor.clicked.connect(lambda: self._setColor(self.pushCustomMarkSelColor))
+        self.markerTreeModel = MarkerStatusModel(self)
+        self.treeViewMarker.setModel(self.markerTreeModel)
+        self._resizeHeader(self.treeViewMarker.header())
 
-        self.pushStatMark.clicked.connect(self._markStationary)
-        self.pushStatMarkClear.clicked.connect(lambda: self._clearMarker('stationary'))
-        self.pushStatMarkSelColor.clicked.connect(lambda: self._setColor(self.pushStatMarkSelColor))
+        self.treeViewMarker.expandAll()
+        self.toolActivate.toggled.connect(self._onActivate)
+        self.toolDelete.clicked.connect(self._onDelete)
 
-        self.model.contentChanged.connect(self._refreshMarkers)
-        self.model.trimRangeChanged.connect(self._refreshMarkers)
+        self.treeViewMarker.setSelectionModel(MarkerRecordSelectionModel(self.markerTreeModel))
+        self.treeViewMarker.selectionModel().currentRowChanged.connect(self._onSelectionChanged)
 
-        self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
+
+        # self.markerTreeModel.selecselectionModel
+        # for i, item in range(self.markerTreeModel.rowCount(None)):
+        #     index = self.markerTreeModel.index(i, 5)
+        #     self.treeViewMarker.setIndexWidget(index, QPushButton('Apply'))
+        # model.index(0,0, model._markerData[0])
+        # model.beginResetModel()
+        # marker = MarkerDto('Dot dead', [],  QColor('red'), 'hartRate>0')
+        # marker.iteratorType = MarkerDto.MakerIteratorType.OneByOne
+        # marker.category = MarkerCategory.Custom
+        # model._markerData[0].markers.append(marker)
+        # model.endResetModel()
+        # model.insertRow()
+        # self._setColor(self.pushStatMarkSelColor, self.colorStationaryMarking)
+        # self._setColor(self.pushCustomMarkSelColor, self.colorCustomMarking)
+
+        # self.pushCustomMark.clicked.connect(self._onCustomMarkButton)
+        # self.pushCustomMarkClear.clicked.connect(lambda: self._clearMarker('custom'))
+        # self.pushCustomMarkSelColor.clicked.connect(lambda: self._setColor(self.pushCustomMarkSelColor))
+
+        # self.pushStatMark.clicked.connect(self._markStationary)
+        # self.pushStatMarkClear.clicked.connect(lambda: self._clearMarker('stationary'))
+        # self.pushStatMarkSelColor.clicked.connect(lambda: self._setColor(self.pushStatMarkSelColor))
+
+        # self.model.contentChanged.connect(self._refreshMarkers)
+        # self.model.trimRangeChanged.connect(self._refreshMarkers)
+
+        # self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
+        pass
+
+    def _resizeHeader(self, header:QHeaderView):
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+
+    def _onActivate(self, value:bool):
+        currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
+        colIndex = currentSelection.model().headerModelIndex('active')
+        for selected in currentSelection.selectedRows(colIndex):
+            self.markerTreeModel.setData(selected, value, Qt.ItemDataRole.EditRole)
+
+    def _onDelete(self):
+        currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
+        model = currentSelection.model()
+        for indexToDelete in currentSelection.selectedRows(0):
+            parentIndex = model.parent(indexToDelete )
+            model.removeRow(indexToDelete.row(), parentIndex)
+        pass
+
+    def _onSelectionChanged(self, newIndex: QModelIndex, oldIndex: QModelIndex):
+        item = newIndex.internalPointer()
+
+        self.toolActivate.blockSignals(True)
+        self.toolDelete.blockSignals(True)
+
+        self.toolDelete.setEnabled(isinstance(item, MarkerDto))
+        self.toolActivate.setEnabled(isinstance(item, MarkerDto))
+
+        self.toolActivate.setChecked(isinstance(item, MarkerDto) and item.active)
+
+        self.toolActivate.blockSignals(False)
+        self.toolDelete.blockSignals(False)
+        pass
+
+    def _onAddMarker(self):
         pass
 
     def _setColor(self, control, color = None):
@@ -134,3 +219,4 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
                 self._markStationary(marker)
             self.model.addMarker(marker)
         pass
+

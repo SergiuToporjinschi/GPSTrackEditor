@@ -1,5 +1,6 @@
-from .marker import MarkingDockWidget
+from .marker import MarkingDockWidget, MarkerCategory
 
 __all__ = [
-    "MarkingDockWidget"
+    "MarkingDockWidget",
+    "MarkerCategory"
 ]
