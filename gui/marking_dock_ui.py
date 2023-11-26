@@ -27,7 +27,7 @@ class Ui_DockWidget(object):
     def setupUi(self, DockWidget):
         if not DockWidget.objectName():
             DockWidget.setObjectName(u"DockWidget")
-        DockWidget.resize(676, 657)
+        DockWidget.resize(676, 826)
         DockWidget.setFloating(False)
         DockWidget.setAllowedAreas(Qt.LeftDockWidgetArea|Qt.RightDockWidgetArea)
         self.actionMaximize = QAction(DockWidget)
@@ -54,7 +54,7 @@ class Ui_DockWidget(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 676, 633))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 676, 802))
         self.scrollAreaWidgetContents_4.setAutoFillBackground(False)
         self.verticalLayout_4 = QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
@@ -107,6 +107,17 @@ class Ui_DockWidget(object):
         self.frameBottom.setLineWidth(10)
         self.verticalLayout_2 = QVBoxLayout(self.frameBottom)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.horizontalLayoutTemplateToolbar = QHBoxLayout()
+        self.horizontalLayoutTemplateToolbar.setObjectName(u"horizontalLayoutTemplateToolbar")
+        self.horizontalLayoutTemplateToolbar.setContentsMargins(0, -1, -1, -1)
+        self.pushAdd = QPushButton(self.frameBottom)
+        self.pushAdd.setObjectName(u"pushAdd")
+
+        self.horizontalLayoutTemplateToolbar.addWidget(self.pushAdd)
+
+
+        self.verticalLayout_2.addLayout(self.horizontalLayoutTemplateToolbar)
+
         self.tabWidget = QTabWidget(self.frameBottom)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setTabPosition(QTabWidget.East)
@@ -139,111 +150,116 @@ class Ui_DockWidget(object):
         self.label_167 = QLabel(self.tabCustom)
         self.label_167.setObjectName(u"label_167")
 
-        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_167)
+        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_167)
 
         self.editAltitude = QLineEdit(self.tabCustom)
         self.editAltitude.setObjectName(u"editAltitude")
 
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.editAltitude)
+        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.editAltitude)
 
         self.label_164 = QLabel(self.tabCustom)
         self.label_164.setObjectName(u"label_164")
 
-        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_164)
+        self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_164)
 
         self.editTime = QLineEdit(self.tabCustom)
         self.editTime.setObjectName(u"editTime")
 
-        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.editTime)
+        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.editTime)
 
         self.label_168 = QLabel(self.tabCustom)
         self.label_168.setObjectName(u"label_168")
 
-        self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_168)
+        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.label_168)
 
         self.editHartRate = QLineEdit(self.tabCustom)
         self.editHartRate.setObjectName(u"editHartRate")
 
-        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.editHartRate)
+        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.editHartRate)
 
         self.label_162 = QLabel(self.tabCustom)
         self.label_162.setObjectName(u"label_162")
 
-        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.label_162)
+        self.formLayout.setWidget(4, QFormLayout.LabelRole, self.label_162)
 
         self.editSensorState = QLineEdit(self.tabCustom)
         self.editSensorState.setObjectName(u"editSensorState")
 
-        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.editSensorState)
+        self.formLayout.setWidget(4, QFormLayout.FieldRole, self.editSensorState)
 
         self.label_165 = QLabel(self.tabCustom)
         self.label_165.setObjectName(u"label_165")
 
-        self.formLayout.setWidget(4, QFormLayout.LabelRole, self.label_165)
+        self.formLayout.setWidget(5, QFormLayout.LabelRole, self.label_165)
 
         self.editLatitude = QLineEdit(self.tabCustom)
         self.editLatitude.setObjectName(u"editLatitude")
 
-        self.formLayout.setWidget(4, QFormLayout.FieldRole, self.editLatitude)
+        self.formLayout.setWidget(5, QFormLayout.FieldRole, self.editLatitude)
 
         self.label_166 = QLabel(self.tabCustom)
         self.label_166.setObjectName(u"label_166")
 
-        self.formLayout.setWidget(5, QFormLayout.LabelRole, self.label_166)
+        self.formLayout.setWidget(6, QFormLayout.LabelRole, self.label_166)
 
         self.editLongitude = QLineEdit(self.tabCustom)
         self.editLongitude.setObjectName(u"editLongitude")
 
-        self.formLayout.setWidget(5, QFormLayout.FieldRole, self.editLongitude)
+        self.formLayout.setWidget(6, QFormLayout.FieldRole, self.editLongitude)
 
         self.label_158 = QLabel(self.tabCustom)
         self.label_158.setObjectName(u"label_158")
 
-        self.formLayout.setWidget(6, QFormLayout.LabelRole, self.label_158)
+        self.formLayout.setWidget(7, QFormLayout.LabelRole, self.label_158)
 
         self.editDistance = QLineEdit(self.tabCustom)
         self.editDistance.setObjectName(u"editDistance")
 
-        self.formLayout.setWidget(6, QFormLayout.FieldRole, self.editDistance)
+        self.formLayout.setWidget(7, QFormLayout.FieldRole, self.editDistance)
 
         self.label_159 = QLabel(self.tabCustom)
         self.label_159.setObjectName(u"label_159")
 
-        self.formLayout.setWidget(7, QFormLayout.LabelRole, self.label_159)
+        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label_159)
 
         self.editCalculatedDistance = QLineEdit(self.tabCustom)
         self.editCalculatedDistance.setObjectName(u"editCalculatedDistance")
 
-        self.formLayout.setWidget(7, QFormLayout.FieldRole, self.editCalculatedDistance)
+        self.formLayout.setWidget(8, QFormLayout.FieldRole, self.editCalculatedDistance)
 
         self.label_160 = QLabel(self.tabCustom)
         self.label_160.setObjectName(u"label_160")
 
-        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label_160)
+        self.formLayout.setWidget(9, QFormLayout.LabelRole, self.label_160)
 
         self.editSpeed = QLineEdit(self.tabCustom)
         self.editSpeed.setObjectName(u"editSpeed")
 
-        self.formLayout.setWidget(8, QFormLayout.FieldRole, self.editSpeed)
+        self.formLayout.setWidget(9, QFormLayout.FieldRole, self.editSpeed)
 
         self.label_161 = QLabel(self.tabCustom)
         self.label_161.setObjectName(u"label_161")
 
-        self.formLayout.setWidget(9, QFormLayout.LabelRole, self.label_161)
+        self.formLayout.setWidget(10, QFormLayout.LabelRole, self.label_161)
 
         self.editCalculatedSpeed = QLineEdit(self.tabCustom)
         self.editCalculatedSpeed.setObjectName(u"editCalculatedSpeed")
 
-        self.formLayout.setWidget(9, QFormLayout.FieldRole, self.editCalculatedSpeed)
+        self.formLayout.setWidget(10, QFormLayout.FieldRole, self.editCalculatedSpeed)
+
+        self.label_169 = QLabel(self.tabCustom)
+        self.label_169.setObjectName(u"label_169")
+
+        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_169)
+
+        self.editMarkerName = QLineEdit(self.tabCustom)
+        self.editMarkerName.setObjectName(u"editMarkerName")
+
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.editMarkerName)
 
         self.tabWidget.addTab(self.tabCustom, "")
 
         self.verticalLayout_2.addWidget(self.tabWidget)
-
-        self.pushAdd = QPushButton(self.frameBottom)
-        self.pushAdd.setObjectName(u"pushAdd")
-
-        self.verticalLayout_2.addWidget(self.pushAdd)
 
         self.splitter_2.addWidget(self.frameBottom)
 
@@ -265,11 +281,12 @@ class Ui_DockWidget(object):
         self.label_159.setBuddy(self.editCalculatedDistance)
         self.label_160.setBuddy(self.editSpeed)
         self.label_161.setBuddy(self.editCalculatedSpeed)
+        self.label_169.setBuddy(self.editAltitude)
 #endif // QT_CONFIG(shortcut)
 
         self.retranslateUi(DockWidget)
 
-        self.tabWidget.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(DockWidget)
@@ -291,6 +308,7 @@ class Ui_DockWidget(object):
 #endif // QT_CONFIG(tooltip)
         self.toolDelete.setText(QCoreApplication.translate("DockWidget", u"Delete", None))
         self.toolActivate.setText(QCoreApplication.translate("DockWidget", u"Active", None))
+        self.pushAdd.setText(QCoreApplication.translate("DockWidget", u"Add", None))
         self.label_163.setText(QCoreApplication.translate("DockWidget", u"Tolerance:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabStationary), QCoreApplication.translate("DockWidget", u"Stationary", None))
         self.label_167.setText(QCoreApplication.translate("DockWidget", u"Altitude:", None))
@@ -303,7 +321,7 @@ class Ui_DockWidget(object):
         self.label_159.setText(QCoreApplication.translate("DockWidget", u"Calculated distance:", None))
         self.label_160.setText(QCoreApplication.translate("DockWidget", u"Speed:", None))
         self.label_161.setText(QCoreApplication.translate("DockWidget", u"Calculated speed:", None))
+        self.label_169.setText(QCoreApplication.translate("DockWidget", u"Name:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabCustom), QCoreApplication.translate("DockWidget", u"Custom", None))
-        self.pushAdd.setText(QCoreApplication.translate("DockWidget", u"Add", None))
     # retranslateUi
 

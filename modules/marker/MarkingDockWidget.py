@@ -1,7 +1,7 @@
 import typing, re
 from typing import Union
 from PySide6.QtGui import QPalette, QColor, QColorConstants
-from PySide6.QtWidgets import QColorDialog, QColorDialog, QHeaderView
+from PySide6.QtWidgets import QColorDialog, QColorDialog, QHeaderView, QMessageBox
 from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection
 
 from .MarkerListDelegate import MarkerListDelegate
@@ -94,7 +94,16 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
 
     def _onDelete(self):
         currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
+
+        item = currentSelection.currentIndex().internalPointer()
+        confirmation = QMessageBox.question(
+            None, "Delete", f"Are you sure you want to delete marker: \"{item.name}\"?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
+        )
+        if confirmation == QMessageBox.StandardButton.No: return
+
         model = currentSelection.model()
+
         for indexToDelete in currentSelection.selectedRows(0):
             parentIndex = model.parent(indexToDelete )
             model.removeRow(indexToDelete.row(), parentIndex)
