@@ -23,7 +23,7 @@ class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
         val = self._executeOnThread(self._loadTCXFile, (fileName))
         self.statusMessage.emit(val.value)
 
-    def _loadTCXFile(self, file_path):
+    def _loadTCXFile(self, file_path) -> FileDataDTO:
         try:
             dto = FileDataDTO()
             tree = ET.parse(file_path)
@@ -75,6 +75,7 @@ class TCXLoader(AbstractNotificationWidget, AsyncManager, QObject):
             self.statusMessage.emit(None)
             self.updateProgress.emit(0)
             self.fileDataChanged.emit(dto)
+            return dto
         except ET.ParseError as e:
             print(f"Error parsing TCX file: {e}")
 

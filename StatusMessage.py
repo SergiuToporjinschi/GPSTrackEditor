@@ -9,7 +9,20 @@ class StatusMessage:
     _message: str = ''
     _time: int = None
     _color: QColor = None
-    def __init__(self, msg: str=None, time: int=None, color: QColor=None) -> None:
+
+    @classmethod
+    def error(cls, msg:str):
+        return cls(msg, QColor('red'))
+
+    @classmethod
+    def info(cls, msg:str):
+        return cls(msg, QColor('white'))
+
+    @classmethod
+    def warning(cls, msg:str):
+        return cls(msg, QColor('orange'))
+
+    def __init__(self, msg: str=None, color: QColor=None, time: int=None) -> None:
         self._message = msg
         self._time = time
         self._color = color

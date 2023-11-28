@@ -81,7 +81,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.model.clearData()
 
     def _onSaveFile(self):
-        self.statusInfoBar.updateMessage.emit(StatusMessage('Saving file...', 10000, QColor('green')))
+        self.statusInfoBar.updateMessage.emit(StatusMessage('Saving file...', QColor('green'), 10000))
         # docks = [i for i in self.children() if isinstance(i, QDockWidget)][:]
         # Config.setValueG(ConfigGroup.MainWindow, ConfigAttribute.State1, self.saveState())
         # self.saveState()?

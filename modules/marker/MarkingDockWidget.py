@@ -11,6 +11,8 @@ from abstracts import AbstractModelWidget, AbstractWidgetMaximizeable
 from StatusMessage import StatusMessage
 from .MarkerStatusModel import MarkerStatusModel
 from gui.marking_dock_ui import Ui_DockWidget as markingDock
+import pandas as pd
+import UtilFunctions as Util
 
 class MarkerRecordSelectionModel(QItemSelectionModel):
     def __init__(self, model):
@@ -30,7 +32,6 @@ class MarkerRecordSelectionModel(QItemSelectionModel):
 class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
     colorStationaryMarking: QColor = QColorConstants.Yellow
-    pattern = re.compile(r'([<|>|=|\s]+)\s*(\d*[.|,]?\d+)\s*([&|]{1})*\s*')
     markers : [MarkerDto] = []
 
     def _setupUi(self):
@@ -47,35 +48,6 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
 
         self.treeViewMarker.setSelectionModel(MarkerRecordSelectionModel(self.markerTreeModel))
         self.treeViewMarker.selectionModel().currentRowChanged.connect(self._onSelectionChanged)
-
-
-        # self.markerTreeModel.selecselectionModel
-        # for i, item in range(self.markerTreeModel.rowCount(None)):
-        #     index = self.markerTreeModel.index(i, 5)
-        #     self.treeViewMarker.setIndexWidget(index, QPushButton('Apply'))
-        # model.index(0,0, model._markerData[0])
-        # model.beginResetModel()
-        # marker = MarkerDto('Dot dead', [],  QColor('red'), 'hartRate>0')
-        # marker.iteratorType = MarkerDto.MakerIteratorType.OneByOne
-        # marker.category = MarkerCategory.Custom
-        # model._markerData[0].markers.append(marker)
-        # model.endResetModel()
-        # model.insertRow()
-        # self._setColor(self.pushStatMarkSelColor, self.colorStationaryMarking)
-        # self._setColor(self.pushCustomMarkSelColor, self.colorCustomMarking)
-
-        # self.pushCustomMark.clicked.connect(self._onCustomMarkButton)
-        # self.pushCustomMarkClear.clicked.connect(lambda: self._clearMarker('custom'))
-        # self.pushCustomMarkSelColor.clicked.connect(lambda: self._setColor(self.pushCustomMarkSelColor))
-
-        # self.pushStatMark.clicked.connect(self._markStationary)
-        # self.pushStatMarkClear.clicked.connect(lambda: self._clearMarker('stationary'))
-        # self.pushStatMarkSelColor.clicked.connect(lambda: self._setColor(self.pushStatMarkSelColor))
-
-        # self.model.contentChanged.connect(self._refreshMarkers)
-        # self.model.trimRangeChanged.connect(self._refreshMarkers)
-
-        # self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
         pass
 
     def _resizeHeader(self, header:QHeaderView):
@@ -124,134 +96,53 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         pass
 
     def _onAddMarker(self):
-        marker = self._buildMarkerBaseOnDto(TrackDataDTO)
+        name:str = self.editMarkerName.text()
+        if name is None or len(name.strip()) <= 0:
+            self.statusMessage.emit(StatusMessage.error('Marker name is mandatory!'))
+            return
+
+        expression = self._buildMarkerBaseOnDto(TrackDataDTO)
+        if expression is None or len(expression.strip()) <= 0:
+            self.statusMessage.emit(StatusMessage.error('Nothing to save there is no expression!'))
+            return
+
+        marker = MarkerDto.initFrom('Custom', expression)
         marker.category = 'Custom'
         marker.name = self.editMarkerName.text()
         marker.color = self._generateRandomColor()
-
+        marker.indexes = self._countHits(marker.expression, TrackDataDTO)
         self.markerTreeModel.addRow(marker)
-
-    def _setColor(self, control, color = None):
-        if color is None:
-            color = QColorDialog.getColor()
-        if color.isValid():
-            pal = QPalette()
-            pal.setColor(QPalette.ColorRole.Button, color)
-            control.setPalette(pal)
-        pass
-
-    def _markStationary(self, marker: typing.Optional[MarkerDto] = None):
-        self.statusMessage.emit(StatusMessage('Marking...'))
-        self.updateProgress.emit(0)
-        color = self.pushStatMarkSelColor.palette().button().color()
-        tolerance = self.spinBoxMarkStatTolerance.value()
-        marker = MarkerDto('stationary', [], color, tolerance) if not isinstance(marker, MarkerDto) or marker is None else marker
-        marker.indexes.clear()
-        prevItem = None
-        trackPointsCount = len(self.model.allTrackPoints)
-        for index, item in enumerate(self.model.allTrackPoints):
-            self.updateProgress.emit(int((index + 1)/trackPointsCount))
-            self.statusMessage.emit(StatusMessage(f'Marking... index {index}'))
-            dist = item.getValueByColName('distance')
-            prevDist = prevItem.getValueByColName('distance') if prevItem is not None else None
-            if dist is not None and prevDist is not None and abs(prevDist - dist) <= marker.expression:
-                marker.indexes.append(index)
-                marker.indexes.append(index - 1)
-            prevItem = item
-        self._applyMarker(marker)
-        self.updateProgress.emit(0)
-        self.statusMessage.emit(None)
-        pass
-
-    def _clearMarker(self, name):
-        self.markers[:] = [maker for maker in self.markers if maker.name != name]
-        self.model.clearMarker(name)
-        pass
-
-    def _onCustomMarkButton(self, marker: typing.Optional[MarkerDto] = None):
-        self.statusMessage.emit(StatusMessage('Marking...'))
-        marker = self._buildCustomMarker() if not isinstance(marker, MarkerDto) or marker is None else marker
-        try:
-            marker.indexes = []
-            trackPointsCount = len(self.model.allTrackPoints)
-            for index, item in enumerate(self.model.allTrackPoints):
-                self.updateProgress.emit(int((index + 1)/trackPointsCount))
-                if eval(marker.expression):
-                    marker.indexes.append(index)
-            self.updateProgress.emit(0)
-        except Exception:
-            self._lastFindDataExpression = None
-            self.statusMessage.emit(f"Syntax error (syntax: <=,<,<>><value><&,|>)")
-        self._applyMarker(marker)
-        self.statusMessage.emit(None)
-        self.updateProgress.emit(0)
-        pass
 
     def _buildMarkerBaseOnDto(self, type: type) -> MarkerDto:
         fields = [item for item in vars(self) if item.startswith('editAttr')][:]
-        found = []
-        for item in vars(type) :
-            if item[0] == '_' or f'editAttr{item[0].upper() + item[1:]}' not in fields: continue
-
+        fieldExpressions = []
+        for item in Util.iterateClassPublicAttributes(type, lambda it: it[0] != '_' and f'editAttr{it[0].upper() + it[1:]}' in fields) :
             value = eval(f'self.editAttr{item[0].upper() + item[1:]}.text()').strip()
 
             if value != '':
-                found[:] = [f'item.{item}{value}']
-
-        if len(found) > 0:
-            return MarkerDto.initFrom('Custom', ' or '.join(found))
-
-        return None
-
-    def _buildCustomMarker(self):
-        findBy = {
-            "time": self.editTime.text(),
-            "latitude": self.editLatitude.text(),
-            "longitude": self.editLongitude.text(),
-            "distance": self.editDistance.text(),
-            "calculatedDistance": self.editCalculatedDistance.text(),
-            "altitude": self.editAltitude.text(),
-            "speed": self.editSpeed.text(),
-            "calculatedSpeed": self.editCalculatedSpeed.text(),
-            "hartRate": self.editHartRate.text(),
-            "sensorState": self.editSensorState.text()
-        }
-        expression = []
-        beautyExpr = []
-        for key, value in findBy.items():
-            if value is not None and value.strip() != "":
-                beautyExpr.append(f'{key}{value}')
-                expression.append(self._buildCustomMarkerKey(key, self.pattern.findall(value)))
-        return MarkerDto.initFrom('Custom', ' or '.join(beautyExpr), ' or '.join(expression))
-
-    def _buildCustomMarkerKey(self, key:str, expression: list[tuple]):
-        result = ''
-        # key = 'item.data["'+key+'"]'
-        key = f'item.getValueByColName("{key}")'
-        for item in expression:
-            item = [key] + [(val.replace('&', 'and').replace('|', 'or').replace('=', '==')) for val in item]
-            result += ' '.join(item) + ' '
-        return key + ' is not None and ' + result.strip()
-
-    def _applyMarker(self, marker: MarkerDto):
-        if marker not in self.markers:
-            self.markers.append(marker)
-        self.model.addMarker(marker)
-        pass
-
-    def _refreshMarkers(self):
-        self.model.clearAllMarker()
-
-        for marker in self.markers:
-            if marker.name == 'custom':
-                self._onCustomMarkButton(marker)
-            elif marker.name == 'stationary':
-                self._markStationary(marker)
-            self.model.addMarker(marker)
-        pass
+                fieldExpressions.append(Util.buildAttributeExpression(item, value))
+        return '|'.join(fieldExpressions)
 
     def _generateRandomColor(self) -> str:
         red = random.randint(0, 255)
         green = random.randint(0, 255)
         blue = random.randint(0, 255)
         return QColor(red, green, blue).name()
+
+    def _countHits(self, expression: str, type: type):
+        cols = Util.getClassPublicAttributes(type)
+        objList = [(obj.time,
+                obj.latitude,
+                obj.longitude,
+                obj.altitude,
+                obj.hartRate,
+                obj.distance,
+                obj.calculatedDistance,
+                obj.speed,
+                obj.calculatedSpeed,
+                obj.sensorState) for obj in self.model.allTrackPoints][:]
+        df = pd.DataFrame(objList, columns=cols)
+
+        filtered_dfs = df.query(expression)
+
+        return filtered_dfs.index.tolist()

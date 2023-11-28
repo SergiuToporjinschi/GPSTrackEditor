@@ -3,7 +3,7 @@ from PySide6.QtGui import QColor
 from StatusMessage import StatusMessage
 
 class ExecutorStatus(enum.Enum):
-    AlreadyRunning = StatusMessage('Already running...', color=QColor('red'))
+    AlreadyRunning = StatusMessage('Already running...', QColor('red'))
     Started = None
 
 

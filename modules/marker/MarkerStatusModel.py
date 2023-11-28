@@ -35,27 +35,8 @@ class MarkerStatusModel(QAbstractItemModel):
     _markerData:list[markerGroup]
     def __init__(self, parent: QObject = None) -> None:
         self._markerData = []
-        mCustom = markerGroup("Custom")
-
-        marker = MarkerDto('over training', [], 'red', 'hartRate>0')
-        marker.category = "Custom"
-        marker.active = True
-        mCustom.markers.append(marker)
-
-        marker2 = MarkerDto('over 2', [], 'red', 'hartRate>0')
-        marker2.category = "Custom"
-        marker2.active = True
-        mCustom.markers.append(marker2)
-
-        self._markerData.append(mCustom)
-
-        mSt = markerGroup("Stationary")
-        marker3 = MarkerDto('over 2', [], 'red', 'hartRate>0')
-        marker3.category = "Stationary"
-        marker3.active = True
-        mSt.markers.append(marker3)
-
-        self._markerData.append(mSt)
+        self._markerData.append(markerGroup("Custom"))
+        self._markerData.append(markerGroup("Stationary"))
         super().__init__(parent)
         pass
 
