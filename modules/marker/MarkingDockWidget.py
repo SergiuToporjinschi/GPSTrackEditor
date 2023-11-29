@@ -63,6 +63,7 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         for selected in currentSelection.selectedRows(colIndex):
             marker:MarkerDto = selected.internalPointer()
             marker.indexes = self._calculateIndexes(marker.expression, TrackDataDTO)
+            self._updateTrackModel(marker, value)
             self.markerTreeModel.setData(selected, value, Qt.ItemDataRole.EditRole)
 
     def _onDelete(self):
@@ -80,6 +81,7 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         for indexToDelete in currentSelection.selectedRows(0):
             parentIndex = selectionModel.parent(indexToDelete)
             selectionModel.removeRow(indexToDelete.row(), parentIndex)
+            self._updateTrackModel(indexToDelete.internalPointer(), False)
 
     def _onSelectionChanged(self, newIndex: QModelIndex, oldIndex: QModelIndex):
         item = newIndex.internalPointer()
@@ -95,6 +97,12 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         self.toolActivate.blockSignals(False)
         self.toolDelete.blockSignals(False)
         pass
+
+    def _updateTrackModel(self, marker: MarkerDto, activate:bool):
+        if activate:
+            self.model.addMarker(marker)
+        else:
+            self.model.clearMarker(marker.name)
 
     def _onAddMarker(self):
         name:str = self.editMarkerName.text()

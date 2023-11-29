@@ -55,8 +55,9 @@ class MarkerStatusModel(QAbstractItemModel):
             return colModel
 
         elif role in (Qt.ItemDataRole.EditRole, Qt.ItemDataRole.DisplayRole):
-            return self._dataByEditDisplayRole(item, colModel, index)
-
+            result = self._dataByEditDisplayRole(item, colModel, index)
+            self._saveMarkers()
+            return result
         elif role == Qt.ItemDataRole.CheckStateRole:
             return self._dataByCheckStateRole(item, colModel, index)
 
@@ -237,7 +238,7 @@ class MarkerStatusModel(QAbstractItemModel):
     def _dataByForegroundRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if isinstance(item, MarkerDto) and colModel.editControl == QColorDialog:
             lum = QColor(item.color).lightnessF()
-            return QColor('white') if lum < 0.5 else QColor('black')
+            return QColor('white') if lum < 0.4 else QColor('black')
 
     def _saveMarkers(self):
         serialized = jsonpickle.encode(self._markerData)

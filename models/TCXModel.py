@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Any, Type, Generator
+from typing import Any, Type, Generator, Union
 from qtpy.QtCore import Signal
 from StatusMessage import StatusMessage
 
-from PySide6.QtGui import QPalette
+from PySide6.QtGui import QPalette, QBrush, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel
 from PySide6.QtWidgets import QStyledItemDelegate
 
@@ -129,7 +129,12 @@ class TrackPointsModel(QAbstractTableModel):
             for marker in self.markers:
                 if self.trimmerInterval.index(index.row()) in marker.indexes:
                     selectedColor = marker.color
-            if selectedColor is not None: return selectedColor
+            if selectedColor is not None: return QBrush(selectedColor)
+        elif role == Qt.ItemDataRole.ForegroundRole:
+            color:QBrush = self.data(index, Qt.ItemDataRole.BackgroundRole)
+            if color is None: return
+            lum = color.color().lightnessF()
+            return QColor('white') if lum < 0.4 else QColor('black')
 
     def getTrimmedDataItem(self, row: int) -> TCXRowModel:
         return self.allTrackPoints[self.trimmerInterval.index(row)]

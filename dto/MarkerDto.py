@@ -35,5 +35,5 @@ class MarkerDto:
     def __getstate__(self):
         state = self.__dict__.copy()
         state['active'] = False
-        del state['indexes']
+        if 'indexes' in state: del state['indexes']
         return state
