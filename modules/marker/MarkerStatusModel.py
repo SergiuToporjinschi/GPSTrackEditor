@@ -1,4 +1,4 @@
-import json
+import jsonpickle
 from enum import Enum
 from typing import Any, Union
 from config import *
@@ -8,8 +8,6 @@ from .ColumnModel import ColumnModel
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, QObject, Qt, QPersistentModelIndex
 from PySide6.QtWidgets import QColorDialog
 from PySide6.QtGui import QBrush, QColor
-import UtilFunctions as Util
-
 class MarkerCategory(Enum):
     Custom = 'Custom'
     Stationary = 'Stationary'
@@ -172,9 +170,12 @@ class MarkerStatusModel(QAbstractItemModel):
     def removeRow(self, row: int, parent: QModelIndex | QPersistentModelIndex = ...) -> bool:
         if not parent.isValid(): return False
         self.beginRemoveRows(parent, row, 1)
+
         group:MarkerGroupDto = parent.internalPointer()
         del group.markers[row]
+
         self.endRemoveRows()
+        self._saveMarkers()
         return True
 
     def addRow(self, item: MarkerDto) -> bool:
@@ -239,13 +240,14 @@ class MarkerStatusModel(QAbstractItemModel):
             return QColor('white') if lum < 0.5 else QColor('black')
 
     def _saveMarkers(self):
-        jsonData = json.dumps(self._markerData, cls=Util.toDictJSONEncoder)
-        Config.setValueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, jsonData)
+        serialized = jsonpickle.encode(self._markerData)
+        Config.setValueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, serialized)
 
     def _loadMarkers(self):
-        defaultMarkerList = [
-            MarkerGroupDto(MarkerCategory.Custom),
-            MarkerGroupDto(MarkerCategory.Stationary)
-        ]
-        jsonData = Config.valueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, defaultMarkerList)
-        return json.loads(jsonData, object_hook=Util.fromDictJSONDecoder)
+        jsonData = Config.valueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, None)
+
+        if jsonData is None: return [MarkerGroupDto(MarkerCategory.Custom.name), MarkerGroupDto(MarkerCategory.Stationary.name)]
+
+        return jsonpickle.decode(jsonData)
+
+

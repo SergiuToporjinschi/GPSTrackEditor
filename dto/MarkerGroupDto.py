@@ -1,7 +1,6 @@
 from .MarkerDto import MarkerDto
-from .AbstractDto import AbstractDto
 
-class MarkerGroupDto(AbstractDto):
+class MarkerGroupDto:
     category:str = None
     markers:list[MarkerDto] = []
 

@@ -1,8 +1,7 @@
 import typing
 from PySide6.QtGui import QColor
-from .AbstractDto import AbstractDto
 
-class MarkerDto(AbstractDto):
+class MarkerDto:
     name: str = None
     category: str = None
     indexes: list[int] = None
@@ -32,3 +31,9 @@ class MarkerDto(AbstractDto):
         if isinstance(other, MarkerDto):
             return self.name == other.name
         return False
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state['active'] = False
+        del state['indexes']
+        return state

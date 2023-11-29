@@ -61,6 +61,8 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
         colIndex = currentSelection.model().headerModelIndex('active')
         for selected in currentSelection.selectedRows(colIndex):
+            marker:MarkerDto = selected.internalPointer()
+            marker.indexes = self._calculateIndexes(marker.expression, TrackDataDTO)
             self.markerTreeModel.setData(selected, value, Qt.ItemDataRole.EditRole)
 
     def _onDelete(self):
@@ -73,12 +75,11 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         )
         if confirmation == QMessageBox.StandardButton.No: return
 
-        model = currentSelection.model()
+        selectionModel = currentSelection.model()
 
         for indexToDelete in currentSelection.selectedRows(0):
-            parentIndex = model.parent(indexToDelete )
-            model.removeRow(indexToDelete.row(), parentIndex)
-        pass
+            parentIndex = selectionModel.parent(indexToDelete)
+            selectionModel.removeRow(indexToDelete.row(), parentIndex)
 
     def _onSelectionChanged(self, newIndex: QModelIndex, oldIndex: QModelIndex):
         item = newIndex.internalPointer()
@@ -110,7 +111,7 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         marker.category = 'Custom'
         marker.name = self.editMarkerName.text()
         marker.color = self._generateRandomColor()
-        marker.indexes = self._countHits(marker.expression, TrackDataDTO)
+        marker.indexes = self._calculateIndexes(marker.expression, TrackDataDTO)
         self.markerTreeModel.addRow(marker)
 
     def _buildMarkerBaseOnDto(self, type: type) -> MarkerDto:
@@ -129,7 +130,7 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         blue = random.randint(0, 255)
         return QColor(red, green, blue).name()
 
-    def _countHits(self, expression: str, type: type):
+    def _calculateIndexes(self, expression: str, type: type):
         cols = Util.getClassPublicAttributes(type)
         objList = [(obj.time,
                 obj.latitude,
