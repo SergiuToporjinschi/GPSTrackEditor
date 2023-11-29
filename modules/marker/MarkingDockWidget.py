@@ -1,9 +1,9 @@
-import typing, re
 import random
-from typing import Optional, Union
-from PySide6.QtGui import QPalette, QColor, QColorConstants, QValidator, QRegularExpressionValidator
-from PySide6.QtWidgets import QColorDialog, QColorDialog, QHeaderView, QMessageBox
-from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection, QRegularExpression
+from typing import Union, Callable
+from PySide6.QtGui import QColor, QColorConstants
+from PySide6.QtWidgets import QHeaderView, QMessageBox
+from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection
+from config import *
 
 from .MarkerListDelegate import MarkerListDelegate
 from dto import MarkerDto, TrackDataDTO
@@ -89,7 +89,7 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
         self.toolDelete.setEnabled(isinstance(item, MarkerDto))
         self.toolActivate.setEnabled(isinstance(item, MarkerDto))
 
-        self.toolActivate.setChecked(isinstance(item, MarkerDto) and item.active)
+        self.toolActivate.setChecked(isinstance(item, MarkerDto) and item.active == True)
 
         self.toolActivate.blockSignals(False)
         self.toolDelete.blockSignals(False)

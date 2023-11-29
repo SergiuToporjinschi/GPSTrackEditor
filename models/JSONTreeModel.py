@@ -2,9 +2,7 @@ from qtpy.QtCore import Signal
 from typing import Any
 import json
 from models import JSONTreeItem
-from PySide6.QtGui import QPalette, QColor
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, QObject, Qt, QPersistentModelIndex
-from PySide6.QtWidgets import QLabel
 from delegates import ExtRoles
 
 class JsonTreeModel(QAbstractItemModel):

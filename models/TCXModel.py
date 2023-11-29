@@ -1,17 +1,15 @@
-import typing
 from datetime import datetime
-from typing import Any, Union, Type, Generator
+from typing import Any, Type, Generator
 from qtpy.QtCore import Signal
 from StatusMessage import StatusMessage
 
 from PySide6.QtGui import QPalette
-from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QPersistentModelIndex
+from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel
 from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
 from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
 from dto import TrackDataDTO, MarkerDto
-# from marking import MarkerDto
 
 
 class TCXColInfoModel:

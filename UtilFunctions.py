@@ -1,5 +1,7 @@
-import re
-from typing import Callable
+import re, json
+from typing import Callable, List
+import importlib
+
 
 nonPrivate:Callable = lambda item: item[0] != '_'
 
@@ -12,8 +14,8 @@ def getClassPublicAttributes(type: type, filterFunction: Callable = nonPrivate) 
                 default value: attributes not starting with _ (non private)
     """
     result = []
-    for item in vars(type) :
-        if filterFunction(item):
+    for item in vars(type):
+        if filterFunction(item) and not callable(getattr(type, item, None)):
             result.append(item)
     return result
 
@@ -26,7 +28,7 @@ def iterateClassPublicAttributes(type: type, filterFunction: Callable = nonPriva
                 default value: attributes not starting with _ (non private)
     """
     for item in vars(type) :
-        if filterFunction(item):
+        if filterFunction(item) and not callable(getattr(type, item, None)):
             yield item
 
 def buildAttributeExpression(attrName: str, exp:str) -> str:
@@ -59,3 +61,34 @@ def buildAttributeExpression(attrName: str, exp:str) -> str:
         index += 1
     splitted
     return ''.join(splitted)
+
+
+class toDictJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if obj.__dict__ is None: raise "Cannot serialize to JSON, NO __dict__ method!!"
+        return obj.__dict__()
+
+def toDict(obj) -> dict:
+    result = {}
+    for i in iterateClassPublicAttributes(type(obj)):
+        val = getattr(obj, i)
+        if isinstance(val, List):
+            result[i]= []
+            for item in val:
+                result[i].append(toDict(item))
+        else:
+            result[i] = getattr(obj, i)
+    result['__type__'] = type(obj).__name__
+    return result
+
+def fromDictJSONDecoder(obj) -> any:
+    # if jsonStr is not None and len(jsonStr.strip()): return None
+    result = None
+    module = importlib.import_module('dto')
+    if '__type__' in obj and hasattr(module, obj['__type__']):
+        clsName = obj['__type__']
+        if hasattr(module, clsName):
+            initFrom = getattr(getattr(module, clsName), 'initFromDict')
+            if initFrom and callable(initFrom):
+                result = initFrom(obj)
+    return result

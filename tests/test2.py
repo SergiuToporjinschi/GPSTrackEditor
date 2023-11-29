@@ -21,7 +21,19 @@
 # positions = filtered_dfs.index.tolist()
 # print(positions)
 
+from dto import MarkerDto, MarkerGroupDto
+import typing
+import json
+import UtilFunctions as Util
+from collections.abc import Iterable
 
-from UtilFunctions import buildAttributeExpression
+listMarkers = [MarkerGroupDto("Custom"), MarkerGroupDto('Stationary')]
 
-buildAttributeExpression("test", ">220&<110|>220&<110|>220&<110&>220&<110")
+listMarkers[0].markers.append(MarkerDto("name" ,'Custom', [], 'red', 'someExpr >100|<200'))
+listMarkers[0].markers.append(MarkerDto("name1",'Custom', [], 'red', 'someExpr >200|<300'))
+
+j = json.dumps(listMarkers, cls=Util.toDictJSONEncoder)
+print(j)
+
+j = json.loads(j, object_hook=Util.fromDictJSONDecoder)
+print(j)

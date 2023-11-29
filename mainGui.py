@@ -1,4 +1,4 @@
-from models import TrackPointsModel, TCXColModel # TrackPointModel
+from models import TrackPointsModel, TCXColModel
 from loaders import TCXLoader
 
 from internalWidgets import QtSliderFilterWidgetPlugin
@@ -11,8 +11,8 @@ from config import *
 from gui.DockWidget import *
 from abstracts import AbstractNotificationWidget
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Qt, QByteArray
-from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication, QSplitter, QTabBar, QDockWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
 import gpstracker_rc
 
 # sys.argv.append("--disable-web-security")

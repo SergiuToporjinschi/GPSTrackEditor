@@ -1,27 +1,19 @@
+import json
 from enum import Enum
 from typing import Any, Union
-
+from config import *
 from delegates import ExtRoles
-from dto import MarkerDto
+from dto import MarkerDto, MarkerGroupDto
 from .ColumnModel import ColumnModel
-
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, QObject, Qt, QPersistentModelIndex
 from PySide6.QtWidgets import QColorDialog
 from PySide6.QtGui import QBrush, QColor
-
+import UtilFunctions as Util
 
 class MarkerCategory(Enum):
     Custom = 'Custom'
     Stationary = 'Stationary'
     pass
-
-class markerGroup():
-    category:str = None
-    markers:list[MarkerDto] = []
-    def __init__(self, category: str, markersList: list[MarkerDto] = None) -> None:
-        self.category = category
-        self.markers = markersList if markersList is not None else []
-        pass
 
 class MarkerStatusModel(QAbstractItemModel):
     _headers: list[ColumnModel] = [
@@ -32,11 +24,12 @@ class MarkerStatusModel(QAbstractItemModel):
         ColumnModel("Active",     True,  None,         bool, 'active')
     ]
 
-    _markerData:list[markerGroup]
+    _markerData:list[MarkerGroupDto]
     def __init__(self, parent: QObject = None) -> None:
-        self._markerData = []
-        self._markerData.append(markerGroup("Custom"))
-        self._markerData.append(markerGroup("Stationary"))
+        self._markerData = self._loadMarkers()
+
+        # self._markerData.append(MarkerGroupDto("Custom"))
+        # self._markerData.append(MarkerGroupDto("Stationary"))
         super().__init__(parent)
         pass
 
@@ -109,7 +102,7 @@ class MarkerStatusModel(QAbstractItemModel):
 
         if parentItem == self._markerData:
             children = parentItem[row]
-        elif isinstance(parentItem, markerGroup):
+        elif isinstance(parentItem, MarkerGroupDto):
             children = parentItem.markers[row]
         elif isinstance(parentItem, MarkerDto):
             children = None
@@ -130,7 +123,7 @@ class MarkerStatusModel(QAbstractItemModel):
 
         if childItem is None:
             parent = None
-        elif isinstance(childItem, markerGroup):
+        elif isinstance(childItem, MarkerGroupDto):
             parent = self._markerData
         elif isinstance(childItem, MarkerDto):
             for i in self._markerData:
@@ -143,7 +136,7 @@ class MarkerStatusModel(QAbstractItemModel):
         elif parent == self._markerData:
             poz = self._markerData.index(childItem)
             return self.createIndex(poz, 0, parent)
-        elif isinstance(parent, markerGroup):
+        elif isinstance(parent, MarkerGroupDto):
             for index, item in enumerate(self._markerData):
                 if item.category == childItem.category:
                     return self.createIndex(index, 0, parent)
@@ -161,7 +154,7 @@ class MarkerStatusModel(QAbstractItemModel):
 
         if parentItem == self._markerData:
             return len(parentItem)
-        elif isinstance(parentItem, markerGroup):
+        elif isinstance(parentItem, MarkerGroupDto):
             return len(parentItem.markers)
         elif isinstance(parentItem, MarkerDto):
             return 0
@@ -179,24 +172,28 @@ class MarkerStatusModel(QAbstractItemModel):
     def removeRow(self, row: int, parent: QModelIndex | QPersistentModelIndex = ...) -> bool:
         if not parent.isValid(): return False
         self.beginRemoveRows(parent, row, 1)
-        group:markerGroup = parent.internalPointer()
+        group:MarkerGroupDto = parent.internalPointer()
         del group.markers[row]
         self.endRemoveRows()
         return True
 
     def addRow(self, item: MarkerDto) -> bool:
         parentIndex = None
-        grp:markerGroup = None
+        grp:MarkerGroupDto = None
+        # Find parent
         for row in range(self.rowCount(QModelIndex())):
             index = self.index(row, 0, QModelIndex())
             grp = self.data(index, ExtRoles.Item)
             if grp.category == item.category:
                 parentIndex  = index
                 break
+
+        # Add marker
         if parentIndex is not None and grp is not None:
             self.beginInsertRows(parentIndex, len(grp.markers), 1)
             grp.markers.append(item)
             self.endInsertRows()
+            self._saveMarkers()
         return True
 
     def columnCount(self, parent: QModelIndex | QPersistentModelIndex = ...) -> int:
@@ -208,8 +205,8 @@ class MarkerStatusModel(QAbstractItemModel):
             return Qt.ItemFlag.ItemIsEditable | flags
         return flags
 
-    def _dataByEditDisplayRole(self, item:Union[MarkerDto,markerGroup], colModel:ColumnModel, index:QModelIndex):
-        if isinstance(item, markerGroup):
+    def _dataByEditDisplayRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
+        if isinstance(item, MarkerGroupDto):
             if index.column() == 0: return item.category
             else: return None
 
@@ -222,21 +219,33 @@ class MarkerStatusModel(QAbstractItemModel):
                 return getattr(item, attrName) if attrName is not None else None
         else: return None
 
-    def _dataByCheckStateRole(self, item:Union[MarkerDto,markerGroup], colModel:ColumnModel, index:QModelIndex):
+    def _dataByCheckStateRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if isinstance(item, MarkerDto) and colModel.dtoAttributeType == bool:
             value = getattr(item, colModel.dtoAttributeName)
             return Qt.CheckState.Checked if value else Qt.CheckState.Unchecked
 
-    def _dataByTextAlignmentRole(self, item:Union[MarkerDto,markerGroup], colModel:ColumnModel, index:QModelIndex):
+    def _dataByTextAlignmentRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if index.column() > 0:
             return Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter
 
-    def _dataByBackgroundRole(self, item:Union[MarkerDto,markerGroup], colModel:ColumnModel, index:QModelIndex):
+    def _dataByBackgroundRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if isinstance(item, MarkerDto) and colModel.editControl == QColorDialog:
             val = getattr(item, colModel.dtoAttributeName)
             return QBrush(val) if val is not None else 'black'
 
-    def _dataByForegroundRole(self, item:Union[MarkerDto,markerGroup], colModel:ColumnModel, index:QModelIndex):
+    def _dataByForegroundRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if isinstance(item, MarkerDto) and colModel.editControl == QColorDialog:
             lum = QColor(item.color).lightnessF()
             return QColor('white') if lum < 0.5 else QColor('black')
+
+    def _saveMarkers(self):
+        jsonData = json.dumps(self._markerData, cls=Util.toDictJSONEncoder)
+        Config.setValueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, jsonData)
+
+    def _loadMarkers(self):
+        defaultMarkerList = [
+            MarkerGroupDto(MarkerCategory.Custom),
+            MarkerGroupDto(MarkerCategory.Stationary)
+        ]
+        jsonData = Config.valueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, defaultMarkerList)
+        return json.loads(jsonData, object_hook=Util.fromDictJSONDecoder)

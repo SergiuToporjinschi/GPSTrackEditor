@@ -1,10 +1,9 @@
-from typing import Union
 from delegates import ExtRoles
 from .ColumnModel import ColumnModel
 
-from PySide6.QtCore import Qt, QObject, QModelIndex, QPersistentModelIndex, QSize
+from PySide6.QtCore import Qt, QObject
 from PySide6.QtGui import QColor
-from PySide6.QtWidgets import QStyledItemDelegate, QColorDialog,QStyleOptionViewItem
+from PySide6.QtWidgets import QStyledItemDelegate, QColorDialog
 
 class MarkerListDelegate(QStyledItemDelegate):
     def __init__(self, parent: QObject = None) -> None:

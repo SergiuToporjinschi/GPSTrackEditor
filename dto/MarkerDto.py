@@ -1,76 +1,27 @@
-import typing, enum
+import typing
 from PySide6.QtGui import QColor
+from .AbstractDto import AbstractDto
 
-class MarkerDto:
-    _name: str = None
-    _category: str = None
-    _indexes: list[int] = None
-    _color: str = None
-    _expression: str = None
-    _active: bool = None
+class MarkerDto(AbstractDto):
+    name: str = None
+    category: str = None
+    indexes: list[int] = None
+    color: str = None
+    expression: str = None
+    active: bool = None
 
     @classmethod
     def initFrom(cls, category: str, expression:str):
-        inst = cls(None, None, None, expression, None)
-        inst.category = category
-        inst.active = False
-        return inst
+        return cls(None, category, None, None, expression)
 
-    def __init__(self, name: str, indexes:list[int], color:QColor, expression: typing.Optional[str] = None, active: bool = None) -> None:
-        self._name = name
-        self._indexes = indexes
-        self._color = color
-        self._active = active
-        self._expression = expression
+    def __init__(self, name: str = None, category:str=None, indexes:list[int]= None, color:QColor= None, expression: typing.Optional[str] = None, active: bool = None) -> None:
+        self.name: str = name
+        self.category: str = category
+        self.indexes: list[int] = indexes
+        self.color: str = color
+        self.active: bool = active
+        self.expression: str = expression
         pass
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, name:str):
-        self._name = name
-
-    @property
-    def category(self):
-        return self._category
-
-    @category.setter
-    def category(self, typeName:str):
-        self._category = typeName
-
-    @property
-    def indexes(self):
-        return self._indexes
-
-    @indexes.setter
-    def indexes(self, indexes: list[int]):
-        self._indexes = indexes
-
-    @property
-    def color(self) -> str:
-        return self._color
-
-    @color.setter
-    def color(self, color: str):
-        self._color = color
-
-    @property
-    def expression(self) -> str:
-        return self._expression
-
-    @expression.setter
-    def expression(self, expression: str):
-        self._expression = expression
-
-    @property
-    def active(self) -> bool:
-        return self._active
-
-    @active.setter
-    def active(self, active: bool):
-        self._active = active
 
     @property
     def countIndexes(self):
