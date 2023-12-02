@@ -1,21 +1,35 @@
 import typing
+import enum
+import UtilFunctions as Util
 from PySide6.QtGui import QColor
+
+class MarkerCategory(enum.Enum):
+    Custom = 'Custom'
+    Stationary = 'Stationary'
+
+    @classmethod
+    def fromString(cls, value:str):
+        for i in MarkerCategory:
+            if i.value == value:
+                return i
+        return None
+
 
 class MarkerDto:
     name: str = None
-    category: str = None
+    category: MarkerCategory = None
     indexes: list[int] = None
     color: str = None
     expression: str = None
     active: bool = None
 
     @classmethod
-    def initFrom(cls, category: str, expression:str):
-        return cls(None, category, None, None, expression)
+    def initFrom(cls, category: MarkerCategory, expression:str):
+        return cls(None, category, None, Util.generateRandomColor(), expression)
 
-    def __init__(self, name: str = None, category:str=None, indexes:list[int]= None, color:QColor= None, expression: typing.Optional[str] = None, active: bool = None) -> None:
+    def __init__(self, name: str = None, category:MarkerCategory=None, indexes:list[int]= None, color:QColor = Util.generateRandomColor(), expression: typing.Optional[str] = None, active: bool = None) -> None:
         self.name: str = name
-        self.category: str = category
+        self.category: MarkerCategory = category
         self.indexes: list[int] = indexes
         self.color: str = color
         self.active: bool = active

@@ -127,7 +127,7 @@ class TrackPointsModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
             selectedColor = None
             for marker in self.markers:
-                if self.trimmerInterval.index(index.row()) in marker.indexes:
+                if marker.indexes is not None and self.trimmerInterval.index(index.row()) in marker.indexes:
                     selectedColor = marker.color
             if selectedColor is not None: return QBrush(selectedColor)
         elif role == Qt.ItemDataRole.ForegroundRole:
@@ -187,19 +187,15 @@ class TrackPointsModel(QAbstractTableModel):
         self.trimRangeChanged.emit(len(self.trimmerInterval)) # TODO add the number of rows
         self.endResetModel()
 
-    def addMarker(self, maker: MarkerDto):
-        self.beginResetModel()
-        self.markers.append(maker)
-        self.endResetModel()
-        pass
+    def markerActivated(self, marker: MarkerDto, active: bool):
+        foundIndex = self.markers.index(marker) if marker in self.markers else None
 
-    def clearAllMarker(self):
-        self.beginResetModel()
-        self.markers = []
-        self.endResetModel()
+        if active and foundIndex is None:
+            self.beginResetModel()
+            self.markers.append(marker)
+            self.endResetModel()
 
-    def clearMarker(self, name: str):
-        self.beginResetModel()
-        self.markers[:] = [maker for maker in self.markers if maker.name != name]
-        self.endResetModel()
-        pass
+        elif not active and foundIndex is not None:
+            self.beginResetModel()
+            del self.markers[foundIndex]
+            self.endResetModel()

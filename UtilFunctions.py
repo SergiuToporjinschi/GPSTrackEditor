@@ -1,7 +1,8 @@
 import re, json
-from typing import Callable, List
+import random
 import importlib
-
+from typing import Callable, List
+from PySide6.QtGui import QColor
 
 nonPrivate:Callable = lambda item: item[0] != '_'
 
@@ -61,3 +62,9 @@ def buildAttributeExpression(attrName: str, exp:str) -> str:
         index += 1
     splitted
     return ''.join(splitted)
+
+def generateRandomColor() -> str:
+    red = random.randint(0, 255)
+    green = random.randint(0, 255)
+    blue = random.randint(0, 255)
+    return QColor(red, green, blue).name()

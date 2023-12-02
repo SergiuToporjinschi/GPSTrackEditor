@@ -1,17 +1,15 @@
 import jsonpickle
 from enum import Enum
 from typing import Any, Union
+
 from config import *
 from delegates import ExtRoles
-from dto import MarkerDto, MarkerGroupDto
+from dto import MarkerDto, MarkerGroupDto, MarkerCategory
 from .ColumnModel import ColumnModel
+
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, QObject, Qt, QPersistentModelIndex
 from PySide6.QtWidgets import QColorDialog
 from PySide6.QtGui import QBrush, QColor
-class MarkerCategory(Enum):
-    Custom = 'Custom'
-    Stationary = 'Stationary'
-    pass
 
 class MarkerStatusModel(QAbstractItemModel):
     _headers: list[ColumnModel] = [
@@ -25,9 +23,6 @@ class MarkerStatusModel(QAbstractItemModel):
     _markerData:list[MarkerGroupDto]
     def __init__(self, parent: QObject = None) -> None:
         self._markerData = self._loadMarkers()
-
-        # self._markerData.append(MarkerGroupDto("Custom"))
-        # self._markerData.append(MarkerGroupDto("Stationary"))
         super().__init__(parent)
         pass
 
@@ -58,6 +53,7 @@ class MarkerStatusModel(QAbstractItemModel):
             result = self._dataByEditDisplayRole(item, colModel, index)
             self._saveMarkers()
             return result
+
         elif role == Qt.ItemDataRole.CheckStateRole:
             return self._dataByCheckStateRole(item, colModel, index)
 
@@ -110,7 +106,6 @@ class MarkerStatusModel(QAbstractItemModel):
             return self.createIndex(row, column, children)
         else:
             return QModelIndex()
-        pass
 
     def parent(self, childIndex: QModelIndex) -> QModelIndex:
         if not childIndex.isValid():
@@ -209,7 +204,7 @@ class MarkerStatusModel(QAbstractItemModel):
 
     def _dataByEditDisplayRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if isinstance(item, MarkerGroupDto):
-            if index.column() == 0: return item.category
+            if index.column() == 0: return item.category.value
             else: return None
 
         elif isinstance(item, MarkerDto):
@@ -247,8 +242,20 @@ class MarkerStatusModel(QAbstractItemModel):
     def _loadMarkers(self):
         jsonData = Config.valueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, None)
 
-        if jsonData is None: return [MarkerGroupDto(MarkerCategory.Custom.name), MarkerGroupDto(MarkerCategory.Stationary.name)]
+        if jsonData is None: return [MarkerGroupDto(MarkerCategory.Custom), MarkerGroupDto(MarkerCategory.Stationary)]
 
         return jsonpickle.decode(jsonData)
 
+    def iterateAll(self, filterFunction:callable = lambda item: isinstance(item, MarkerDto)) -> Union[MarkerDto, MarkerGroupDto]:
+        for groupRow in range(self.rowCount(QModelIndex())):
+            markerGroupIndex = self.index(groupRow, 0, QModelIndex())
+            groupItem = markerGroupIndex.internalPointer()
+            if filterFunction(groupItem):
+                yield groupItem, markerGroupIndex
+            if isinstance(groupItem, MarkerGroupDto):
+                for markerRow in range(self.rowCount(markerGroupIndex)):
+                    markerRowIndex = self.index(markerRow, 0, markerGroupIndex)
+                    markerRowItem = markerRowIndex.internalPointer()
+                    if filterFunction(markerRowItem):
+                        yield markerRowItem, markerRowIndex
 
