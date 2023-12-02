@@ -12,7 +12,7 @@ class TrimmerInterval:
 
     @min.setter
     def min(self, val):
-        if val > self._max or val < 1:
+        if val > self._max or val < 0:
             raise Exception("Invalid trimmer value!")
         self._min = val
 
@@ -22,8 +22,8 @@ class TrimmerInterval:
 
     @max.setter
     def max(self, val):
-        val = 1 if val <= 0 else val
-        if val < self._min or val < 1:
+        # val = 1 if val <= 0 else val
+        if val < self._min or val < 0:
             raise Exception("Invalid trimmer value!")
         self._max = val
 
@@ -34,12 +34,12 @@ class TrimmerInterval:
     @val.setter
     def val(self, val: tuple):
         minTest, maxTest = val
-        if minTest > maxTest or minTest < 1 or maxTest < 1:
+        if minTest > maxTest:
             raise Exception("Invalid trimmer value!")
         self._min, self._max = val
 
     def index(self, val):
-        return range(self._min-1, self._max)[val]
+        return range(self._min, self._max)[val]
 
 
     def __str__(self) -> str:
@@ -49,4 +49,4 @@ class TrimmerInterval:
         return self._min <= val < self._max
 
     def __len__(self):
-        return 0 if self._min == self._max else len(range(self._min-1, self._max))
+        return 0 if self._min == self._max else len(range(self._min, self._max))

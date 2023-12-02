@@ -1,4 +1,5 @@
 from typing import Any, Generator
+import UtilFunctions as Util
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel, QPersistentModelIndex, Qt, QObject
 
 from .StatisticsDto import StatisticsDto
@@ -10,19 +11,13 @@ class StatisticsModel(QAbstractTableModel):
     def __init__(self, parent: QObject | None = ...) -> None:
         super().__init__(None)
         self._lines = [
-            StatisticsDto('latitude', float, 'Latitude'),
-            StatisticsDto('longitude', float, 'Longitude'),
-            StatisticsDto('altitude', float, 'Altitude'),
-            StatisticsDto('hartRate', int, 'Hart rate'),
-            StatisticsDto('distance', float, 'Distance km'),
-            StatisticsDto(None, float, 'Distance m', 'func'),
-            StatisticsDto('calculatedDistance', float, 'Calculated distance km'),
-            StatisticsDto(None, float, 'Calculated distance m', 'func'),
-            StatisticsDto('speed', float, 'Speed km/h'),
-            StatisticsDto(None, float, 'Speed m/h', 'func'),
-            StatisticsDto('calculatedSpeed', float, 'Calculated speed km/h'),
-            StatisticsDto(None, float, 'Calculated speed m/h', 'func'),
-            StatisticsDto('sensorState', str, 'Sensor state')
+            StatisticsDto('latitude'),
+            StatisticsDto('longitude'),
+            StatisticsDto('altitude'),
+            StatisticsDto('hartRate'),
+            StatisticsDto('distance'),
+            StatisticsDto('speed'),
+            StatisticsDto('sensorState')
         ]
 
     def func(self, a:float, b:float) -> float:
@@ -51,4 +46,4 @@ class StatisticsModel(QAbstractTableModel):
         if orientation == Qt.Orientation.Horizontal:
             return self._headers[section]
         if orientation == Qt.Orientation.Vertical:
-            return self._lines[section]._title
+            return Util.makeItTitle(self._lines[section].dtoAttribute)

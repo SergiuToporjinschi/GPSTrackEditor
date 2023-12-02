@@ -1,4 +1,4 @@
-from .Delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate, MapSettingsDelegate, ExtRoles
+from .Delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate, MapSettingsDelegate, ExtRoles, IntDelegate
 
 __all__ = [
     "DateTimeDelegate",
@@ -6,4 +6,5 @@ __all__ = [
     "ListOfValuesDelegate",
     "MapSettingsDelegate",
     "ExtRoles",
+    "IntDelegate"
 ]

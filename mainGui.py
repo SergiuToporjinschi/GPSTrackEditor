@@ -15,8 +15,6 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
 import gpstracker_rc
 
-# sys.argv.append("--disable-web-security")
-
 gpstracker_rc.qInitResources()
 
 

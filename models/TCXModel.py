@@ -1,3 +1,5 @@
+import UtilFunctions as Util
+import pandas as pd
 from datetime import datetime
 from typing import Any, Type, Generator, Union
 from qtpy.QtCore import Signal
@@ -8,7 +10,7 @@ from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel
 from PySide6.QtWidgets import QStyledItemDelegate
 
 from TrimmerInterval import TrimmerInterval
-from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate
+from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate, IntDelegate
 from dto import TrackDataDTO, MarkerDto
 
 
@@ -40,11 +42,11 @@ class TCXColModel:
         self._colInfo.append(TCXColInfoModel('latitude', 'Latitude', float, FloatDelegate(-90, 90, 8)))
         self._colInfo.append(TCXColInfoModel('longitude', 'Longitude', float, FloatDelegate(-180, 180, 8)))
         self._colInfo.append(TCXColInfoModel('altitude', 'Altitude (m)', float, FloatDelegate(-200, 9000, 3)))
+        self._colInfo.append(TCXColInfoModel('hartRate', 'Hart rate (bpm)', int, IntDelegate(0, 250, 0)))
         self._colInfo.append(TCXColInfoModel('distance', 'Distance (m)', float, FloatDelegate(-20000, 20000, 16)))
         self._colInfo.append(TCXColInfoModel('calculatedDistance', 'Calculated distance (m)', float, FloatDelegate(-20000, 20000, 16)))
         self._colInfo.append(TCXColInfoModel('speed', 'Speed (km/h)', float, FloatDelegate(0, 1000, 12)))
         self._colInfo.append(TCXColInfoModel('calculatedSpeed', 'Calculated speed (km/h)', float, FloatDelegate(0, 1000, 12)))
-        self._colInfo.append(TCXColInfoModel('hartRate', 'Hart rate (bpm)', int, FloatDelegate(0, 250, 0)))
         self._colInfo.append(TCXColInfoModel('sensorState', 'Sensor state', str, ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))))
         pass
 
@@ -87,35 +89,49 @@ class TrackPointsModel(QAbstractTableModel):
     statusMessage = Signal(StatusMessage)
     workingProgress = Signal(int)
 
-    updateSelection = Signal(int)          # signal emited
+    updateSelection = Signal(int)
     updateTrackPoints = Signal(int)
 
     markers: list[MarkerDto] = []
-    trimmerInterval = TrimmerInterval(1, 1)
-    allTrackPoints = list[TCXRowModel]
+    trimmerInterval = TrimmerInterval(0, 0)
+    allTrackPoints:pd.DataFrame = None
 
     def __init__(self, trackPoints: list[TCXRowModel] = None, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
-        self.allTrackPoints = trackPoints or []
-        self.palette = palette
+        self.allTrackPoints = self._getEmptyDataFrame()
         self.trimmerInterval.max = len(self.allTrackPoints)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
+        self.palette = palette
 
     def loadData(self, trackPoints: list[TrackDataDTO]):
         self.beginResetModel()
-        self.allTrackPoints.clear()
-        self.allTrackPoints.extend(self._decorateData(trackPoints))
-        self.trimmerInterval.max = len(self.allTrackPoints)
+
+        objList = [(obj.time,
+                obj.latitude,
+                obj.longitude,
+                obj.altitude,
+                obj.hartRate,
+                obj.distance,
+                obj.calculatedDistance,
+                obj.speed,
+                obj.calculatedSpeed,
+                obj.sensorState) for obj in trackPoints][:]
+
+        cols = Util.getClassPublicAttributes(TrackDataDTO)
+        self.allTrackPoints = self._removeNan(pd.DataFrame(objList, columns=cols))
+
+        self.trimmerInterval.max = len(self.allTrackPoints.index)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
         self.endResetModel()
         self.mainSeriesChanged.emit()
 
-    def _decorateData(self, data: list [TrackDataDTO]) -> list[TCXRowModel]:
-        return  [TCXRowModel(item) for item in data][:]
+    def _getEmptyDataFrame(self):
+        cols = Util.getClassPublicAttributes(TrackDataDTO)
+        return pd.DataFrame(columns=cols)
 
     def clearData(self):
         self.beginResetModel()
-        self.allTrackPoints.clear()
+        self.allTrackPoints = self._getEmptyDataFrame()
         self.trimmerInterval.max = 0
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
         self.endResetModel()
@@ -123,7 +139,7 @@ class TrackPointsModel(QAbstractTableModel):
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
-            return self.allTrackPoints[self.trimmerInterval.index(index.row())][index.column()]
+            return self.allTrackPoints.iat[self.trimmerInterval.index(index.row()), index.column()]
         if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
             selectedColor = None
             for marker in self.markers:
@@ -136,12 +152,18 @@ class TrackPointsModel(QAbstractTableModel):
             lum = color.color().lightnessF()
             return QColor('white') if lum < 0.4 else QColor('black')
 
-    def getTrimmedDataItem(self, row: int) -> TCXRowModel:
-        return self.allTrackPoints[self.trimmerInterval.index(row)]
+    def index(self, row: int, column: int, parent: QModelIndex = ...) -> QModelIndex:
+        if parent.isValid() and parent.column() != 0:
+            return QModelIndex()
+        if not self.hasIndex(row, column, parent): return QModelIndex()
+        return self.createIndex(row, column, self.allTrackPoints.iloc[row])
+
+    def getTrimmedDataItem(self, row: int) -> pd.DataFrame:
+        return self.allTrackPoints.iloc[self.trimmerInterval.index(row)]
 
     def iterateTrimmedTracks(self) -> Generator[TCXRowModel, None, None]:
         for index in range(0, self.rowCount()):
-            yield self.allTrackPoints[self.trimmerInterval.index(index)]
+            yield self.allTrackPoints.iloc[self.trimmerInterval.index(index)]
 
     def iterateAllTracks(self) -> Generator[TCXRowModel, None, None]:
         for item in self.allTrackPoints:
@@ -157,29 +179,30 @@ class TrackPointsModel(QAbstractTableModel):
         return len(self.trimmerInterval)
 
     def columnCount(self, parent: QModelIndex = ...) -> int:
-        return len(TCXColModel())
+        return len(self.allTrackPoints.columns)
 
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> Any:
-        if role == Qt.ItemDataRole.DisplayRole:
-            if orientation == Qt.Orientation.Horizontal:
-                return TCXColModel()[section].columnTitle
+        if role != Qt.ItemDataRole.DisplayRole: return None
+        if orientation == Qt.Orientation.Horizontal:
+            return Util.makeItTitle(str(self.allTrackPoints.columns[section]))
+        if orientation == Qt.Orientation.Vertical:
+            return str(self.allTrackPoints.index[section])
         return super().headerData(section, orientation, role)
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
         return super().flags(index) | Qt.ItemFlag.ItemIsEditable
 
     def sortBy(self, column:str, order: Qt.SortOrder = ...):
-        self.beginResetModel()
-        def key_function(item:TCXRowModel):
-            val = item.getValueByColName(column)
-            return val if val is not None else 0
-
-        self.allTrackPoints.sort(key=key_function, reverse=order == Qt.SortOrder.DescendingOrder)
-        self.contentChanged.emit()
-        self.endResetModel()
+        return
 
     def sort(self, column:int, order: Qt.SortOrder = ...):
-        self.sortBy(TCXColModel()[column].dtoAttribute, order)
+        self.beginResetModel()
+
+        colName = self.allTrackPoints.columns[column]
+        self.allTrackPoints = self.allTrackPoints.sort_values(by=colName, ascending=order == Qt.SortOrder.AscendingOrder)
+
+        self.contentChanged.emit()
+        self.endResetModel()
 
     def trimRows(self, interval: tuple = None):
         self.beginResetModel()
@@ -199,3 +222,14 @@ class TrackPointsModel(QAbstractTableModel):
             self.beginResetModel()
             del self.markers[foundIndex]
             self.endResetModel()
+
+    def _removeNan(self, df:pd.DataFrame) -> pd.DataFrame:
+        for key in ['distance', 'longitude', 'latitude', 'altitude', 'hartRate', 'speed', 'calculatedSpeed', 'calculatedDistance']:
+            if not df[key].isnull().all():
+                if pd.isna(df[key].iloc[0]):
+                    first_valid_index = df[key].first_valid_index()
+                    df.loc[:1, key] = df.loc[:1, key].fillna(df[key].iloc[first_valid_index])
+                    df.loc[1:, key] = df.loc[1:, key].ffill()
+                else:
+                    df[key] = df[key].ffill()
+        return df
