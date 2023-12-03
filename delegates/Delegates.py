@@ -35,9 +35,9 @@ class DateTimeDelegate(QStyledItemDelegate):
         dateTimeEdit.setDisplayFormat(self.editFormat)
         return dateTimeEdit
 
-    def setEditorData(self, editor, index):
+    def setEditorData(self, editor:QtWidgets.QDateTimeEdit, index: QModelIndex | QPersistentModelIndex):
         if isinstance(editor, QtWidgets.QDateTimeEdit):
-            value = index.model().data(index, Qt.ItemDataRole.EditRole)
+            value = index.data(Qt.ItemDataRole.EditRole)
             editor.setDateTime(value)
         else:
             super().setEditorData(editor, index)
@@ -68,17 +68,23 @@ class FloatDelegate(QStyledItemDelegate):
         super().initStyleOption(option, index)
 
     def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex) -> QWidget:
-        spinner = QtWidgets.QDoubleSpinBox(parent)
-        spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
-        spinner.setMinimum(self.min)
-        spinner.setMaximum(self.max)
-        spinner.setDecimals(self.dec)
+        self.spinner = QtWidgets.QDoubleSpinBox(parent)
+        self.spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
+        self.spinner.setMinimum(self.min)
+        self.spinner.setMaximum(self.max)
+        self.spinner.setDecimals(self.dec)
         if self.dec is None or self.dec == 0:
-            spinner.setSingleStep(1)
-            spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.DefaultStepType)
+            self.spinner.setSingleStep(1)
+            self.spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.DefaultStepType)
         else:
-            spinner.setSingleStep(10**self.dec)
-        return spinner
+            self.spinner.setSingleStep(10**self.dec)
+        return self.spinner
+
+    def setEditorData(self, editor: QtWidgets.QDoubleSpinBox, index: QModelIndex | QPersistentModelIndex) -> None:
+        if isinstance(editor, QtWidgets.QDoubleSpinBox):
+            editor.setValue(index.data(Qt.ItemDataRole.EditRole))
+        else:
+            super().setEditorData(editor, index)
 
     def displayText(self, value: Any, locale: QLocale) -> str:
         if isinstance(value, float):
@@ -87,28 +93,29 @@ class FloatDelegate(QStyledItemDelegate):
         return super().displayText(value, locale)
 
 class IntDelegate(QStyledItemDelegate):
-    def __init__(self, min:int, max:int, dec:int, parent:QTableView = None) -> None:
+    def __init__(self, min:int, max:int, parent:QTableView = None) -> None:
         super().__init__(parent)
         self.min = min
         self.max = max
-        self.dec = dec
 
     def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:
         option.displayAlignment = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
         super().initStyleOption(option, index)
 
     def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex) -> QWidget:
-        spinner = QtWidgets.QDoubleSpinBox(parent)
+        spinner = QtWidgets.QSpinBox(parent)
         spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
         spinner.setMinimum(self.min)
         spinner.setMaximum(self.max)
-        spinner.setDecimals(self.dec)
-        if self.dec is None or self.dec == 0:
-            spinner.setSingleStep(1)
-            spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.DefaultStepType)
-        else:
-            spinner.setSingleStep(10**self.dec)
+        spinner.setSingleStep(1)
+        spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.DefaultStepType)
         return spinner
+
+    def setEditorData(self, editor: QtWidgets.QSpinBox, index: QModelIndex | QPersistentModelIndex) -> None:
+        if isinstance(editor, QtWidgets.QSpinBox):
+            editor.setValue(index.data(Qt.ItemDataRole.EditRole))
+        else:
+            super().setEditorData(editor, index)
 
     def displayText(self, value: Any, locale: QLocale) -> str:
         if isinstance(value, numpy.int64):

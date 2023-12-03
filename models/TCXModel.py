@@ -72,16 +72,23 @@ class TrackPointsModel(QAbstractTableModel):
         self.mainSeriesChanged.emit()
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
+        trimmedRow = self.trimmerInterval.index(index.row())
+        trimmedCol = index.column()
         if role == Qt.ItemDataRole.EditRole:
-            return float(self.allTrackPoints.iat[self.trimmerInterval.index(index.row()), index.column()])
-        if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
-            return self.allTrackPoints.iat[self.trimmerInterval.index(index.row()), index.column()]
-        if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
+            val = self.allTrackPoints.iat[trimmedRow, trimmedCol]
+            if val is None: val = 0
+            return val
+
+        elif role == Qt.ItemDataRole.DisplayRole:
+            return self.allTrackPoints.iat[trimmedRow, trimmedCol]
+
+        elif role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
             selectedColor = None
             for marker in self.markers:
-                if marker.indexes is not None and self.trimmerInterval.index(index.row()) in marker.indexes:
+                if marker.indexes is not None and trimmedRow in marker.indexes:
                     selectedColor = marker.color
             if selectedColor is not None: return QBrush(selectedColor)
+
         elif role == Qt.ItemDataRole.ForegroundRole:
             color:QBrush = self.data(index, Qt.ItemDataRole.BackgroundRole)
             if color is None: return
@@ -89,10 +96,7 @@ class TrackPointsModel(QAbstractTableModel):
             return QColor('white') if lum < 0.4 else QColor('black')
 
     def index(self, row: int, column: int, parent: QModelIndex = ...) -> QModelIndex:
-        if parent.isValid() and parent.column() != 0:
-            return QModelIndex()
-        if not self.hasIndex(row, column, parent): return QModelIndex()
-        return self.createIndex(row, column, self.allTrackPoints.iloc[row])
+        return self.createIndex(row, column, self.allTrackPoints.iat[row, column])
 
     def getTrimmedDataItem(self, row: int) -> pd.DataFrame:
         return self.allTrackPoints.iloc[self.trimmerInterval.index(row)]

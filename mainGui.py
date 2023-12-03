@@ -120,7 +120,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
             'latitude'          : "FloatDelegate(-90, 90, 8)",
             'longitude'         : "FloatDelegate(-180, 180, 8)",
             'altitude'          : "FloatDelegate(-200, 9000, 3)",
-            'hartRate'          : "IntDelegate(0, 250, 0)",
+            'hartRate'          : "IntDelegate(0, 250)",
             'distance'          : "FloatDelegate(-20000, 20000, 16)",
             'calculatedDistance': "FloatDelegate(-20000, 20000, 16)",
             'speed'             : "FloatDelegate(0, 1000, 12)",
