@@ -5,12 +5,12 @@ from PySide6.QtWidgets import QWidget, QDockWidget, QHeaderView, QStyledItemDele
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
-from models import TrackPointsModel, TCXRowModel, JsonTreeModel
+from models import TrackPointsModel, JsonTreeModel
 from abstracts import AbstractModelWidget
 from StatusMessage import StatusMessage
 from dto import FileDataDTO
 from delegates import MapSettingsDelegate
-from trackStatistics import StatisticsDto, StatisticsModel
+from trackStatistics import StatisticsModel
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
@@ -25,19 +25,7 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
         self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
 
     def _calculateSpeed(self):
-        self.statusMessage.emit(StatusMessage('Calculating speed...'))
-        self.model.beginResetModel()
-        self.model.sortBy('time', Qt.SortOrder.AscendingOrder)
-        prevDistance = None
-        for item in self.model.iterateAllTracks():
-            if prevDistance is not None and item is not None and item.distance is not None:
-                newSpeed = ((item.distance - prevDistance) * 360) / 100
-            else:
-                newSpeed = 0
-            prevDistance = item.distance
-            item.calculatedSpeed = newSpeed
-        self.model.endResetModel()
-        self.statusMessage.emit(None)
+        pass
 
 class FilterDockWidget(AbstractModelWidget, QDockWidget, filterDock):
     def _setupUi(self):
@@ -90,15 +78,6 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
             item.avg = float(mean) if not pd.isna(mean) else '-'
         self.statisticsModel.endResetModel()
         self.statusMessage.emit(None)
-
-    def toKm(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
-    def findMax(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
-    def findAvg(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
-    def findMissing(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
 
 class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
     configChanged = Signal(str)        # map configuration changes, updates map

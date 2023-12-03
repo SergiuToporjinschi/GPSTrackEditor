@@ -1,11 +1,11 @@
 import pytz, enum, numpy
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QModelIndex, QSize, QLocale, QObject, QPersistentModelIndex
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget, QComboBox, QSpinBox, QColorDialog
+from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget, QComboBox, QSpinBox, QColorDialog, QTableView
 
 class ExtRoles(enum.Enum):
     ValueType = Qt.ItemDataRole.UserRole + 1
@@ -16,8 +16,8 @@ class ExtRoles(enum.Enum):
 
 
 class DateTimeDelegate(QStyledItemDelegate):
-    def __init__(self, editFormat: str, displayFormat: str) -> None:
-        super().__init__()
+    def __init__(self, editFormat: str, displayFormat: str, parent:QTableView = None) -> None:
+        super().__init__(parent=parent)
         self.editFormat = editFormat
         self.displayFormat = displayFormat
 
@@ -57,8 +57,8 @@ class DateTimeDelegate(QStyledItemDelegate):
 
 
 class FloatDelegate(QStyledItemDelegate):
-    def __init__(self, min:int, max:int, dec:int) -> None:
-        super().__init__()
+    def __init__(self, min:int, max:int, dec:int, parent:QTableView = None) -> None:
+        super().__init__(parent=parent)
         self.min = min
         self.max = max
         self.dec = dec
@@ -87,8 +87,8 @@ class FloatDelegate(QStyledItemDelegate):
         return super().displayText(value, locale)
 
 class IntDelegate(QStyledItemDelegate):
-    def __init__(self, min:int, max:int, dec:int) -> None:
-        super().__init__()
+    def __init__(self, min:int, max:int, dec:int, parent:QTableView = None) -> None:
+        super().__init__(parent)
         self.min = min
         self.max = max
         self.dec = dec
@@ -115,11 +115,9 @@ class IntDelegate(QStyledItemDelegate):
             return f"{value}".replace(',', ' ') if value is not None else None
         return super().displayText(value, locale)
 
-
-
 class ListOfValuesDelegate(QStyledItemDelegate):
-    def __init__(self, *values:str) -> None:
-        super().__init__()
+    def __init__(self, *values:str, parent:QTableView = None) -> None:
+        super().__init__(parent=parent)
         self.values = values
 
     def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:

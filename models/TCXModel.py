@@ -14,72 +14,6 @@ from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate, Int
 from dto import TrackDataDTO, MarkerDto
 
 
-class TCXColInfoModel:
-    columnTitle: str = None
-    dataType: Type = None
-    delegate: QStyledItemDelegate = None
-    dtoAttribute: str = None
-
-    def __init__(self, dtoAttribute: str, colTile: str, dataType: Type, cellDelegate: QStyledItemDelegate) -> None:
-        self.columnTitle = colTile
-        self.dataType = dataType
-        self.delegate = cellDelegate
-        self.dtoAttribute = dtoAttribute
-
-
-class TCXColModel:
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-            cls._instance._buildModel()
-        return cls._instance
-
-    def _buildModel(self) -> None:
-        self._colInfo: list[TCXColInfoModel] = []
-        self._colInfo.append(TCXColInfoModel('time', 'Time', datetime, DateTimeDelegate('dd-MM-yyyy HH:mm:ss.z t','%d-%m-%Y %H:%M:%S.%f %Z')))
-        self._colInfo.append(TCXColInfoModel('latitude', 'Latitude', float, FloatDelegate(-90, 90, 8)))
-        self._colInfo.append(TCXColInfoModel('longitude', 'Longitude', float, FloatDelegate(-180, 180, 8)))
-        self._colInfo.append(TCXColInfoModel('altitude', 'Altitude (m)', float, FloatDelegate(-200, 9000, 3)))
-        self._colInfo.append(TCXColInfoModel('hartRate', 'Hart rate (bpm)', int, IntDelegate(0, 250, 0)))
-        self._colInfo.append(TCXColInfoModel('distance', 'Distance (m)', float, FloatDelegate(-20000, 20000, 16)))
-        self._colInfo.append(TCXColInfoModel('calculatedDistance', 'Calculated distance (m)', float, FloatDelegate(-20000, 20000, 16)))
-        self._colInfo.append(TCXColInfoModel('speed', 'Speed (km/h)', float, FloatDelegate(0, 1000, 12)))
-        self._colInfo.append(TCXColInfoModel('calculatedSpeed', 'Calculated speed (km/h)', float, FloatDelegate(0, 1000, 12)))
-        self._colInfo.append(TCXColInfoModel('sensorState', 'Sensor state', str, ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))))
-        pass
-
-    def getIndexOfColumnName(self, colName: str):
-        model = TCXColModel()
-        for index in range(0, len(model)):
-            if model[index].dtoAttribute == colName:
-                return index
-        return None
-
-    def __getitem__(self, index):
-        return self._colInfo[index]
-
-    def __len__(self):
-        return len(self._colInfo)
-
-
-class TCXRowModel(TrackDataDTO):
-    def __init__(self, row: TrackDataDTO) -> None:
-        for name in vars(TrackDataDTO):
-            if isinstance(getattr(TrackDataDTO, name), property):
-                setattr(self, name, getattr(row, name))
-
-    def __getitem__(self, index):
-        return getattr(self, TCXColModel()[index].dtoAttribute)
-
-    def getValueByColName(self, colName):
-        # [maker for maker in self.markers if maker.name != name]
-        col = [colModel for colModel in TCXColModel() if colModel.dtoAttribute == colName]
-        if col is None:
-            raise Exception('Column does not exists!')
-        return getattr(self, colName)
-
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal()           # when the entire track changed, track without any filters or markers
     mainSeriesLengthChanged = Signal(int)  # when the entire track changes in length (number of items)
@@ -96,7 +30,7 @@ class TrackPointsModel(QAbstractTableModel):
     trimmerInterval = TrimmerInterval(0, 0)
     allTrackPoints:pd.DataFrame = None
 
-    def __init__(self, trackPoints: list[TCXRowModel] = None, palette: QPalette=None ) -> None:
+    def __init__(self, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
         self.allTrackPoints = self._getEmptyDataFrame()
         self.trimmerInterval.max = len(self.allTrackPoints)
@@ -138,6 +72,8 @@ class TrackPointsModel(QAbstractTableModel):
         self.mainSeriesChanged.emit()
 
     def data(self, index: QModelIndex, role: int = ...) -> Any:
+        if role == Qt.ItemDataRole.EditRole:
+            return float(self.allTrackPoints.iat[self.trimmerInterval.index(index.row()), index.column()])
         if role == Qt.ItemDataRole.DisplayRole or role == Qt.ItemDataRole.EditRole:
             return self.allTrackPoints.iat[self.trimmerInterval.index(index.row()), index.column()]
         if role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
@@ -161,19 +97,13 @@ class TrackPointsModel(QAbstractTableModel):
     def getTrimmedDataItem(self, row: int) -> pd.DataFrame:
         return self.allTrackPoints.iloc[self.trimmerInterval.index(row)]
 
-    def iterateTrimmedTracks(self) -> Generator[TCXRowModel, None, None]:
-        for index in range(0, self.rowCount()):
-            yield self.allTrackPoints.iloc[self.trimmerInterval.index(index)]
-
-    def iterateAllTracks(self) -> Generator[TCXRowModel, None, None]:
-        for item in self.allTrackPoints:
-            yield item
-
     def setData(self, index: QModelIndex, value: Any, role: int = ...) -> bool:
         if role == Qt.ItemDataRole.EditRole:
-            self.allTrackPoints[self.trimmerInterval.index(index.row())].setValue(index.column(), value)
+            self.beginResetModel()
+            self.allTrackPoints.iloc[index.row(), index.column()] = value
+            self.endResetModel()
             return True
-        return super().setData(index, value, role)
+        return False # super().setData(index, value, role)
 
     def rowCount(self, parent: QModelIndex = ...) -> int:
         return len(self.trimmerInterval)
