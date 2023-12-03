@@ -18,14 +18,6 @@ from gui.file_info_dock_ui import Ui_DockWidget as fileInfoDock
 from gui.filter_dock_ui import Ui_DockWidget as filterDock
 from gui.processing_dock_ui import Ui_DockWidget as processingDock
 
-class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
-
-    def _setupUi(self):
-        self.buttonCalculateSpeed.clicked.connect(self._calculateSpeed)
-        self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
-
-    def _calculateSpeed(self):
-        pass
 
 class FilterDockWidget(AbstractModelWidget, QDockWidget, filterDock):
     def _setupUi(self):

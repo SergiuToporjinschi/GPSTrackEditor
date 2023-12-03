@@ -1,7 +1,7 @@
 from models import TrackPointsModel
 from loaders import TCXLoader
 from internalWidgets import QtSliderFilterWidgetPlugin
-from modules import MarkingDockWidget
+from modules import MarkingDockWidget, ProcessingDockWidget
 from gui.main_remaster_ui import Ui_MainWindow
 
 from gui.StatusBar import StatusBarGroupBox
