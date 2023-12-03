@@ -18,22 +18,22 @@ class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
     mainSeriesMin: 1 # min value on current main series
     mainSeriesMax: 1 # max value on current main series
 
-    _min = 1 # current min value
-    _max = 1 # current max value
+    _min = 0 # current min value
+    _max = 0 # current max value
 
     def _setupUi(self) -> None:
         self._insertRangeSlider()
-        self._min = 1
-        self._max = 1
+        self._min = 0
+        self._max = 0
         self.trimmerChanged.connect(self.model.trimRows)
-        self.model.mainSeriesLengthChanged.connect(lambda value: self.setMainRange(1, value))
+        self.model.mainSeriesLengthChanged.connect(lambda value: self.setMainRange(0, value))
 
     def _insertRangeSlider(self):
         self.setEnabled(False)
         self.sliderFilter = QRangeSlider(self)
         self.sliderFilter.setOrientation(Qt.Orientation.Horizontal)
         self.sliderFilter.setObjectName("verticalSlider")
-        self.sliderFilter.setRange(1, 2)
+        self.sliderFilter.setRange(0, 1)
         self.sliderFilter.applyMacStylePatch()
         self.sliderFilter.setSliderPosition([self._max, self._min])
         self.spinBoxRangeMax.setValue(self._max)
@@ -54,8 +54,8 @@ class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
         self._max = max
 
         self._blockAllSignals(True)
-        self.spinBoxRangeMin.setRange(min, max - 1)
-        self.spinBoxRangeMax.setRange(min + 1, max)
+        self.spinBoxRangeMin.setRange(min, max)
+        self.spinBoxRangeMax.setRange(min , max)
 
         self.sliderFilter.setRange(min, max if max > min else min + 1)
 
@@ -65,7 +65,7 @@ class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
         self.sliderFilter.setSliderPosition([min, max])
         self._blockAllSignals(False)
         self._trimmerChanged()
-        self.setEnabled(self._max - self._min > 1)
+        self.setEnabled(self._max - self._min > 0)
 
     def sliderValueChanged(self, tuple):
         min, max = tuple
@@ -76,7 +76,7 @@ class QtSliderFilterWidgetPlugin(AbstractModelWidget, QFrame, Ui_SliderFilter):
 
         if self.spinBoxRangeMax.value() != int(max):
             self.spinBoxRangeMax.setValue(int(max))
-            self.spinBoxRangeMin.setRange(self.mainSeriesMin, int(max) - 1)
+            self.spinBoxRangeMin.setRange(self.mainSeriesMin, int(max))
         self._blockAllSignals(False)
         self._trimmerChanged()
         pass

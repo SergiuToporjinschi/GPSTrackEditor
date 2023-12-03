@@ -1,6 +1,5 @@
-from models import TrackPointsModel, TCXColModel
+from models import TrackPointsModel
 from loaders import TCXLoader
-
 from internalWidgets import QtSliderFilterWidgetPlugin
 from modules import MarkingDockWidget
 from gui.main_remaster_ui import Ui_MainWindow
@@ -14,8 +13,7 @@ from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
 import gpstracker_rc
-
-# sys.argv.append("--disable-web-security")
+from delegates import *
 
 gpstracker_rc.qInitResources()
 
@@ -117,8 +115,23 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         pass
 
     def _applyDelegates(self):
-        for i in range(self.model.columnCount()):
-            self.tableView.setItemDelegateForColumn(i, TCXColModel()[i].delegate)
+        delegates = {
+            'time'              : "DateTimeDelegate('dd-MM-yyyy HH:mm:ss.z t','%d-%m-%Y %H:%M:%S.%f %Z')",
+            'latitude'          : "FloatDelegate(-90, 90, 8)",
+            'longitude'         : "FloatDelegate(-180, 180, 8)",
+            'altitude'          : "FloatDelegate(-200, 9000, 3)",
+            'hartRate'          : "IntDelegate(0, 250, 0)",
+            'distance'          : "FloatDelegate(-20000, 20000, 16)",
+            'calculatedDistance': "FloatDelegate(-20000, 20000, 16)",
+            'speed'             : "FloatDelegate(0, 1000, 12)",
+            'calculatedSpeed'   : "FloatDelegate(0, 1000, 12)",
+            'sensorState'       : "ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))"
+        }
+        for i, title  in enumerate(self.model.allTrackPoints.columns.to_list()):
+            if title in delegates:
+                deleg = eval(delegates[title])
+                deleg.setParent(self.tableView)
+                self.tableView.setItemDelegateForColumn(i, deleg)
 
     def _onClear(self):
         self.model.clearData()# = TrackPointsModel()

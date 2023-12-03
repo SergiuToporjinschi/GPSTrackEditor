@@ -68,3 +68,9 @@ def generateRandomColor() -> str:
     green = random.randint(0, 255)
     blue = random.randint(0, 255)
     return QColor(red, green, blue).name()
+
+
+def makeItTitle(value:str):
+    if value is None or len(value.strip()) <= 0: return None
+    return ''.join([' ' + char if char.isupper() else char for char in value]).strip().capitalize()
+

@@ -1,24 +1,22 @@
-import typing, json
+import typing, json, pandas as pd
 from qtpy.QtCore import Signal, Slot
 from PySide6.QtCore import Qt, QFile, QIODevice, QUrl, QModelIndex, QItemSelectionModel
 from PySide6.QtWidgets import QWidget, QDockWidget, QHeaderView, QStyledItemDelegate
 from PySide6.QtWebEngineCore import QWebEngineSettings
 from PySide6.QtWebChannel import QWebChannel
 
-from models import TrackPointsModel, TCXRowModel, JsonTreeModel
+from models import TrackPointsModel, JsonTreeModel
 from abstracts import AbstractModelWidget
 from StatusMessage import StatusMessage
 from dto import FileDataDTO
 from delegates import MapSettingsDelegate
-from trackStatistics import StatisticsDto, StatisticsModel
+from trackStatistics import StatisticsModel
 
 from gui.map_dock_ui import Ui_DockWidget as mapDock
 from gui.statistics_dock_ui import Ui_DockWidget as statisticsDock
 from gui.file_info_dock_ui import Ui_DockWidget as fileInfoDock
 from gui.filter_dock_ui import Ui_DockWidget as filterDock
 from gui.processing_dock_ui import Ui_DockWidget as processingDock
-
-
 
 class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
 
@@ -27,19 +25,7 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
         self.model.mainSeriesLengthChanged.connect(lambda cnt: self.setEnabled(cnt > 0))
 
     def _calculateSpeed(self):
-        self.statusMessage.emit(StatusMessage('Calculating speed...'))
-        self.model.beginResetModel()
-        self.model.sortBy('time', Qt.SortOrder.AscendingOrder)
-        prevDistance = None
-        for item in self.model.iterateAllTracks():
-            if prevDistance is not None and item is not None and item.distance is not None:
-                newSpeed = ((item.distance - prevDistance) * 360) / 100
-            else:
-                newSpeed = 0
-            prevDistance = item.distance
-            item.calculatedSpeed = newSpeed
-        self.model.endResetModel()
-        self.statusMessage.emit(None)
+        pass
 
 class FilterDockWidget(AbstractModelWidget, QDockWidget, filterDock):
     def _setupUi(self):
@@ -78,30 +64,20 @@ class StatisticsDockWidget(AbstractModelWidget, QDockWidget, statisticsDock):
     def calculateStatistics(self):
         self.statusMessage.emit(StatusMessage('Calculating statistics...'))
         self.statisticsModel.beginResetModel()
-        for dataItem in self.model.iterateTrimmedTracks():
-            for item in self.statisticsModel.iterateIndexes():
-                if item.dataType is str: continue
-                if item.dtoAttribute is None:
-                    # eval(f'self.{item.func}(dataItem, item)')
-                    continue
-                val = getattr(dataItem, item.dtoAttribute)
-                if val is None:
-                    item.missing = item.missing + 1
-                    continue
-                if val is None or item.min is None or item.min > val: item.min = val
-                if val is None or item.max is None or item.max < val: item.max = val
-                item.avg  = (item.min + item.max) / 2
+        for item in self.statisticsModel.iterateIndexes():
+            if item.dtoAttribute is None or item.dtoAttribute == 'sensorState':
+                item.min = '-'
+                item.max = '-'
+                item.avg = '-'
+                continue
+            min = self.model.allTrackPoints[item.dtoAttribute].min()
+            max = self.model.allTrackPoints[item.dtoAttribute].max()
+            mean = self.model.allTrackPoints[item.dtoAttribute].mean()
+            item.min = float(min) if not pd.isna(min) else '-'
+            item.max = float(max) if not pd.isna(max) else '-'
+            item.avg = float(mean) if not pd.isna(mean) else '-'
         self.statisticsModel.endResetModel()
         self.statusMessage.emit(None)
-
-    def toKm(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
-    def findMax(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
-    def findAvg(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
-    def findMissing(self, currentValueItem:StatisticsDto, modelItem:TCXRowModel):
-        pass
 
 class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
     configChanged = Signal(str)        # map configuration changes, updates map
@@ -163,15 +139,17 @@ class MapDockWidget(AbstractModelWidget, QDockWidget, mapDock):
         return htmlContent
 
     def _getAllTrackPointsCoordinates(self):
+        if self.model.rowCount() <= 0: return
         coordinates = []
-        for item in self.model.iterateAllTracks():
-            if item.longitude is not None and item.latitude is not None:
-                coordinates.append([item.longitude, item.latitude])
+        for a, b in zip(self.model.allTrackPoints['longitude'], self.model.allTrackPoints['latitude']):
+            if pd.notna(a) and pd.notna(b):
+                coordinates.append([a,b])
         return coordinates
 
     def _getTrimmedTrackPointsCoordinates(self):
+        filtered = self.model.allTrackPoints.loc[self.model.trimmerInterval.min:self.model.trimmerInterval.max, ['longitude', 'latitude']]
         coordinates = []
-        for item in self.model.iterateTrimmedTracks():
-            if item.longitude is not None and item.latitude is not None:
-                coordinates.append([item.longitude, item.latitude])
+        for a, b in zip(filtered['longitude'], filtered['latitude']):
+            if pd.notna(a) and pd.notna(b):
+                coordinates.append([a,b])
         return coordinates

@@ -1,11 +1,11 @@
-import pytz, enum
+import pytz, enum, numpy
 from datetime import datetime
-from typing import Any
+from typing import Any, Union
 
 from PySide6 import QtWidgets
 from PySide6.QtCore import Qt, QModelIndex, QSize, QLocale, QObject, QPersistentModelIndex
 from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget, QComboBox, QSpinBox, QColorDialog
+from PySide6.QtWidgets import QStyleOptionViewItem, QStyledItemDelegate, QWidget, QComboBox, QSpinBox, QColorDialog, QTableView
 
 class ExtRoles(enum.Enum):
     ValueType = Qt.ItemDataRole.UserRole + 1
@@ -16,8 +16,8 @@ class ExtRoles(enum.Enum):
 
 
 class DateTimeDelegate(QStyledItemDelegate):
-    def __init__(self, editFormat: str, displayFormat: str) -> None:
-        super().__init__()
+    def __init__(self, editFormat: str, displayFormat: str, parent:QTableView = None) -> None:
+        super().__init__(parent=parent)
         self.editFormat = editFormat
         self.displayFormat = displayFormat
 
@@ -57,8 +57,8 @@ class DateTimeDelegate(QStyledItemDelegate):
 
 
 class FloatDelegate(QStyledItemDelegate):
-    def __init__(self, min:int, max:int, dec:int) -> None:
-        super().__init__()
+    def __init__(self, min:int, max:int, dec:int, parent:QTableView = None) -> None:
+        super().__init__(parent=parent)
         self.min = min
         self.max = max
         self.dec = dec
@@ -81,22 +81,43 @@ class FloatDelegate(QStyledItemDelegate):
         return spinner
 
     def displayText(self, value: Any, locale: QLocale) -> str:
-            #         value = self.trackPoints[index.row()].getValueByColumnIndex(index.column())
-            # if isinstance(value, (float, int)):
-            #     return '{:,}'.format(value).replace(',', ' ')
-            # else:
-            #     return value
-
         if isinstance(value, float):
             noOfDec = self.dec
             return f"{value:,.{noOfDec}f}".replace(',', ' ') if value is not None else None
         return super().displayText(value, locale)
 
+class IntDelegate(QStyledItemDelegate):
+    def __init__(self, min:int, max:int, dec:int, parent:QTableView = None) -> None:
+        super().__init__(parent)
+        self.min = min
+        self.max = max
+        self.dec = dec
 
+    def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:
+        option.displayAlignment = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        super().initStyleOption(option, index)
+
+    def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex) -> QWidget:
+        spinner = QtWidgets.QDoubleSpinBox(parent)
+        spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.AdaptiveDecimalStepType)
+        spinner.setMinimum(self.min)
+        spinner.setMaximum(self.max)
+        spinner.setDecimals(self.dec)
+        if self.dec is None or self.dec == 0:
+            spinner.setSingleStep(1)
+            spinner.setStepType(QtWidgets.QAbstractSpinBox.StepType.DefaultStepType)
+        else:
+            spinner.setSingleStep(10**self.dec)
+        return spinner
+
+    def displayText(self, value: Any, locale: QLocale) -> str:
+        if isinstance(value, numpy.int64):
+            return f"{value}".replace(',', ' ') if value is not None else None
+        return super().displayText(value, locale)
 
 class ListOfValuesDelegate(QStyledItemDelegate):
-    def __init__(self, *values:str) -> None:
-        super().__init__()
+    def __init__(self, *values:str, parent:QTableView = None) -> None:
+        super().__init__(parent=parent)
         self.values = values
 
     def initStyleOption(self, option: QStyleOptionViewItem, index: QModelIndex) -> None:

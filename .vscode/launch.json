@@ -12,8 +12,8 @@
             "console": "integratedTerminal",
             "justMyCode": true,
             "env": {
-                "QTWEBENGINE_REMOTE_DEBUGGING": "8080",
-                // "QT_LOGGING_RULES": "qt.webenginecontext.debug=true",
+                "QTWEBENGINE_REMOTE_DEBUGGING": "8081",
+                // "QT_LOGGING_RULES": "*=true",
                 "QTWEBENGINE_CHROMIUM_FLAGS": "--remote-allow-origins=*"
             },
         },

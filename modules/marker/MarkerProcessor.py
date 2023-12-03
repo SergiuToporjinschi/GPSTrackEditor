@@ -4,9 +4,8 @@ import UtilFunctions as Util
 
 
 class AbstractMarkerProcessor:
-    def __init__(self, dataFrame:pd.DataFrame, marker: MarkerDto, dataItemsList: list[TrackDataDTO]) -> None:
+    def __init__(self, dataFrame:pd.DataFrame, marker: MarkerDto) -> None:
         self.df = dataFrame
-        self.data = dataItemsList
         self.marker = marker
         pass
 
@@ -31,26 +30,11 @@ class StationaryMarkerProcessor(CustomMarkerProcessor):
 class MarkerProcessorFactory:
 
     @classmethod
-    def buildProcessor(cls, marker: MarkerDto, dataItemsList: list[TrackDataDTO]) -> AbstractMarkerProcessor:
-        objList = [(obj.time,
-                obj.latitude,
-                obj.longitude,
-                obj.altitude,
-                obj.hartRate,
-                obj.distance,
-                obj.calculatedDistance,
-                obj.speed,
-                obj.calculatedSpeed,
-                obj.sensorState) for obj in dataItemsList][:]
-
-        cols = Util.getClassPublicAttributes(TrackDataDTO)
-
-        df = pd.DataFrame(objList, columns=cols)
-
+    def buildProcessor(cls, marker: MarkerDto, data: pd.DataFrame) -> AbstractMarkerProcessor:
         if marker.category == MarkerCategory.Custom:
-            return CustomMarkerProcessor(df, marker, dataItemsList)
+            return CustomMarkerProcessor(data, marker)
         elif marker.category == MarkerCategory.Stationary:
-            return StationaryMarkerProcessor(df, marker, dataItemsList)
+            return StationaryMarkerProcessor(data, marker)
         else:
             raise ValueError('Invalid groupName!!!')
     pass
