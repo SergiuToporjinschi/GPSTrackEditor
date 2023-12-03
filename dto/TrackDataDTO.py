@@ -8,9 +8,7 @@ class TrackDataDTO:
         self._altitude: float = None
         self._hartRate: int = None
         self._distance: float = None
-        self._calculatedDistance: float = None
         self._speed: float = None
-        self._calculatedSpeed: float = None
         self._sensorState: str = None
 
     @property
@@ -62,28 +60,12 @@ class TrackDataDTO:
         self._distance = distance
 
     @property
-    def calculatedDistance(self):
-        return self._calculatedDistance
-
-    @calculatedDistance.setter
-    def calculatedDistance(self, calculatedDistance: float):
-        self._calculatedDistance = calculatedDistance
-
-    @property
     def speed(self):
         return self._speed
 
     @speed.setter
     def speed(self, speed: float):
         self._speed = speed
-
-    @property
-    def calculatedSpeed(self):
-        return self._calculatedSpeed
-
-    @calculatedSpeed.setter
-    def calculatedSpeed(self, calculatedSpeed: float):
-        self._calculatedSpeed = calculatedSpeed
 
     @property
     def sensorState(self):

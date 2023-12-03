@@ -122,9 +122,7 @@ class mainGUI(QMainWindow, Ui_MainWindow):
             'altitude'          : "FloatDelegate(-200, 9000, 3)",
             'hartRate'          : "IntDelegate(0, 250)",
             'distance'          : "FloatDelegate(-20000, 20000, 16)",
-            'calculatedDistance': "FloatDelegate(-20000, 20000, 16)",
             'speed'             : "FloatDelegate(0, 1000, 12)",
-            'calculatedSpeed'   : "FloatDelegate(0, 1000, 12)",
             'sensorState'       : "ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))"
         }
         for i, title  in enumerate(self.model.allTrackPoints.columns.to_list()):

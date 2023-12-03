@@ -46,9 +46,7 @@ class TrackPointsModel(QAbstractTableModel):
                 obj.altitude,
                 obj.hartRate,
                 obj.distance,
-                obj.calculatedDistance,
                 obj.speed,
-                obj.calculatedSpeed,
                 obj.sensorState) for obj in trackPoints][:]
 
         cols = Util.getClassPublicAttributes(TrackDataDTO)
@@ -158,7 +156,7 @@ class TrackPointsModel(QAbstractTableModel):
             self.endResetModel()
 
     def _removeNan(self, df:pd.DataFrame) -> pd.DataFrame:
-        for key in ['distance', 'longitude', 'latitude', 'altitude', 'hartRate', 'speed', 'calculatedSpeed', 'calculatedDistance']:
+        for key in ['distance', 'longitude', 'latitude', 'altitude', 'hartRate', 'speed']:
             if not df[key].isnull().all():
                 if pd.isna(df[key].iloc[0]):
                     first_valid_index = df[key].first_valid_index()
