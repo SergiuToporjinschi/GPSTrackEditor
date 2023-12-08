@@ -1,9 +1,9 @@
 import sys
-
-from mainGui import mainGUI
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QPalette, QColor, QColorConstants, QIcon
+
+from mainGui import mainGUI
 from config import *
 
 def closing(window: mainGUI):
@@ -29,8 +29,8 @@ def main():
     palette.setColor(QPalette.ColorRole.WindowText, QColorConstants.White)
     palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
     palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
-    palette.setColor(QPalette.ColorRole.ToolTipBase, QColorConstants.White)
-    palette.setColor(QPalette.ColorRole.ToolTipText, QColorConstants.White)
+    palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(67, 67, 67))
+    palette.setColor(QPalette.ColorRole.ToolTipText, QColor(49, 138, 255))
     palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, QColorConstants.White)
     palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
     palette.setColor(QPalette.ColorRole.ButtonText, QColorConstants.White)

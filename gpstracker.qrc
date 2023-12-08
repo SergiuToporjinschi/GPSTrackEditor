@@ -5,17 +5,22 @@
     <file>resources/mapDefaultProperties.json</file>
   </qresource>
   <qresource prefix="/">
-    <file>resources/icons/close-circle-outline.svg</file>
-    <file>resources/icons/folder-open-outline.svg</file>
-    <file>resources/icons/map.svg</file>
-    <file>resources/icons/content-save-outline.svg</file>
-    <file>resources/icons/close-circle-outline.svg</file>
-    <file>resources/icons/exit-run.svg</file>
+    <file>resources/icons/map.png</file>
+    <file>resources/icons/open.png</file>
+    <file>resources/icons/save.png</file>
+    <file>resources/icons/clear-all.png</file>
+    <file>resources/icons/delete.png</file>
+    <file>resources/icons/apply-all.png</file>
+    <file>resources/icons/apply.png</file>
 
     <file>resources/icons/new-file.png</file>
     <file>resources/icons/open-file.png</file>
+    <file>resources/icons/edit.png</file>
+    <file>resources/icons/add-column.png</file>
+    <file>resources/icons/delete-column.png</file>
+    <file>resources/icons/save-column.png</file>
+    <file>resources/icons/cancel.png</file>
 
-    <file>resources/icons/save-file.png</file>
     <file>resources/icons/open-folder.png</file>
     <file>resources/icons/exit.png</file>
 

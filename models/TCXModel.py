@@ -1,17 +1,15 @@
-import UtilFunctions as Util
 import pandas as pd
-from datetime import datetime
-from typing import Any, Type, Generator, Union
-from qtpy.QtCore import Signal
-from StatusMessage import StatusMessage
+import re
 
+from typing import Any
+from qtpy.QtCore import Signal
 from PySide6.QtGui import QPalette, QBrush, QColor
 from PySide6.QtCore import Qt, QModelIndex, QAbstractTableModel
-from PySide6.QtWidgets import QStyledItemDelegate
 
+import UtilFunctions as Util
+from dto import TrackDataDTO, MarkerDto, CalcColumnDto
+from StatusMessage import StatusMessage
 from TrimmerInterval import TrimmerInterval
-from delegates import DateTimeDelegate, FloatDelegate, ListOfValuesDelegate, IntDelegate
-from dto import TrackDataDTO, MarkerDto
 
 
 class TrackPointsModel(QAbstractTableModel):
@@ -29,6 +27,7 @@ class TrackPointsModel(QAbstractTableModel):
     markers: list[MarkerDto] = []
     trimmerInterval = TrimmerInterval(0, 0)
     allTrackPoints:pd.DataFrame = None
+    calculatedColumns: list[CalcColumnDto] = []
 
     def __init__(self, palette: QPalette=None ) -> None:
         super(TrackPointsModel, self).__init__()
@@ -51,7 +50,7 @@ class TrackPointsModel(QAbstractTableModel):
 
         cols = Util.getClassPublicAttributes(TrackDataDTO)
         self.allTrackPoints = self._removeNan(pd.DataFrame(objList, columns=cols))
-
+        self.refreshCalculatedColumns()
         self.trimmerInterval.max = len(self.allTrackPoints.index)
         self.mainSeriesLengthChanged.emit(self.trimmerInterval.max)
         self.endResetModel()
@@ -103,6 +102,7 @@ class TrackPointsModel(QAbstractTableModel):
         if role == Qt.ItemDataRole.EditRole:
             self.beginResetModel()
             self.allTrackPoints.iloc[index.row(), index.column()] = value
+            self.refreshCalculatedColumns()
             self.endResetModel()
             return True
         return False # super().setData(index, value, role)
@@ -116,13 +116,18 @@ class TrackPointsModel(QAbstractTableModel):
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> Any:
         if role != Qt.ItemDataRole.DisplayRole: return None
         if orientation == Qt.Orientation.Horizontal:
-            return Util.makeItTitle(str(self.allTrackPoints.columns[section]))
+            colName = str(self.allTrackPoints.columns[section])
+            colName = re.sub(r'calc_', ' ', colName)
+            return Util.makeItTitle(colName)
         if orientation == Qt.Orientation.Vertical:
             return str(self.allTrackPoints.index[section])
         return super().headerData(section, orientation, role)
 
     def flags(self, index: QModelIndex) -> Qt.ItemFlag:
-        return super().flags(index) | Qt.ItemFlag.ItemIsEditable
+        myFlags = super().flags(index)
+        if not str(self.allTrackPoints.columns[index.column()]).lower().endswith('calc.'):
+            myFlags = myFlags | Qt.ItemFlag.ItemIsEditable
+        return myFlags
 
     def sortBy(self, column:str, order: Qt.SortOrder = ...):
         return
@@ -165,3 +170,36 @@ class TrackPointsModel(QAbstractTableModel):
                 else:
                     df[key] = df[key].ffill()
         return df
+
+    def getCalcColumnExpression(self, calcCol: CalcColumnDto):
+        return eval(f'self.allTrackPoints.assign(calc_{calcCol.name}=lambda row: {calcCol.expression})')
+
+    def refreshCalculatedColumns(self):
+        calcColNames = [f'calc_{col.name}' for col in self.calculatedColumns][:]
+        existingColNames = [col for col in self.allTrackPoints.columns.tolist() if col.startswith('calc_')][:]
+
+        updateColList = list(set(calcColNames) & set(existingColNames))
+        removeColList = list(set(existingColNames) - set(calcColNames))
+        addColList = list(set(calcColNames) - set(existingColNames))
+
+        for attribute in addColList:
+            found = list(filter(lambda obj: f'calc_{obj.name}' == attribute, self.calculatedColumns))[0]
+            self.allTrackPoints = self.getCalcColumnExpression(found)
+            # self.allTrackPoints = eval(f'self.allTrackPoints.assign(calc_{found.name}=lambda row: {found.expression})')
+            pass
+
+        for attribute in updateColList:
+            found = list(filter(lambda obj: f'calc_{obj.name}' == attribute, self.calculatedColumns))[0]
+            self.allTrackPoints = self.getCalcColumnExpression(found)
+            pass
+
+        for attribute in removeColList:
+            self.allTrackPoints = self.allTrackPoints.drop(columns = attribute)
+            pass
+
+    def updateCalculatedColumns(self, cols: list[CalcColumnDto]):
+        self.beginResetModel()
+        self.calculatedColumns = cols
+        self.refreshCalculatedColumns()
+        self.endResetModel()
+        pass

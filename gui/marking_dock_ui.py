@@ -74,6 +74,9 @@ class Ui_DockWidget(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.toolDelete = QToolButton(self.frameTop)
         self.toolDelete.setObjectName(u"toolDelete")
+        icon = QIcon()
+        icon.addFile(u":/resources/icons/delete.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolDelete.setIcon(icon)
         self.toolDelete.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout.addWidget(self.toolDelete)
@@ -81,17 +84,26 @@ class Ui_DockWidget(object):
         self.toolActivate = QToolButton(self.frameTop)
         self.toolActivate.setObjectName(u"toolActivate")
         self.toolActivate.setMinimumSize(QSize(45, 0))
+        icon1 = QIcon()
+        icon1.addFile(u":/resources/icons/apply.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolActivate.setIcon(icon1)
         self.toolActivate.setCheckable(True)
+        self.toolActivate.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout.addWidget(self.toolActivate)
 
         self.toolActivateAll = QToolButton(self.frameTop)
         self.toolActivateAll.setObjectName(u"toolActivateAll")
+        icon2 = QIcon()
+        icon2.addFile(u":/resources/icons/apply-all.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolActivateAll.setIcon(icon2)
+        self.toolActivateAll.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout.addWidget(self.toolActivateAll)
 
         self.toolClearAll = QToolButton(self.frameTop)
         self.toolClearAll.setObjectName(u"toolClearAll")
+        self.toolClearAll.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.horizontalLayout.addWidget(self.toolClearAll)
 
@@ -331,7 +343,7 @@ class Ui_DockWidget(object):
         self.toolDelete.setText(QCoreApplication.translate("DockWidget", u"Delete", None))
         self.toolActivate.setText(QCoreApplication.translate("DockWidget", u"Apply", None))
         self.toolActivateAll.setText(QCoreApplication.translate("DockWidget", u"Apply all", None))
-        self.toolClearAll.setText(QCoreApplication.translate("DockWidget", u"Clear all", None))
+        self.toolClearAll.setText(QCoreApplication.translate("DockWidget", u" Clear all", None))
         self.label_169.setText(QCoreApplication.translate("DockWidget", u"Name:", None))
         self.editMarkerName.setPlaceholderText(QCoreApplication.translate("DockWidget", u"Marker name", None))
         self.pushAdd.setText(QCoreApplication.translate("DockWidget", u"Add", None))

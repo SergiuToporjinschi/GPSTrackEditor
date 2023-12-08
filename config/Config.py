@@ -1,12 +1,14 @@
 import enum
-from typing import Any, Optional, overload
-from PySide6.QtCore import QSettings, QObject
+from typing import Any
+
+from PySide6.QtCore import QSettings
 
 class ConfigGroup(enum.Enum):
     General = 'General'
     MainWindow = 'mainWindow'
     TrackGrid = 'trackGrid'
     MarkingDockWidget = 'markingDockWidget'
+    ProcessingDockWidget = 'processingDockWidget'
 
 class ConfigAttribute(enum.Enum):
     Geometry = 'geometry'
@@ -15,6 +17,7 @@ class ConfigAttribute(enum.Enum):
     Sorting = 'sorting'
     Location = 'location'
     Markers = 'markers'
+    CustomColumns = 'customColumns'
 
 class Config(QSettings):
 

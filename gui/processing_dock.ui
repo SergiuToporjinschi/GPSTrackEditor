@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>478</width>
+    <height>676</height>
    </rect>
   </property>
   <property name="allowedAreas">
@@ -18,6 +18,18 @@
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QScrollArea" name="scrollArea_3">
       <property name="frameShape">
@@ -40,85 +52,333 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>382</width>
-         <height>258</height>
+         <width>478</width>
+         <height>652</height>
         </rect>
        </property>
-       <layout class="QGridLayout" name="gridLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="leftMargin">
          <number>0</number>
         </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
         <property name="rightMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
          <number>0</number>
         </property>
-        <item row="3" column="0">
-         <widget class="QLabel" name="label_171">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+        <item>
+         <widget class="QTabWidget" name="tabWidget">
+          <property name="tabPosition">
+           <enum>QTabWidget::East</enum>
           </property>
-          <property name="text">
-           <string>Calculate</string>
+          <property name="currentIndex">
+           <number>1</number>
           </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QPushButton" name="buttonCalculateSpeed">
-          <property name="text">
-           <string>Speed</string>
-          </property>
-         </widget>
-        </item>
-        <item row="8" column="0">
-         <spacer name="verticalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item row="2" column="1">
-         <widget class="QDateTimeEdit" name="startDateTime_2">
-          <property name="displayFormat">
-           <string>dd-MM-yyyy HH:mm:ss.zzz t</string>
-          </property>
-          <property name="calendarPopup">
-           <bool>true</bool>
-          </property>
-          <property name="timeSpec">
-           <enum>Qt::UTC</enum>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="2">
-         <widget class="QPushButton" name="buttonShiftTime">
-          <property name="text">
-           <string>Shift time</string>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="2">
-         <widget class="QPushButton" name="buttonCalculateDistance">
-          <property name="text">
-           <string>Distance</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Time shifting</string>
-          </property>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Time shift</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label">
+              <property name="text">
+               <string>Time shifting</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="2">
+             <widget class="QPushButton" name="buttonShiftTime">
+              <property name="text">
+               <string>Shift time</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QDateTimeEdit" name="startDateTime_2">
+              <property name="displayFormat">
+               <string>dd-MM-yyyy HH:mm:ss.zzz t</string>
+              </property>
+              <property name="calendarPopup">
+               <bool>true</bool>
+              </property>
+              <property name="timeSpec">
+               <enum>Qt::UTC</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <spacer name="verticalSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Calculated Columns</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QSplitter" name="splitter">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <widget class="QFrame" name="frame_5">
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_3">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="rightMargin">
+                 <number>0</number>
+                </property>
+                <item>
+                 <widget class="QFrame" name="frame_6">
+                  <property name="frameShape">
+                   <enum>QFrame::NoFrame</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Plain</enum>
+                  </property>
+                  <property name="lineWidth">
+                   <number>0</number>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_2">
+                   <property name="leftMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>0</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>0</number>
+                   </property>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonDelete">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="text">
+                      <string> Delete</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="../gpstracker.qrc">
+                       <normaloff>:/resources/icons/delete-column.png</normaloff>:/resources/icons/delete-column.png</iconset>
+                     </property>
+                     <property name="activeOnState" stdset="0">
+                      <number>1</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonEdit">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="text">
+                      <string> Edit</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="../gpstracker.qrc">
+                       <normaloff>:/resources/icons/edit.png</normaloff>:/resources/icons/edit.png</iconset>
+                     </property>
+                     <property name="activeOnState" stdset="0">
+                      <number>1</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonActivateAll">
+                     <property name="enabled">
+                      <bool>true</bool>
+                     </property>
+                     <property name="text">
+                      <string>Activate all</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="../gpstracker.qrc">
+                       <normaloff>:/resources/icons/apply-all.png</normaloff>:/resources/icons/apply-all.png</iconset>
+                     </property>
+                     <property name="activeOnState" stdset="0">
+                      <number>1</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonDeactivateAll">
+                     <property name="enabled">
+                      <bool>true</bool>
+                     </property>
+                     <property name="text">
+                      <string>Deactivate all</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="../gpstracker.qrc">
+                       <normaloff>:/resources/icons/clear-all.png</normaloff>:/resources/icons/clear-all.png</iconset>
+                     </property>
+                     <property name="activeOnState" stdset="0">
+                      <number>1</number>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <spacer name="horizontalSpacer">
+                     <property name="orientation">
+                      <enum>Qt::Horizontal</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>40</width>
+                       <height>20</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QTableView" name="tableViewCol">
+                  <property name="selectionBehavior">
+                   <enum>QAbstractItemView::SelectRows</enum>
+                  </property>
+                  <property name="activeOnState" stdset="0">
+                   <number>1</number>
+                  </property>
+                  <attribute name="verticalHeaderMinimumSectionSize">
+                   <number>20</number>
+                  </attribute>
+                  <attribute name="verticalHeaderDefaultSectionSize">
+                   <number>20</number>
+                  </attribute>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QFrame" name="frame">
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <layout class="QFormLayout" name="formLayout">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_2">
+                  <property name="toolTip">
+                   <string>Stats with letter, no space, no special characters 
+[function name]
+Column name should start with &quot;row.&quot;</string>
+                  </property>
+                  <property name="text">
+                   <string>Name</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>lineEditName</cstring>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEditName">
+                  <property name="toolTip">
+                   <string>Stats with letter, no space, no special characters 
+[function name]
+Column name should start with &quot;row.&quot;</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>Expression:</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>lineEditExpression</cstring>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEditExpression"/>
+                </item>
+                <item row="2" column="0" colspan="2">
+                 <widget class="QFrame" name="frame_4">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::NoFrame</enum>
+                  </property>
+                  <property name="frameShadow">
+                   <enum>QFrame::Plain</enum>
+                  </property>
+                  <property name="lineWidth">
+                   <number>0</number>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout">
+                   <item>
+                    <widget class="QPushButton" name="pushButtonAddColumn">
+                     <property name="text">
+                      <string> Add column</string>
+                     </property>
+                     <property name="icon">
+                      <iconset resource="../gpstracker.qrc">
+                       <normaloff>:/resources/icons/add-column.png</normaloff>:/resources/icons/add-column.png</iconset>
+                     </property>
+                     <property name="shortcut">
+                      <string>Ctrl+Return</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="pushButtonCancelEdit">
+                     <property name="enabled">
+                      <bool>false</bool>
+                     </property>
+                     <property name="text">
+                      <string>Cancel</string>
+                     </property>
+                     <property name="activeOnState" stdset="0">
+                      <number>2</number>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -128,6 +388,21 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <tabstops>
+  <tabstop>pushButtonDelete</tabstop>
+  <tabstop>pushButtonEdit</tabstop>
+  <tabstop>tableViewCol</tabstop>
+  <tabstop>lineEditName</tabstop>
+  <tabstop>lineEditExpression</tabstop>
+  <tabstop>pushButtonAddColumn</tabstop>
+  <tabstop>pushButtonCancelEdit</tabstop>
+  <tabstop>startDateTime_2</tabstop>
+  <tabstop>scrollArea_3</tabstop>
+  <tabstop>tabWidget</tabstop>
+  <tabstop>buttonShiftTime</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../gpstracker.qrc"/>
+ </resources>
  <connections/>
 </ui>

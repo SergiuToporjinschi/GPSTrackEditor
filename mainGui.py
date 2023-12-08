@@ -1,19 +1,20 @@
-from models import TrackPointsModel
-from loaders import TCXLoader
-from internalWidgets import QtSliderFilterWidgetPlugin
-from modules import MarkingDockWidget, ProcessingDockWidget
-from gui.main_remaster_ui import Ui_MainWindow
-
-from gui.StatusBar import StatusBarGroupBox
-from StatusMessage import StatusMessage
-from config import *
-from gui.DockWidget import *
-from abstracts import AbstractNotificationWidget
 from PySide6.QtGui import QColor
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFileDialog, QMainWindow, QApplication
-import gpstracker_rc
+
+from gui.main_remaster_ui import Ui_MainWindow
+from gui.DockWidget import *
+from models import TrackPointsModel
+from modules import MarkingDockWidget, ProcessingDockWidget
+from loaders import TCXLoader
+from internalWidgets import QtSliderFilterWidgetPlugin
+from gui.StatusBar import StatusBarGroupBox
+from StatusMessage import StatusMessage
+from abstracts import AbstractNotificationWidget
+from config import *
 from delegates import *
+
+import gpstracker_rc
 
 gpstracker_rc.qInitResources()
 
@@ -74,9 +75,9 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.tabifyDockWidget(self.dockFileInfo, self.dockMarking)
         self.tabifyDockWidget(self.dockFileInfo, self.dockStatistics)
         # connect signals -----------------------------------------
-        self._connectSignalsToStatusBar()
-        self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)
         self.model.clearData()
+        self._connectSignalsToStatusBar()
+
 
     def _onSaveFile(self):
         self.statusInfoBar.updateMessage.emit(StatusMessage('Saving file...', QColor('green'), 10000))
@@ -91,7 +92,9 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.model.statusMessage.connect(self.statusInfoBar.updateMessage)
         self.model.workingProgress.connect(self.statusInfoBar.updateProgress)
 
-        self.model.mainSeriesChanged.connect(self.tableView.resizeColumnsToContents)
+        self.model.mainSeriesChanged.connect(self.dockStatistics.calculateStatistics)
+        self.model.modelReset.connect(self._applyDelegates)
+
         for _, item in vars(self).items():
             if isinstance(item, AbstractNotificationWidget):
                 item.statusMessage.connect(self.statusInfoBar.updateMessage)
@@ -108,8 +111,6 @@ class mainGUI(QMainWindow, Ui_MainWindow):
         self.model.sort(0, Qt.SortOrder.AscendingOrder)
         self.tcxLoader.loadTCXAsync(file_name)
 
-
-
     def _onExit(self):
         self.app.exit()
         pass
@@ -123,24 +124,24 @@ class mainGUI(QMainWindow, Ui_MainWindow):
             'hartRate'          : "IntDelegate(0, 250)",
             'distance'          : "FloatDelegate(-20000, 20000, 16)",
             'speed'             : "FloatDelegate(0, 1000, 12)",
-            'sensorState'       : "ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))"
+            'sensorState'       : "ListOfValuesDelegate(('Present', 'Present'), ('Absent','Absent'))",
+            'justDisplay'       : "DisplayCalculatedColumn()"
         }
+
         for i, title  in enumerate(self.model.allTrackPoints.columns.to_list()):
-            if title in delegates:
-                deleg = eval(delegates[title])
-                deleg.setParent(self.tableView)
-                self.tableView.setItemDelegateForColumn(i, deleg)
+            delegateInstance = eval(delegates[title]) if title in delegates else eval(delegates['justDisplay'])
+            delegateInstance.setParent(self.tableView)
+            self.tableView.setItemDelegateForColumn(i, delegateInstance)
 
     def _onClear(self):
         self.model.clearData()# = TrackPointsModel()
-        self.tableView.resizeColumnsToContents()
 
     def _settingsTable(self):
         self.tableView.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
 
         col, direction = Config.valueG(ConfigGroup.TrackGrid, ConfigAttribute.Sorting, (-1, Qt.SortOrder.AscendingOrder))
 
-        self.model.mainSeriesChanged.connect(self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch))
+        self.model.modelReset.connect(self.tableView.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch))
 
         self.tableView.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
 

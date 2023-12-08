@@ -101,6 +101,10 @@
                 <property name="text">
                  <string>Delete</string>
                 </property>
+                <property name="icon">
+                 <iconset resource="../gpstracker.qrc">
+                  <normaloff>:/resources/icons/delete.png</normaloff>:/resources/icons/delete.png</iconset>
+                </property>
                 <property name="toolButtonStyle">
                  <enum>Qt::ToolButtonTextBesideIcon</enum>
                 </property>
@@ -117,8 +121,15 @@
                 <property name="text">
                  <string>Apply</string>
                 </property>
+                <property name="icon">
+                 <iconset resource="../gpstracker.qrc">
+                  <normaloff>:/resources/icons/apply.png</normaloff>:/resources/icons/apply.png</iconset>
+                </property>
                 <property name="checkable">
                  <bool>true</bool>
+                </property>
+                <property name="toolButtonStyle">
+                 <enum>Qt::ToolButtonTextBesideIcon</enum>
                 </property>
                </widget>
               </item>
@@ -127,12 +138,22 @@
                 <property name="text">
                  <string>Apply all</string>
                 </property>
+                <property name="icon">
+                 <iconset resource="../gpstracker.qrc">
+                  <normaloff>:/resources/icons/apply-all.png</normaloff>:/resources/icons/apply-all.png</iconset>
+                </property>
+                <property name="toolButtonStyle">
+                 <enum>Qt::ToolButtonTextBesideIcon</enum>
+                </property>
                </widget>
               </item>
               <item>
                <widget class="QToolButton" name="toolClearAll">
                 <property name="text">
-                 <string>Clear all</string>
+                 <string> Clear all</string>
+                </property>
+                <property name="toolButtonStyle">
+                 <enum>Qt::ToolButtonTextBesideIcon</enum>
                 </property>
                </widget>
               </item>

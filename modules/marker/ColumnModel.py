@@ -1,6 +1,6 @@
 from typing import Type
 
-class ColumnModel():
+class ColumnModel:
     _title: str = None
     _editable: bool = None
     _editControl: Type = None

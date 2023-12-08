@@ -214,3 +214,15 @@ class MapSettingsDelegate(QStyledItemDelegate):
     def displayText(self, value: Any, locale: QLocale ) -> str:
         return super().displayText(value, locale)
 
+class DisplayCalculatedColumn(QStyledItemDelegate):
+
+    def __init__(self, parent: QObject = None) -> None:
+        super().__init__(parent)
+
+    def displayText(self, value: Any, locale: QLocale) -> str:
+        if type(value) in (float, numpy.float16, numpy.float32, numpy.float64):
+            return f"{value:,.{2}f}".replace(',', ' ') if value is not None else None
+        elif type(value) in (int, numpy.int64, numpy.int16, numpy.int32, numpy.int64):
+            return f"{value}".replace(',', ' ') if value is not None else None
+        else:
+            return super().displayText(value, locale)

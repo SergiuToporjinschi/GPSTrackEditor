@@ -72,5 +72,15 @@ def generateRandomColor() -> str:
 
 def makeItTitle(value:str):
     if value is None or len(value.strip()) <= 0: return None
+    value = re.sub(r'[_]', ' ', value)
     return ''.join([' ' + char if char.isupper() else char for char in value]).strip().capitalize()
 
+def titleToAttribute(value: str) -> str:
+    if value is None: return None
+    return re.sub(r'[_]+', '_', re.sub(r'[^a-zA-Z0-9]', '_', value))
+
+def beautifyExpression(value:str) -> str:
+    v = re.sub(r'[\s]+', r'', value)
+    v = re.sub(r'([+/\-*])', r' \1 ', v)
+    v = re.sub(r'([,])', r'\1 ', v)
+    return re.sub(r'[\s]+', ' ', v)

@@ -145,8 +145,8 @@
   </widget>
   <action name="actionOpen">
    <property name="icon">
-    <iconset>
-     <normaloff>:/resources/icons/open-file.png</normaloff>:/resources/icons/open-file.png</iconset>
+    <iconset resource="../gpstracker.qrc">
+     <normaloff>:/resources/icons/open.png</normaloff>:/resources/icons/open.png</iconset>
    </property>
    <property name="text">
     <string>Open</string>
@@ -157,8 +157,8 @@
   </action>
   <action name="actionSave">
    <property name="icon">
-    <iconset>
-     <normaloff>:/resources/icons/save-file.png</normaloff>:/resources/icons/save-file.png</iconset>
+    <iconset resource="../gpstracker.qrc">
+     <normaloff>:/resources/icons/save.png</normaloff>:/resources/icons/save.png</iconset>
    </property>
    <property name="text">
     <string>Save</string>
@@ -169,7 +169,7 @@
   </action>
   <action name="actionExit">
    <property name="icon">
-    <iconset>
+    <iconset resource="../gpstracker.qrc">
      <normaloff>:/resources/icons/exit.png</normaloff>:/resources/icons/exit.png</iconset>
    </property>
    <property name="text">
@@ -181,8 +181,8 @@
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset>
-     <normaloff>:/resources/icons/new-file.png</normaloff>:/resources/icons/new-file.png</iconset>
+    <iconset resource="../gpstracker.qrc">
+     <normaloff>:/resources/icons/clear-all.png</normaloff>:/resources/icons/clear-all.png</iconset>
    </property>
    <property name="text">
     <string>Clear</string>
@@ -196,7 +196,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset theme="application-x-executable">
+    <iconset theme="application-x-executable" resource="../gpstracker.qrc">
      <normaloff>:/resources/icons/exit.png</normaloff>:/resources/icons/exit.png</iconset>
    </property>
    <property name="text">
