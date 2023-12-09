@@ -24,16 +24,16 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
         self.modelCol.modelReset.connect(self.tableViewCol.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch))
 
         self.pushButtonAddColumn.clicked.connect(self._saveColumn)
-        self.pushButtonEdit.clicked.connect(self._editColumn)
-        self.pushButtonDelete.clicked.connect(self._deleteColumns)
-        self.pushButtonActivateAll.clicked.connect(lambda :self._activeAll(True))
-        self.pushButtonDeactivateAll.clicked.connect(lambda :self._activeAll(False))
+        self.toolButtonEdit.clicked.connect(self._editColumn)
+        self.toolButtonDelete.clicked.connect(self._deleteColumns)
+        self.toolButtonActivateAll.clicked.connect(lambda :self._activeAll(True))
+        self.toolButtonDeactivateAll.clicked.connect(lambda :self._activeAll(False))
 
         self.stateChanged.connect(lambda state: self.pushButtonAddColumn.setText( 'Add column' if state == FrameState.View else 'Save column'))
         self.pushButtonCancelEdit.clicked.connect(lambda:  self.setState(FrameState.View))
 
-        self.tableViewCol.selectionModel().selectionChanged.connect(lambda sel, deSel: self.pushButtonEdit.setEnabled(len(self.tableViewCol.selectionModel().selectedRows()) == 1))
-        self.tableViewCol.selectionModel().selectionChanged.connect(lambda sel, deSel: self.pushButtonDelete.setEnabled(len(self.tableViewCol.selectionModel().selectedRows()) > 0))
+        self.tableViewCol.selectionModel().selectionChanged.connect(lambda sel, deSel: self.toolButtonEdit.setEnabled(len(self.tableViewCol.selectionModel().selectedRows()) == 1))
+        self.tableViewCol.selectionModel().selectionChanged.connect(lambda sel, deSel: self.toolButtonDelete.setEnabled(len(self.tableViewCol.selectionModel().selectedRows()) > 0))
         self.buttonShiftTime.clicked.connect(self.test)
 
         self.lineEditName.setValidator(MethodNameValidator())
@@ -43,8 +43,8 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
 
     def _selChanged(self, prev:QItemSelection, next:QItemSelection):
         isOneSelected = len(self.tableViewCol.selectionModel().selectedRows()) == 1
-        self.pushButtonEdit.setEnabled(isOneSelected)
-        self.pushButtonDelete.setEnabled(isOneSelected)
+        self.toolButtonEdit.setEnabled(isOneSelected)
+        self.toolButtonDelete.setEnabled(isOneSelected)
 
     def _deleteColumns(self):
         indexes = self.tableViewCol.selectionModel().selectedRows()

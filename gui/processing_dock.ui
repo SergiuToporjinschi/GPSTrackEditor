@@ -176,9 +176,12 @@
                     <number>0</number>
                    </property>
                    <item>
-                    <widget class="QPushButton" name="pushButtonDelete">
+                    <widget class="QToolButton" name="toolButtonDelete">
                      <property name="enabled">
                       <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>Delete</string>
                      </property>
                      <property name="text">
                       <string> Delete</string>
@@ -187,15 +190,21 @@
                       <iconset resource="../gpstracker.qrc">
                        <normaloff>:/resources/icons/delete-column.png</normaloff>:/resources/icons/delete-column.png</iconset>
                      </property>
+                     <property name="autoRaise">
+                      <bool>true</bool>
+                     </property>
                      <property name="activeOnState" stdset="0">
                       <number>1</number>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="pushButtonEdit">
+                    <widget class="QToolButton" name="toolButtonEdit">
                      <property name="enabled">
                       <bool>false</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>Edit</string>
                      </property>
                      <property name="text">
                       <string> Edit</string>
@@ -204,15 +213,21 @@
                       <iconset resource="../gpstracker.qrc">
                        <normaloff>:/resources/icons/edit.png</normaloff>:/resources/icons/edit.png</iconset>
                      </property>
+                     <property name="autoRaise">
+                      <bool>true</bool>
+                     </property>
                      <property name="activeOnState" stdset="0">
                       <number>1</number>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="pushButtonActivateAll">
+                    <widget class="QToolButton" name="toolButtonActivateAll">
                      <property name="enabled">
                       <bool>true</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>Activate all</string>
                      </property>
                      <property name="text">
                       <string>Activate all</string>
@@ -221,15 +236,21 @@
                       <iconset resource="../gpstracker.qrc">
                        <normaloff>:/resources/icons/apply-all.png</normaloff>:/resources/icons/apply-all.png</iconset>
                      </property>
+                     <property name="autoRaise">
+                      <bool>true</bool>
+                     </property>
                      <property name="activeOnState" stdset="0">
                       <number>1</number>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="pushButtonDeactivateAll">
+                    <widget class="QToolButton" name="toolButtonDeactivateAll">
                      <property name="enabled">
                       <bool>true</bool>
+                     </property>
+                     <property name="toolTip">
+                      <string>Deactivate all</string>
                      </property>
                      <property name="text">
                       <string>Deactivate all</string>
@@ -237,6 +258,9 @@
                      <property name="icon">
                       <iconset resource="../gpstracker.qrc">
                        <normaloff>:/resources/icons/clear-all.png</normaloff>:/resources/icons/clear-all.png</iconset>
+                     </property>
+                     <property name="autoRaise">
+                      <bool>true</bool>
                      </property>
                      <property name="activeOnState" stdset="0">
                       <number>1</number>
@@ -261,6 +285,9 @@
                 </item>
                 <item>
                  <widget class="QTableView" name="tableViewCol">
+                  <property name="alternatingRowColors">
+                   <bool>true</bool>
+                  </property>
                   <property name="selectionBehavior">
                    <enum>QAbstractItemView::SelectRows</enum>
                   </property>
@@ -365,6 +392,10 @@ Column name should start with &quot;row.&quot;</string>
                      <property name="text">
                       <string>Cancel</string>
                      </property>
+                     <property name="icon">
+                      <iconset resource="../gpstracker.qrc">
+                       <normaloff>:/resources/icons/cancel.png</normaloff>:/resources/icons/cancel.png</iconset>
+                     </property>
                      <property name="activeOnState" stdset="0">
                       <number>2</number>
                      </property>
@@ -389,8 +420,8 @@ Column name should start with &quot;row.&quot;</string>
   </widget>
  </widget>
  <tabstops>
-  <tabstop>pushButtonDelete</tabstop>
-  <tabstop>pushButtonEdit</tabstop>
+  <tabstop>toolButtonDelete</tabstop>
+  <tabstop>toolButtonEdit</tabstop>
   <tabstop>tableViewCol</tabstop>
   <tabstop>lineEditName</tabstop>
   <tabstop>lineEditExpression</tabstop>

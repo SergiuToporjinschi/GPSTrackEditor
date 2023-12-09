@@ -77,7 +77,7 @@ class Ui_DockWidget(object):
         icon = QIcon()
         icon.addFile(u":/resources/icons/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.toolDelete.setIcon(icon)
-        self.toolDelete.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.toolDelete.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
         self.horizontalLayout.addWidget(self.toolDelete)
 
@@ -88,7 +88,7 @@ class Ui_DockWidget(object):
         icon1.addFile(u":/resources/icons/apply.png", QSize(), QIcon.Normal, QIcon.Off)
         self.toolActivate.setIcon(icon1)
         self.toolActivate.setCheckable(True)
-        self.toolActivate.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.toolActivate.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
         self.horizontalLayout.addWidget(self.toolActivate)
 
@@ -97,13 +97,16 @@ class Ui_DockWidget(object):
         icon2 = QIcon()
         icon2.addFile(u":/resources/icons/apply-all.png", QSize(), QIcon.Normal, QIcon.Off)
         self.toolActivateAll.setIcon(icon2)
-        self.toolActivateAll.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        self.toolActivateAll.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
         self.horizontalLayout.addWidget(self.toolActivateAll)
 
         self.toolClearAll = QToolButton(self.frameTop)
         self.toolClearAll.setObjectName(u"toolClearAll")
-        self.toolClearAll.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        icon3 = QIcon()
+        icon3.addFile(u":/resources/icons/clear-all.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolClearAll.setIcon(icon3)
+        self.toolClearAll.setToolButtonStyle(Qt.ToolButtonIconOnly)
 
         self.horizontalLayout.addWidget(self.toolClearAll)
 
@@ -320,7 +323,7 @@ class Ui_DockWidget(object):
 
         self.retranslateUi(DockWidget)
 
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(DockWidget)
@@ -340,9 +343,21 @@ class Ui_DockWidget(object):
 #if QT_CONFIG(tooltip)
         self.actionActivate.setToolTip(QCoreApplication.translate("DockWidget", u"Activates/deactivates current selected marker", None))
 #endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(tooltip)
+        self.toolDelete.setToolTip(QCoreApplication.translate("DockWidget", u"Delete", None))
+#endif // QT_CONFIG(tooltip)
         self.toolDelete.setText(QCoreApplication.translate("DockWidget", u"Delete", None))
+#if QT_CONFIG(tooltip)
+        self.toolActivate.setToolTip(QCoreApplication.translate("DockWidget", u"Apply", None))
+#endif // QT_CONFIG(tooltip)
         self.toolActivate.setText(QCoreApplication.translate("DockWidget", u"Apply", None))
+#if QT_CONFIG(tooltip)
+        self.toolActivateAll.setToolTip(QCoreApplication.translate("DockWidget", u"Apply all", None))
+#endif // QT_CONFIG(tooltip)
         self.toolActivateAll.setText(QCoreApplication.translate("DockWidget", u"Apply all", None))
+#if QT_CONFIG(tooltip)
+        self.toolClearAll.setToolTip(QCoreApplication.translate("DockWidget", u" Clear all", None))
+#endif // QT_CONFIG(tooltip)
         self.toolClearAll.setText(QCoreApplication.translate("DockWidget", u" Clear all", None))
         self.label_169.setText(QCoreApplication.translate("DockWidget", u"Name:", None))
         self.editMarkerName.setPlaceholderText(QCoreApplication.translate("DockWidget", u"Marker name", None))
