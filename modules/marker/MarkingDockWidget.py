@@ -201,27 +201,6 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizable, markingD
             marker.indexes = indexes
         return indexes
 
-    def testItsem(self, item):
-        from dto import MarkerDto
-        item: MarkerDto
-
-        m = pd.DataFrame({'Color': [item.color], 'Indexes': [item.indexes], 'Id': [item.id]})
-        self.r = pd.concat([self.r ,m])
-        print(self.r)
-        # selectedColor = self.r[self.r['Indexes'].apply(lambda x: 3 in x)]
-        # selectedColor['Color'].iloc[-1]
-        pass
-
-    def testRIstem(self, item):
-        from dto import MarkerDto
-        item: MarkerDto
-
-        self.r = self.r[self.r['Id'] != item.id]
-        print(self.r)
-        # selectedColor = self.r[self.r['Indexes'].apply(lambda x: 3 in x)]
-        # selectedColor['Color'].iloc[-1]
-        pass
-
     def _changeStateAllMarkers(self, value: bool):
         self.r = pd.DataFrame([], columns=['Color','Indexes','Id'])
         log.debug(f'{"Check" if value else "Uncheck"} all markers!')

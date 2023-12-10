@@ -85,9 +85,7 @@ class TrackPointsModel(QAbstractTableModel):
             lastColor = self.markers[self.markers['Indexes'].apply(lambda x: trimmedRow in x)]
             if not lastColor.empty:
                 selectedColor = lastColor['Color'].iloc[-1]
-                if selectedColor is not None: return selectedColor
-
-
+                if selectedColor is not None: return QBrush(selectedColor)
             # log.debug('Refreshing ...')
             # selectedColor = None
             # m = pd.DataFrame([(obj.indexes, obj.color) for obj in self.markers][:], columns=['indexes', 'Color'])
@@ -162,10 +160,10 @@ class TrackPointsModel(QAbstractTableModel):
         self.endResetModel()
 
     def addMarker(self, item: MarkerDto):
-        # log.info(f"Add marker: {item}")
+        log.info(f"Add marker: {item}")
         if self.rowCount() <= 0: return
 
-        self.markers = pd.concat([self.markers, pd.DataFrame({'Color': [QBrush(item.color)], 'Indexes': [item.indexes], 'ID': [item.id]})])
+        self.markers = pd.concat([self.markers, pd.DataFrame({'Color': [item.color], 'Indexes': [item.indexes], 'ID': [item.id]})])
         # self.markers.append(item) print(self.markers)
 
         firstIndex = self.index(0,0, QModelIndex())
@@ -174,7 +172,7 @@ class TrackPointsModel(QAbstractTableModel):
         pass
 
     def removeMarker(self, item: MarkerDto):
-        # log.info(f"Remove marker: {item}")
+        log.info(f"Remove marker: {item}")
         if self.rowCount() <= 0: return
 
         # for index, marker in enumerate(self.markers):
@@ -187,7 +185,7 @@ class TrackPointsModel(QAbstractTableModel):
         pass
 
     def changeMarker(self, item: MarkerDto):
-        # log.info(f"Change marker: {item}")
+        log.info(f"Change marker: {item}")
         if self.rowCount() <= 0: return
 
         # for index, marker in enumerate(self.markers):
