@@ -1,5 +1,6 @@
-
+import re, enum
 import pandas as pd
+from pandas.errors import UndefinedVariableError
 from typing import Union
 from PySide6.QtGui import QColor, QColorConstants
 from PySide6.QtWidgets import QHeaderView, QMessageBox
@@ -7,15 +8,21 @@ from PySide6.QtCore import Qt, QItemSelectionModel, QModelIndex, QItemSelection
 from qtpy.QtCore import Signal
 
 from config import *
-from .MarkerListDelegate import MarkerListDelegate
-from dto import MarkerDto, TrackDataDTO, MarkerCategory, MarkerGroupDto
-from abstracts import AbstractModelWidget, AbstractWidgetMaximizeable
+from dto import MarkerDto, MarkerCategory, MarkerGroupDto
+from abstracts import AbstractModelWidget, AbstractWidgetMaximizable, FrameState
 from StatusMessage import StatusMessage
+from .MarkerListDelegate import MarkerListDelegate
 from .MarkerStatusModel import MarkerStatusModel
 from .MarkerProcessor import MarkerProcessorFactory, AbstractMarkerProcessor
-from gui.marking_dock_ui import Ui_DockWidget as markingDock
 import UtilFunctions as Util
+from gui.marking_dock_ui import Ui_DockWidget as markingDock
 
+log = Util.initLogging()
+
+class RecordAction(enum.Enum):
+    Changed = 0
+    Add = 1
+    Remove = 2
 
 class MarkerRecordSelectionModel(QItemSelectionModel):
     def __init__(self, model):
@@ -23,120 +30,162 @@ class MarkerRecordSelectionModel(QItemSelectionModel):
 
     def select(self, selection: Union[QItemSelection, QModelIndex], command : QItemSelectionModel.SelectionFlag):
         if isinstance(selection, QItemSelection):
+            newSelection = QItemSelection()
             selected_indexes = selection.indexes()
             for index in selected_indexes:
-                if not isinstance(index.internalPointer(), MarkerDto):
-                    return  # Do not allow selection for this row
+                if isinstance(index.internalPointer(), MarkerDto): newSelection.select(index,index)
+            super().select(newSelection, command)  # Allow selection for other rows
+            return
         else:
             if not isinstance(selection.internalPointer(), MarkerDto):
                 return
+
         super().select(selection, command)  # Allow selection for other rows
 
-class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, markingDock):
+class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizable, markingDock):
     colorCustomMarking:QColor = QColorConstants.Red
     colorStationaryMarking: QColor = QColorConstants.Yellow
     markers : [MarkerDto] = []
 
-    markerActivated = Signal(MarkerDto, bool) #emitted when a marker is activated or deactivated (marker data, active)
-
     def _setupUi(self):
-        self.pushAdd.clicked.connect(self._onAddMarker)
+        self.pushAdd.clicked.connect(self._onAddSaveMarker)
         self.treeViewMarker.setItemDelegate(MarkerListDelegate())
 
         self.markerTreeModel = MarkerStatusModel(self)
         self.treeViewMarker.setModel(self.markerTreeModel)
 
+        # dataChanged (index, index, roles)
+        self.markerTreeModel.dataChanged.connect(self._applyChangeMarker)
+
+        # insert/delete row (parentIndex, poz, poz)
+        self.markerTreeModel.rowsInserted.connect(lambda pIndex, pozFrom, pozTo: self._applyAddRemoveMarker(pIndex, pozFrom, pozTo, RecordAction.Add))
+        self.markerTreeModel.rowsAboutToBeRemoved.connect(lambda pIndex, pozFrom, pozTo: self._applyAddRemoveMarker(pIndex, pozFrom, pozTo, RecordAction.Remove))
+
         self._resizeHeader(self.treeViewMarker.header())
 
         self.treeViewMarker.expandAll()
-        self.toolActivate.toggled.connect(self._onActivate)
-        self.toolActivate.toggled.connect(lambda state: self.toolActivate.setText('Clear' if state else 'Apply'))
+        self.toolEdit.clicked.connect(self._editMarker)
         self.toolDelete.clicked.connect(self._onDelete)
         self.toolActivateAll.clicked.connect(lambda: self._changeStateAllMarkers(True))
         self.toolClearAll.clicked.connect(lambda: self._changeStateAllMarkers(False))
 
         self.treeViewMarker.setSelectionModel(MarkerRecordSelectionModel(self.markerTreeModel))
-        self.treeViewMarker.selectionModel().currentRowChanged.connect(self._onSelectionChanged)
         self.markerTreeModel.modelReset.connect(self.treeViewMarker.expandAll)
 
-        self.markerActivated.connect(self.model.markerActivated)
+        self.pushCancelEdit.clicked.connect(lambda:  self.setState(FrameState.View))
+        self.treeViewMarker.selectionModel().selectionChanged.connect(lambda sel, deSel: self.toolEdit.setEnabled(len(self.treeViewMarker.selectionModel().selectedRows()) == 1))
+        self.treeViewMarker.selectionModel().selectionChanged.connect(lambda sel, deSel: self.toolDelete.setEnabled(len(self.treeViewMarker.selectionModel().selectedRows()) > 0))
+
         self.model.mainSeriesChanged.connect(lambda: self._changeStateAllMarkers(False))
         pass
 
     def _resizeHeader(self, header:QHeaderView):
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-
-    def _onActivate(self, value:bool):
-        currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
-        colIndex = currentSelection.model().headerModelIndex('active')
-        for selected in currentSelection.selectedRows(colIndex):
-            marker:MarkerDto = selected.internalPointer()
-            if value: marker.indexes = self._calculateIndexes(marker)
-            self.markerActivated.emit(marker, value)
-            self.markerTreeModel.setData(selected, value, Qt.ItemDataRole.EditRole)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
 
     def _onDelete(self):
         currentSelection:QItemSelectionModel = self.treeViewMarker.selectionModel()
-
         item = currentSelection.currentIndex().internalPointer()
+        countSelected = len([selIndex.row() for selIndex in currentSelection.selectedIndexes() if selIndex.column() == 0][:])
         confirmation = QMessageBox.question(
-            None, 'Delete', f'Are you sure you want to delete marker: "{item.name}"?',
+            None, 'Delete', f'Are you sure you want to delete {item.name if countSelected == 1 else countSelected} marker(s)?',
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No
         )
         if confirmation == QMessageBox.StandardButton.No: return
 
-        selectionModel = currentSelection.model()
+        selectionModel = self.markerTreeModel
 
-        for indexToDelete in currentSelection.selectedRows(0):
+        for indexToDelete in reversed(currentSelection.selectedRows(0)):
             parentIndex = selectionModel.parent(indexToDelete)
             selectionModel.removeRow(indexToDelete.row(), parentIndex)
-            self.markerActivated.emit(indexToDelete.internalPointer(), False)
+            # self.markerActivated.emit(indexToDelete.internalPointer(), False)
 
-    def _onSelectionChanged(self, newIndex: QModelIndex, oldIndex: QModelIndex):
-        item = newIndex.internalPointer()
+    def _editMarker(self):
+        index = self.treeViewMarker.selectionModel().currentIndex()
+        item:MarkerDto = index.internalPointer()
+        for tabIndex in range(self.tabWidget.count()):
+            if self.tabWidget.widget(tabIndex).property('markerCategory') == item.category.name:
+                self.tabWidget.setCurrentIndex(tabIndex)
+                break
 
-        self.toolActivate.blockSignals(True)
-        self.toolDelete.blockSignals(True)
+        self.editMarkerName.setText(item.name)
+        if item.category == MarkerCategory.Custom:
+            self.editCustomColExpression.setText(item.expression)
 
-        self.toolDelete.setEnabled(isinstance(item, MarkerDto))
-        self.toolActivate.setEnabled(isinstance(item, MarkerDto))
+        elif item.category == MarkerCategory.Stationary:
+            found = re.search(r'\b(\d+\.\d+)?$', item.expression)
+            self.spinBoxStatTolerance.setValue(float(found.group(0)) if found else float(0))
 
-        self.toolActivate.setChecked(isinstance(item, MarkerDto) and item.active == True)
-        if isinstance(item, MarkerDto):
-            self.toolActivate.setText('Clear' if item.active else 'Apply')
+        self.pushAdd.setText('Save')
+        self.state = FrameState.Edit
 
-        self.toolActivate.blockSignals(False)
-        self.toolDelete.blockSignals(False)
-        pass
-
-    def _onAddMarker(self):
+    def _onAddSaveMarker(self):
         name:str = self.editMarkerName.text()
         markerCategory = MarkerCategory.fromString(self.tabWidget.currentWidget().property('markerCategory'))
-        if not self._isValidMarkerName(name):
-            self.statusMessage.emit(StatusMessage.error('Marker name must be unique!'))
-            return
-
-        if name is None or len(name.strip()) <= 0:
-            self.statusMessage.emit(StatusMessage.error('Marker name is mandatory!'))
-            return
 
         if markerCategory == MarkerCategory.Custom:
-            expression = self._buildMarkerBaseOnDto(TrackDataDTO)
+            expression = self.editCustomColExpression.text()
         else:
             expression = f'distanceDifference >= 0 and distanceDifference <= {self.spinBoxStatTolerance.value()}'
 
-        if expression is None or len(expression.strip()) <= 0:
-            self.statusMessage.emit(StatusMessage.error('Nothing to save there is no expression!'))
-            return
+        marker = MarkerDto.initFrom(name, markerCategory, expression)
 
-        marker = MarkerDto.initFrom(markerCategory, expression)
-        marker.name = self.editMarkerName.text()
-        marker.indexes = self._calculateIndexes(marker)
-        self.markerTreeModel.addRow(marker)
+        if self.state == FrameState.View:
+            if not self._isValid(marker): return
+
+            try:
+                marker.indexes = self._calculateIndexes(marker)
+            except (UndefinedVariableError, TypeError, SyntaxError, ValueError) as err:
+                self.statusMessage.emit(StatusMessage.error(f'{err.args[0]}'))
+                return
+
+            self.markerTreeModel.addMarker(marker)
+
+        elif self.state == FrameState.Edit:
+            if not self._isValid(marker): return
+
+            index = self.treeViewMarker.selectionModel().currentIndex()
+            self.markerTreeModel.setData(index, marker, Qt.ItemDataRole.UserRole)
+
+            self.state = FrameState.View
+            self.pushAdd.setText('Add')
+
+    def _isValid(self, item:MarkerDto) -> bool:
+        if item.name is None or len(item.name.strip()) <= 0:
+            self.statusMessage.emit(StatusMessage.error('Marker name is mandatory!'))
+            return False
+
+        if item.expression is None or len(item.expression.strip()) <= 0:
+            self.statusMessage.emit(StatusMessage.error('Nothing to save, there is no expression!'))
+            return False
+
+        if self.isViewMode():
+            if not self._isValidMarkerName(item.name):
+                self.statusMessage.emit(StatusMessage.error('Marker name must be unique!'))
+                return False
+
+        elif self.isEditMode():
+            index = self.treeViewMarker.selectionModel().currentIndex()
+            foundIndexes = self.markerTreeModel.match(index.parent(), Qt.ItemDataRole.DisplayRole, item.name, -1, Qt.MatchFlag.MatchRecursive | Qt.MatchFlag.MatchFixedString | Qt.MatchFlag.MatchWrap | Qt.MatchFlag.MatchCaseSensitive)
+            for ind in foundIndexes:
+                if index.internalId() == ind.internalId(): foundIndexes.remove(ind)
+
+            if len(foundIndexes) > 0:
+                self.statusMessage.emit(StatusMessage.error('Another marker with the same already exists!!'))
+                return
+
+        if item.category == MarkerCategory.Custom:
+            pass
+
+        elif item.category == MarkerCategory.Stationary:
+            tolerance = self.spinBoxStatTolerance.value()
+            if not tolerance or tolerance is None:
+                self.statusMessage.emit(StatusMessage.error('Marker name must be unique!'))
+                return False
+            pass
+        return True
 
     def _isValidMarkerName(self, name:str):
         for item, _ in self.markerTreeModel.iterateAll():
@@ -145,27 +194,76 @@ class MarkingDockWidget(AbstractModelWidget, AbstractWidgetMaximizeable, marking
                 return False
         return True
 
-    def _buildMarkerBaseOnDto(self, type: type) -> MarkerDto:
-        fields = [item for item in vars(self) if item.startswith('editAttr')][:]
-        fieldExpressions = []
-        for item in Util.iterateClassPublicAttributes(type, lambda it: it[0] != '_' and f'editAttr{it[0].upper() + it[1:]}' in fields) :
-            value = eval(f'self.editAttr{item[0].upper() + item[1:]}.text()').strip()
-
-            if value != '':
-                fieldExpressions.append(Util.buildAttributeExpression(item, value))
-        return '|'.join(fieldExpressions)
-
-    def _calculateIndexes(self, marker: MarkerDto):
+    def _calculateIndexes(self, marker: MarkerDto, saveIndex:bool = False):
         proc:AbstractMarkerProcessor = MarkerProcessorFactory.buildProcessor(marker, self.model.allTrackPoints)
-        return proc.getIndexes()
+        indexes = proc.getIndexes()
+        if saveIndex:
+            marker.indexes = indexes
+        return indexes
+
+    def testItsem(self, item):
+        from dto import MarkerDto
+        item: MarkerDto
+
+        m = pd.DataFrame({'Color': [item.color], 'Indexes': [item.indexes], 'Id': [item.id]})
+        self.r = pd.concat([self.r ,m])
+        print(self.r)
+        # selectedColor = self.r[self.r['Indexes'].apply(lambda x: 3 in x)]
+        # selectedColor['Color'].iloc[-1]
+        pass
+
+    def testRIstem(self, item):
+        from dto import MarkerDto
+        item: MarkerDto
+
+        self.r = self.r[self.r['Id'] != item.id]
+        print(self.r)
+        # selectedColor = self.r[self.r['Indexes'].apply(lambda x: 3 in x)]
+        # selectedColor['Color'].iloc[-1]
+        pass
 
     def _changeStateAllMarkers(self, value: bool):
+        self.r = pd.DataFrame([], columns=['Color','Indexes','Id'])
+        log.debug(f'{"Check" if value else "Uncheck"} all markers!')
         self.markerTreeModel.beginResetModel()
+        items = []
         for item, _ in self.markerTreeModel.iterateAll():
             item:MarkerDto
             item.active = value
             if value:
-                item.indexes = self._calculateIndexes(item)
-            self.markerActivated.emit(item, value)
-            pass
+                self._calculateIndexes(item, True)
+                self.model.addMarker(item)
+                items.append(item)
+            else:
+                item.indexes = []
+                self.model.removeMarker(item)
+
         self.markerTreeModel.endResetModel()
+        # Util.test(items)
+
+    # dataChanged (index, index, roles)
+    def _applyChangeMarker(self, indexFrom: QModelIndex, indexTo: QModelIndex, role: list[Qt.ItemDataRole], action: RecordAction = RecordAction.Changed):
+        item:MarkerDto = indexFrom.internalPointer()
+        if Qt.ItemDataRole.CheckStateRole in role: #activate or deactivate
+            if item.active: #add
+                self._calculateIndexes(item, True)
+                self.model.addMarker(item)
+            else: # remove
+                self.model.removeMarker(item)
+
+        elif item.active and len(list(set(role) & set((Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole)))) > 0: #change color, expression or name
+            self._calculateIndexes(item, True)
+            self.model.changeMarker(item)
+            pass
+
+    # insert/delete row (parentIndex, poz, poz)
+    def _applyAddRemoveMarker(self, pIndex: QModelIndex, pFrom: int, pTo: int, action: RecordAction):
+        pItem:MarkerGroupDto = pIndex.internalPointer()
+        item:MarkerDto = pItem.markers[pFrom]
+
+        if item.active and action == RecordAction.Add: # add
+            self._calculateIndexes(item, True)
+            self.model.addMarker(item)
+        elif item.active and action == RecordAction.Remove: # remove
+            self.model.removeMarker(item)
+        pass

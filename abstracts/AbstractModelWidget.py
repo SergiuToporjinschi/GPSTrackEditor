@@ -60,7 +60,7 @@ class AbstractModelWidget(AbstractNotificationWidget):
     def _setupUi(self):
         pass
 
-class AbstractWidgetMaximizeable(QDockWidget):
+class AbstractWidgetMaximizable(QDockWidget):
 
     def contextMenuEvent(self, event: QContextMenuEvent):
         context_menu = QMenu(self)

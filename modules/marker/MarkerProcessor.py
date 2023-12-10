@@ -1,6 +1,5 @@
-from dto import MarkerDto, TrackDataDTO, MarkerCategory
+from dto import MarkerDto, MarkerCategory
 import pandas as pd
-import UtilFunctions as Util
 
 
 class AbstractMarkerProcessor:
@@ -12,8 +11,10 @@ class AbstractMarkerProcessor:
     def getIndexes(self):
         pass
 
-class CustomMarkerProcessor(AbstractMarkerProcessor):
+    def testExpression(self) -> bool:
+        pass
 
+class CustomMarkerProcessor(AbstractMarkerProcessor):
     def getIndexes(self):
         filtered_dfs = self.df.query(self.marker.expression)
         return filtered_dfs.index.tolist()

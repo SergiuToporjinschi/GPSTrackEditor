@@ -11,6 +11,7 @@ from dto import TrackDataDTO, MarkerDto, CalcColumnDto
 from StatusMessage import StatusMessage
 from TrimmerInterval import TrimmerInterval
 
+log = Util.initLogging()
 
 class TrackPointsModel(QAbstractTableModel):
     mainSeriesChanged = Signal()           # when the entire track changed, track without any filters or markers
@@ -24,7 +25,8 @@ class TrackPointsModel(QAbstractTableModel):
     updateSelection = Signal(int)
     updateTrackPoints = Signal(int)
 
-    markers: list[MarkerDto] = []
+    markers = pd.DataFrame([], columns=['Color','Indexes', 'ID'])
+    # markers: list[MarkerDto] = []
     trimmerInterval = TrimmerInterval(0, 0)
     allTrackPoints:pd.DataFrame = None
     calculatedColumns: list[CalcColumnDto] = []
@@ -79,13 +81,25 @@ class TrackPointsModel(QAbstractTableModel):
         elif role == Qt.ItemDataRole.DisplayRole:
             return self.allTrackPoints.iat[trimmedRow, trimmedCol]
 
-        elif role == Qt.ItemDataRole.BackgroundRole and len(self.markers) > 0:
-            selectedColor = None
-            for marker in self.markers:
-                if marker.indexes is not None and trimmedRow in marker.indexes:
-                    selectedColor = marker.color
-            if selectedColor is not None: return QBrush(selectedColor)
+        elif role == Qt.ItemDataRole.BackgroundRole:
+            lastColor = self.markers[self.markers['Indexes'].apply(lambda x: trimmedRow in x)]
+            if not lastColor.empty:
+                selectedColor = lastColor['Color'].iloc[-1]
+                if selectedColor is not None: return selectedColor
 
+
+            # log.debug('Refreshing ...')
+            # selectedColor = None
+            # m = pd.DataFrame([(obj.indexes, obj.color) for obj in self.markers][:], columns=['indexes', 'Color'])
+            # selectedColor = m[m['indexes'].apply(lambda x: trimmedRow in x)]
+            # # if color
+            # # r = m.query('@trimmedRow in indexes')
+            # # for marker in self.markers:
+            # #     if marker.indexes is not None and trimmedRow in marker.indexes:
+            # #         selectedColor = marker.color
+            # print(selectedColor['Color':0])
+            # if selectedColor is not None and not selectedColor.empty: return QBrush(selectedColor.tail(1).iat[0,1])
+            return None
         elif role == Qt.ItemDataRole.ForegroundRole:
             color:QBrush = self.data(index, Qt.ItemDataRole.BackgroundRole)
             if color is None: return
@@ -147,18 +161,45 @@ class TrackPointsModel(QAbstractTableModel):
         self.trimRangeChanged.emit(len(self.trimmerInterval)) # TODO add the number of rows
         self.endResetModel()
 
-    def markerActivated(self, marker: MarkerDto, active: bool):
-        foundIndex = self.markers.index(marker) if marker in self.markers else None
+    def addMarker(self, item: MarkerDto):
+        # log.info(f"Add marker: {item}")
+        if self.rowCount() <= 0: return
 
-        if active and foundIndex is None:
-            self.beginResetModel()
-            self.markers.append(marker)
-            self.endResetModel()
+        self.markers = pd.concat([self.markers, pd.DataFrame({'Color': [QBrush(item.color)], 'Indexes': [item.indexes], 'ID': [item.id]})])
+        # self.markers.append(item) print(self.markers)
 
-        elif not active and foundIndex is not None:
-            self.beginResetModel()
-            del self.markers[foundIndex]
-            self.endResetModel()
+        firstIndex = self.index(0,0, QModelIndex())
+        lastIndex = self.index(self.rowCount() - 1, self.columnCount() - 1, QModelIndex())
+        self.dataChanged.emit(firstIndex, lastIndex, [Qt.ItemDataRole.BackgroundRole])
+        pass
+
+    def removeMarker(self, item: MarkerDto):
+        # log.info(f"Remove marker: {item}")
+        if self.rowCount() <= 0: return
+
+        # for index, marker in enumerate(self.markers):
+        #     if marker.id == item.id:
+        self.markers = self.markers[self.markers['ID'] != item.id]
+
+        firstIndex = self.index(0,0, QModelIndex())
+        lastIndex = self.index(self.rowCount() - 1, self.columnCount() - 1, QModelIndex())
+        self.dataChanged.emit(firstIndex, lastIndex, [Qt.ItemDataRole.BackgroundRole])
+        pass
+
+    def changeMarker(self, item: MarkerDto):
+        # log.info(f"Change marker: {item}")
+        if self.rowCount() <= 0: return
+
+        # for index, marker in enumerate(self.markers):
+        #     if marker.id == item.id:
+        #         self.markers[index] = item
+        self.markers = self.markers[self.markers['ID'] != item.id]
+        self.markers = pd.concat([self.markers, pd.DataFrame({'Color': [item.color], 'Indexes': [item.indexes], 'ID': [item.id]})])
+
+        firstIndex = self.index(0,0, QModelIndex())
+        lastIndex = self.index(self.rowCount() - 1, self.columnCount() - 1, QModelIndex())
+        self.dataChanged.emit(firstIndex, lastIndex, [Qt.ItemDataRole.BackgroundRole])
+        pass
 
     def _removeNan(self, df:pd.DataFrame) -> pd.DataFrame:
         for key in ['distance', 'longitude', 'latitude', 'altitude', 'hartRate', 'speed']:
@@ -185,7 +226,6 @@ class TrackPointsModel(QAbstractTableModel):
         for attribute in addColList:
             found = list(filter(lambda obj: f'calc_{obj.name}' == attribute, self.calculatedColumns))[0]
             self.allTrackPoints = self.getCalcColumnExpression(found)
-            # self.allTrackPoints = eval(f'self.allTrackPoints.assign(calc_{found.name}=lambda row: {found.expression})')
             pass
 
         for attribute in updateColList:

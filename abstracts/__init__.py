@@ -1,3 +1,8 @@
-from .AbstractModelWidget import AbstractModelWidget, AbstractNotificationWidget, AbstractWidgetMaximizeable, FrameState
+from .AbstractModelWidget import AbstractModelWidget, AbstractNotificationWidget, AbstractWidgetMaximizable, FrameState
 
-__all__ = ["AbstractModelWidget", "AbstractNotificationWidget", "AbstractWidgetMaximizeable", "FrameState"]
+__all__ = [
+    "AbstractModelWidget",
+    "AbstractNotificationWidget",
+    "AbstractWidgetMaximizable",
+    "FrameState"
+]

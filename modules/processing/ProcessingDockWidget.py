@@ -70,7 +70,7 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
         # Add column
         if self.isViewMode():
             item = CalcColumnDto(title, exp, True)
-            if not self._validColumn(item): return
+            if not self._isValidColumn(item): return
 
             self.modelCol.addCalcColumn(item)
 
@@ -81,14 +81,14 @@ class ProcessingDockWidget(AbstractModelWidget, QDockWidget, processingDock):
             item:CalcColumnDto = self.modelCol.data(index, Qt.ItemDataRole.UserRole)
             newItem = CalcColumnDto(title, exp, item.active)
 
-            if not self._validColumn(newItem): return
+            if not self._isValidColumn(newItem): return
 
             self.modelCol.setData(index, newItem, Qt.ItemDataRole.UserRole)
 
             self.state = FrameState.View
         pass
 
-    def _validColumn(self, item: CalcColumnDto):
+    def _isValidColumn(self, item: CalcColumnDto):
         if not len(item.expression.strip()) > 0 or not len(item.name.strip()) > 0:
             self.statusMessage.emit(StatusMessage.error('Name and expression are mandatory!'))
             return False

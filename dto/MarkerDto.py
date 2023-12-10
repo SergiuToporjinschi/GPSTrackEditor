@@ -1,5 +1,6 @@
 import typing
 import enum
+import uuid
 import UtilFunctions as Util
 from PySide6.QtGui import QColor
 
@@ -16,6 +17,7 @@ class MarkerCategory(enum.Enum):
 
 
 class MarkerDto:
+    id: str
     name: str = None
     category: MarkerCategory = None
     indexes: list[int] = None
@@ -24,8 +26,8 @@ class MarkerDto:
     active: bool = None
 
     @classmethod
-    def initFrom(cls, category: MarkerCategory, expression:str):
-        return cls(None, category, None, Util.generateRandomColor(), expression)
+    def initFrom(cls, name:str, category: MarkerCategory, expression:str):
+        return cls(name, category, None, Util.generateRandomColor(), expression)
 
     def __init__(self, name: str = None, category:MarkerCategory=None, indexes:list[int]= None, color:QColor = Util.generateRandomColor(), expression: typing.Optional[str] = None, active: bool = None) -> None:
         self.name: str = name
@@ -34,6 +36,7 @@ class MarkerDto:
         self.color: str = color
         self.active: bool = active
         self.expression: str = expression
+        self.id = str(uuid.uuid1())
         pass
 
     @property
@@ -51,3 +54,9 @@ class MarkerDto:
         state['active'] = False
         if 'indexes' in state: del state['indexes']
         return state
+
+    def __str__(self) -> str:
+        rep = vars(self).copy()
+        rep['indexes'] = len(self.indexes)
+        rep['category'] = self.category.name
+        return str(rep)

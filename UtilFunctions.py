@@ -1,4 +1,6 @@
 import re
+import pandas as pd
+import logging
 import random
 from typing import Callable
 from PySide6.QtGui import QColor
@@ -83,3 +85,63 @@ def beautifyExpression(value:str) -> str:
     v = re.sub(r'([+/\-*])', r' \1 ', v)
     v = re.sub(r'([,])', r'\1 ', v)
     return re.sub(r'[\s]+', ' ', v)
+
+class SingletonLogging:
+    _instance = None
+    _log = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._log = cls.initialize()
+        return cls._instance
+
+    @classmethod
+    def initialize(cls):
+        # Create a logger
+        logger = logging.getLogger("GPS_trackEditor")
+        logger.setLevel(logging.DEBUG)
+
+        # Create a file handler
+        file_handler = logging.FileHandler("app.log")
+        file_handler.setLevel(logging.DEBUG)
+
+        # Create a console handler
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+
+        # Create a formatter and set it for the handlers
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s -  %(message)s')
+        file_handler.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
+
+        # Add the handlers to the logger
+        logger.addHandler(file_handler)
+        logger.addHandler(console_handler)
+        return logger
+
+def initLogging():
+    return SingletonLogging()._log
+
+
+
+
+
+
+def test(items:list):
+    from dto import MarkerDto
+    items: list[MarkerDto]
+    if len(items) <= 0: return
+
+    m = pd.DataFrame([{'Color': obj.color, 'Indexes': obj.indexes} for obj in items][:])
+    selectedColor = m[m['Indexes'].apply(lambda x: 32 in x)]
+    selectedColor['Color'].iloc[-1]
+    pass
+
+
+    # # if color
+    # # r = m.query('@trimmedRow in indexes')
+    # # for marker in self.markers:
+    # #     if marker.indexes is not None and trimmedRow in marker.indexes:
+    # #         selectedColor = marker.color
+    # print(selectedColor['Color':0])
+    # if selectedColor is not None and not selectedColor.empty: return QBrush(selectedColor.tail(1).iat[0,1])

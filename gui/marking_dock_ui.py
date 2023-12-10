@@ -40,6 +40,9 @@ class Ui_DockWidget(object):
         self.actionActivate.setObjectName(u"actionActivate")
         self.actionActivate.setCheckable(True)
         self.actionActivate.setMenuRole(QAction.ApplicationSpecificRole)
+        self.actionSelectAll = QAction(DockWidget)
+        self.actionSelectAll.setObjectName(u"actionSelectAll")
+        self.actionSelectAll.setMenuRole(QAction.NoRole)
         self.dockWidgetContents = QWidget()
         self.dockWidgetContents.setObjectName(u"dockWidgetContents")
         self.verticalLayout = QVBoxLayout(self.dockWidgetContents)
@@ -65,32 +68,41 @@ class Ui_DockWidget(object):
         self.splitter_2.setHandleWidth(10)
         self.frameTop = QFrame(self.splitter_2)
         self.frameTop.setObjectName(u"frameTop")
+        sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.frameTop.sizePolicy().hasHeightForWidth())
+        self.frameTop.setSizePolicy(sizePolicy)
         self.frameTop.setFrameShape(QFrame.NoFrame)
         self.frameTop.setFrameShadow(QFrame.Plain)
         self.frameTop.setLineWidth(0)
         self.verticalLayout_3 = QVBoxLayout(self.frameTop)
         self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.horizontalLayout = QHBoxLayout()
-        self.horizontalLayout.setObjectName(u"horizontalLayout")
+        self.horizontalLayoutAddToolbar = QHBoxLayout()
+        self.horizontalLayoutAddToolbar.setObjectName(u"horizontalLayoutAddToolbar")
         self.toolDelete = QToolButton(self.frameTop)
         self.toolDelete.setObjectName(u"toolDelete")
+        self.toolDelete.setEnabled(False)
         icon = QIcon()
         icon.addFile(u":/resources/icons/delete.png", QSize(), QIcon.Normal, QIcon.Off)
         self.toolDelete.setIcon(icon)
         self.toolDelete.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.toolDelete.setAutoRaise(True)
+        self.toolDelete.setProperty("activeOnState", 1)
 
-        self.horizontalLayout.addWidget(self.toolDelete)
+        self.horizontalLayoutAddToolbar.addWidget(self.toolDelete)
 
-        self.toolActivate = QToolButton(self.frameTop)
-        self.toolActivate.setObjectName(u"toolActivate")
-        self.toolActivate.setMinimumSize(QSize(45, 0))
+        self.toolEdit = QToolButton(self.frameTop)
+        self.toolEdit.setObjectName(u"toolEdit")
+        self.toolEdit.setEnabled(False)
         icon1 = QIcon()
-        icon1.addFile(u":/resources/icons/apply.png", QSize(), QIcon.Normal, QIcon.Off)
-        self.toolActivate.setIcon(icon1)
-        self.toolActivate.setCheckable(True)
-        self.toolActivate.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        icon1.addFile(u":/resources/icons/edit.png", QSize(), QIcon.Normal, QIcon.Off)
+        self.toolEdit.setIcon(icon1)
+        self.toolEdit.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.toolEdit.setAutoRaise(True)
+        self.toolEdit.setProperty("activeOnState", 1)
 
-        self.horizontalLayout.addWidget(self.toolActivate)
+        self.horizontalLayoutAddToolbar.addWidget(self.toolEdit)
 
         self.toolActivateAll = QToolButton(self.frameTop)
         self.toolActivateAll.setObjectName(u"toolActivateAll")
@@ -98,8 +110,10 @@ class Ui_DockWidget(object):
         icon2.addFile(u":/resources/icons/apply-all.png", QSize(), QIcon.Normal, QIcon.Off)
         self.toolActivateAll.setIcon(icon2)
         self.toolActivateAll.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.toolActivateAll.setAutoRaise(True)
+        self.toolActivateAll.setProperty("activeOnState", 1)
 
-        self.horizontalLayout.addWidget(self.toolActivateAll)
+        self.horizontalLayoutAddToolbar.addWidget(self.toolActivateAll)
 
         self.toolClearAll = QToolButton(self.frameTop)
         self.toolClearAll.setObjectName(u"toolClearAll")
@@ -107,53 +121,67 @@ class Ui_DockWidget(object):
         icon3.addFile(u":/resources/icons/clear-all.png", QSize(), QIcon.Normal, QIcon.Off)
         self.toolClearAll.setIcon(icon3)
         self.toolClearAll.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        self.toolClearAll.setAutoRaise(True)
+        self.toolClearAll.setProperty("activeOnState", 1)
 
-        self.horizontalLayout.addWidget(self.toolClearAll)
+        self.horizontalLayoutAddToolbar.addWidget(self.toolClearAll)
 
         self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        self.horizontalLayout.addItem(self.horizontalSpacer)
+        self.horizontalLayoutAddToolbar.addItem(self.horizontalSpacer)
 
 
-        self.verticalLayout_3.addLayout(self.horizontalLayout)
+        self.verticalLayout_3.addLayout(self.horizontalLayoutAddToolbar)
 
         self.treeViewMarker = QTreeView(self.frameTop)
         self.treeViewMarker.setObjectName(u"treeViewMarker")
         self.treeViewMarker.setAlternatingRowColors(True)
-        self.treeViewMarker.setSelectionMode(QAbstractItemView.ContiguousSelection)
+        self.treeViewMarker.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.treeViewMarker.setUniformRowHeights(True)
         self.treeViewMarker.setAnimated(True)
+        self.treeViewMarker.setProperty("activeOnState", 1)
 
         self.verticalLayout_3.addWidget(self.treeViewMarker)
 
         self.splitter_2.addWidget(self.frameTop)
         self.frameBottom = QFrame(self.splitter_2)
         self.frameBottom.setObjectName(u"frameBottom")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.frameBottom.sizePolicy().hasHeightForWidth())
+        self.frameBottom.setSizePolicy(sizePolicy1)
         self.frameBottom.setFrameShape(QFrame.NoFrame)
         self.frameBottom.setFrameShadow(QFrame.Plain)
         self.frameBottom.setLineWidth(0)
         self.verticalLayout_2 = QVBoxLayout(self.frameBottom)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.horizontalLayoutTemplateToolbar = QHBoxLayout()
-        self.horizontalLayoutTemplateToolbar.setObjectName(u"horizontalLayoutTemplateToolbar")
-        self.horizontalLayoutTemplateToolbar.setContentsMargins(0, -1, -1, -1)
+        self.horizontalToolbar = QHBoxLayout()
+        self.horizontalToolbar.setObjectName(u"horizontalToolbar")
         self.label_169 = QLabel(self.frameBottom)
         self.label_169.setObjectName(u"label_169")
 
-        self.horizontalLayoutTemplateToolbar.addWidget(self.label_169)
+        self.horizontalToolbar.addWidget(self.label_169)
 
         self.editMarkerName = QLineEdit(self.frameBottom)
         self.editMarkerName.setObjectName(u"editMarkerName")
 
-        self.horizontalLayoutTemplateToolbar.addWidget(self.editMarkerName)
+        self.horizontalToolbar.addWidget(self.editMarkerName)
 
         self.pushAdd = QPushButton(self.frameBottom)
         self.pushAdd.setObjectName(u"pushAdd")
 
-        self.horizontalLayoutTemplateToolbar.addWidget(self.pushAdd)
+        self.horizontalToolbar.addWidget(self.pushAdd)
+
+        self.pushCancelEdit = QPushButton(self.frameBottom)
+        self.pushCancelEdit.setObjectName(u"pushCancelEdit")
+        self.pushCancelEdit.setEnabled(False)
+        self.pushCancelEdit.setProperty("activeOnState", 2)
+
+        self.horizontalToolbar.addWidget(self.pushCancelEdit)
 
 
-        self.verticalLayout_2.addLayout(self.horizontalLayoutTemplateToolbar)
+        self.verticalLayout_2.addLayout(self.horizontalToolbar)
 
         self.tabWidget = QTabWidget(self.frameBottom)
         self.tabWidget.setObjectName(u"tabWidget")
@@ -168,100 +196,10 @@ class Ui_DockWidget(object):
 
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_167)
 
-        self.editAttrAltitude = QLineEdit(self.tabCustom)
-        self.editAttrAltitude.setObjectName(u"editAttrAltitude")
+        self.editCustomColExpression = QLineEdit(self.tabCustom)
+        self.editCustomColExpression.setObjectName(u"editCustomColExpression")
 
-        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.editAttrAltitude)
-
-        self.label_164 = QLabel(self.tabCustom)
-        self.label_164.setObjectName(u"label_164")
-
-        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_164)
-
-        self.editAttrTime = QLineEdit(self.tabCustom)
-        self.editAttrTime.setObjectName(u"editAttrTime")
-
-        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.editAttrTime)
-
-        self.label_168 = QLabel(self.tabCustom)
-        self.label_168.setObjectName(u"label_168")
-
-        self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_168)
-
-        self.editAttrHartRate = QLineEdit(self.tabCustom)
-        self.editAttrHartRate.setObjectName(u"editAttrHartRate")
-
-        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.editAttrHartRate)
-
-        self.label_162 = QLabel(self.tabCustom)
-        self.label_162.setObjectName(u"label_162")
-
-        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.label_162)
-
-        self.editAttrSensorState = QLineEdit(self.tabCustom)
-        self.editAttrSensorState.setObjectName(u"editAttrSensorState")
-
-        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.editAttrSensorState)
-
-        self.label_165 = QLabel(self.tabCustom)
-        self.label_165.setObjectName(u"label_165")
-
-        self.formLayout.setWidget(4, QFormLayout.LabelRole, self.label_165)
-
-        self.editAttrLatitude = QLineEdit(self.tabCustom)
-        self.editAttrLatitude.setObjectName(u"editAttrLatitude")
-
-        self.formLayout.setWidget(4, QFormLayout.FieldRole, self.editAttrLatitude)
-
-        self.label_166 = QLabel(self.tabCustom)
-        self.label_166.setObjectName(u"label_166")
-
-        self.formLayout.setWidget(5, QFormLayout.LabelRole, self.label_166)
-
-        self.editAttrLongitude = QLineEdit(self.tabCustom)
-        self.editAttrLongitude.setObjectName(u"editAttrLongitude")
-
-        self.formLayout.setWidget(5, QFormLayout.FieldRole, self.editAttrLongitude)
-
-        self.label_158 = QLabel(self.tabCustom)
-        self.label_158.setObjectName(u"label_158")
-
-        self.formLayout.setWidget(6, QFormLayout.LabelRole, self.label_158)
-
-        self.editAttrDistance = QLineEdit(self.tabCustom)
-        self.editAttrDistance.setObjectName(u"editAttrDistance")
-
-        self.formLayout.setWidget(6, QFormLayout.FieldRole, self.editAttrDistance)
-
-        self.label_159 = QLabel(self.tabCustom)
-        self.label_159.setObjectName(u"label_159")
-
-        self.formLayout.setWidget(7, QFormLayout.LabelRole, self.label_159)
-
-        self.editAttrCalculatedDistance = QLineEdit(self.tabCustom)
-        self.editAttrCalculatedDistance.setObjectName(u"editAttrCalculatedDistance")
-
-        self.formLayout.setWidget(7, QFormLayout.FieldRole, self.editAttrCalculatedDistance)
-
-        self.label_160 = QLabel(self.tabCustom)
-        self.label_160.setObjectName(u"label_160")
-
-        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.label_160)
-
-        self.editAttrSpeed = QLineEdit(self.tabCustom)
-        self.editAttrSpeed.setObjectName(u"editAttrSpeed")
-
-        self.formLayout.setWidget(8, QFormLayout.FieldRole, self.editAttrSpeed)
-
-        self.label_161 = QLabel(self.tabCustom)
-        self.label_161.setObjectName(u"label_161")
-
-        self.formLayout.setWidget(9, QFormLayout.LabelRole, self.label_161)
-
-        self.editAttrCalculatedSpeed = QLineEdit(self.tabCustom)
-        self.editAttrCalculatedSpeed.setObjectName(u"editAttrCalculatedSpeed")
-
-        self.formLayout.setWidget(9, QFormLayout.FieldRole, self.editAttrCalculatedSpeed)
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.editCustomColExpression)
 
         self.tabWidget.addTab(self.tabCustom, "")
         self.tabStationary = QWidget()
@@ -270,11 +208,11 @@ class Ui_DockWidget(object):
         self.formLayout_2.setObjectName(u"formLayout_2")
         self.label_163 = QLabel(self.tabStationary)
         self.label_163.setObjectName(u"label_163")
-        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.label_163.sizePolicy().hasHeightForWidth())
-        self.label_163.setSizePolicy(sizePolicy)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.label_163.sizePolicy().hasHeightForWidth())
+        self.label_163.setSizePolicy(sizePolicy2)
         self.label_163.setMinimumSize(QSize(106, 0))
 
         self.formLayout_2.setWidget(0, QFormLayout.LabelRole, self.label_163)
@@ -302,26 +240,13 @@ class Ui_DockWidget(object):
 
         DockWidget.setWidget(self.dockWidgetContents)
 #if QT_CONFIG(shortcut)
-        self.label_169.setBuddy(self.editAttrAltitude)
-        self.label_167.setBuddy(self.editAttrAltitude)
-        self.label_164.setBuddy(self.editAttrTime)
-        self.label_168.setBuddy(self.editAttrHartRate)
-        self.label_162.setBuddy(self.editAttrSensorState)
-        self.label_165.setBuddy(self.editAttrLatitude)
-        self.label_166.setBuddy(self.editAttrLongitude)
-        self.label_158.setBuddy(self.editAttrDistance)
-        self.label_159.setBuddy(self.editAttrCalculatedDistance)
-        self.label_160.setBuddy(self.editAttrSpeed)
-        self.label_161.setBuddy(self.editAttrCalculatedSpeed)
+        self.label_167.setBuddy(self.editCustomColExpression)
 #endif // QT_CONFIG(shortcut)
-        QWidget.setTabOrder(self.toolDelete, self.toolActivate)
-        QWidget.setTabOrder(self.toolActivate, self.treeViewMarker)
-        QWidget.setTabOrder(self.treeViewMarker, self.pushAdd)
-        QWidget.setTabOrder(self.pushAdd, self.tabWidget)
-        QWidget.setTabOrder(self.tabWidget, self.scrollArea_4)
-        QWidget.setTabOrder(self.scrollArea_4, self.spinBoxStatTolerance)
+        QWidget.setTabOrder(self.toolDelete, self.treeViewMarker)
+        QWidget.setTabOrder(self.treeViewMarker, self.scrollArea_4)
 
         self.retranslateUi(DockWidget)
+        self.actionSelectAll.triggered.connect(self.treeViewMarker.selectAll)
 
         self.tabWidget.setCurrentIndex(0)
 
@@ -343,14 +268,21 @@ class Ui_DockWidget(object):
 #if QT_CONFIG(tooltip)
         self.actionActivate.setToolTip(QCoreApplication.translate("DockWidget", u"Activates/deactivates current selected marker", None))
 #endif // QT_CONFIG(tooltip)
+        self.actionSelectAll.setText(QCoreApplication.translate("DockWidget", u"Select all", None))
+#if QT_CONFIG(tooltip)
+        self.actionSelectAll.setToolTip(QCoreApplication.translate("DockWidget", u"Select all records", None))
+#endif // QT_CONFIG(tooltip)
+#if QT_CONFIG(shortcut)
+        self.actionSelectAll.setShortcut(QCoreApplication.translate("DockWidget", u"Ctrl+A", None))
+#endif // QT_CONFIG(shortcut)
 #if QT_CONFIG(tooltip)
         self.toolDelete.setToolTip(QCoreApplication.translate("DockWidget", u"Delete", None))
 #endif // QT_CONFIG(tooltip)
         self.toolDelete.setText(QCoreApplication.translate("DockWidget", u"Delete", None))
 #if QT_CONFIG(tooltip)
-        self.toolActivate.setToolTip(QCoreApplication.translate("DockWidget", u"Apply", None))
+        self.toolEdit.setToolTip(QCoreApplication.translate("DockWidget", u"Edit", None))
 #endif // QT_CONFIG(tooltip)
-        self.toolActivate.setText(QCoreApplication.translate("DockWidget", u"Apply", None))
+        self.toolEdit.setText(QCoreApplication.translate("DockWidget", u"Edit", None))
 #if QT_CONFIG(tooltip)
         self.toolActivateAll.setToolTip(QCoreApplication.translate("DockWidget", u"Apply all", None))
 #endif // QT_CONFIG(tooltip)
@@ -361,18 +293,16 @@ class Ui_DockWidget(object):
         self.toolClearAll.setText(QCoreApplication.translate("DockWidget", u" Clear all", None))
         self.label_169.setText(QCoreApplication.translate("DockWidget", u"Name:", None))
         self.editMarkerName.setPlaceholderText(QCoreApplication.translate("DockWidget", u"Marker name", None))
+#if QT_CONFIG(tooltip)
+        self.pushAdd.setToolTip(QCoreApplication.translate("DockWidget", u"Add marker", None))
+#endif // QT_CONFIG(tooltip)
         self.pushAdd.setText(QCoreApplication.translate("DockWidget", u"Add", None))
+#if QT_CONFIG(shortcut)
+        self.pushAdd.setShortcut(QCoreApplication.translate("DockWidget", u"Ctrl+Return", None))
+#endif // QT_CONFIG(shortcut)
+        self.pushCancelEdit.setText(QCoreApplication.translate("DockWidget", u"Cancel", None))
         self.tabCustom.setProperty("markerCategory", QCoreApplication.translate("DockWidget", u"Custom", None))
-        self.label_167.setText(QCoreApplication.translate("DockWidget", u"Altitude:", None))
-        self.label_164.setText(QCoreApplication.translate("DockWidget", u"Time:", None))
-        self.label_168.setText(QCoreApplication.translate("DockWidget", u"Hart rate:", None))
-        self.label_162.setText(QCoreApplication.translate("DockWidget", u"Sensor state", None))
-        self.label_165.setText(QCoreApplication.translate("DockWidget", u"Latitude:", None))
-        self.label_166.setText(QCoreApplication.translate("DockWidget", u"Longitude:", None))
-        self.label_158.setText(QCoreApplication.translate("DockWidget", u"Distance:", None))
-        self.label_159.setText(QCoreApplication.translate("DockWidget", u"Calculated distance:", None))
-        self.label_160.setText(QCoreApplication.translate("DockWidget", u"Speed:", None))
-        self.label_161.setText(QCoreApplication.translate("DockWidget", u"Calculated speed:", None))
+        self.label_167.setText(QCoreApplication.translate("DockWidget", u"Expression:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabCustom), QCoreApplication.translate("DockWidget", u"Custom", None))
         self.tabStationary.setProperty("markerCategory", QCoreApplication.translate("DockWidget", u"Stationary", None))
         self.label_163.setText(QCoreApplication.translate("DockWidget", u"Tolerance:", None))

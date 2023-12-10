@@ -6,18 +6,20 @@ from config import *
 from delegates import ExtRoles
 from dto import MarkerDto, MarkerGroupDto, MarkerCategory
 from .ColumnModel import ColumnModel
+import UtilFunctions as Util
 
 from PySide6.QtCore import QAbstractItemModel, QModelIndex, QObject, Qt, QPersistentModelIndex
 from PySide6.QtWidgets import QColorDialog
 from PySide6.QtGui import QBrush, QColor
+
+log = Util.initLogging()
 
 class MarkerStatusModel(QAbstractItemModel):
     _headers: list[ColumnModel] = [
         ColumnModel("Type",       False, None,         str,  'name'),
         ColumnModel("Color",      True,  QColorDialog, str,  'color'),
         ColumnModel("Expression", False, None,         str,  'expression'),
-        ColumnModel("No.",        False, None,         int,  'countIndexes'),
-        ColumnModel("Active",     True,  None,         bool, 'active')
+        ColumnModel("No.",        False, None,         int,  'countIndexes')
     ]
 
     _markerData:list[MarkerGroupDto]
@@ -43,18 +45,14 @@ class MarkerStatusModel(QAbstractItemModel):
         item = index.internalPointer()
         colModel = self._headers[index.column()]
 
-        if role == ExtRoles.Item:
-            return item
-
-        elif role == ExtRoles.ColModel:
+        if role == ExtRoles.ColModel:
             return colModel
 
         elif role in (Qt.ItemDataRole.EditRole, Qt.ItemDataRole.DisplayRole):
             result = self._dataByEditDisplayRole(item, colModel, index)
-            self._saveMarkers()
             return result
 
-        elif role == Qt.ItemDataRole.CheckStateRole:
+        elif role == Qt.ItemDataRole.CheckStateRole and index.column() == 0:
             return self._dataByCheckStateRole(item, colModel, index)
 
         elif role == Qt.ItemDataRole.TextAlignmentRole:
@@ -65,77 +63,112 @@ class MarkerStatusModel(QAbstractItemModel):
 
         elif role == Qt.ItemDataRole.BackgroundRole:
             return self._dataByBackgroundRole(item, colModel, index)
+
+        elif role == Qt.ItemDataRole.UserRole:
+            return index.internalPointer()
+
         return None
 
-    def setData(self, index: QModelIndex | QPersistentModelIndex, value: Any, role: int = ...) -> bool:
-        if role == Qt.ItemDataRole.EditRole and Qt.ItemFlag.ItemIsEditable in self.flags(index):
+    def setData(self, index: Union[QModelIndex, QPersistentModelIndex], value: Any, role: int = ...) -> bool:
+        if role == Qt.ItemDataRole.UserRole:
+            originalItem:MarkerDto = index.internalPointer()
+            if not isinstance(value, MarkerDto): raise RuntimeError(f'Cannot assign {value} to marker category!')
+            if not isinstance(originalItem, MarkerDto): raise RuntimeError(f'Original item {originalItem} type not equal with edited item type {value}!')
+            if not value.category == originalItem.category: raise RuntimeError(f'Original item category "{originalItem.category}" has changed {value.category}!')
+            originalItem.name = value.name
+            originalItem.expression = value.expression
+            originalItem.indexes = None # reset index
+            self.dataChanged.emit(index, index, [Qt.ItemDataRole.UserRole, Qt.ItemDataRole.EditRole, Qt.ItemDataRole.DisplayRole])
+            self._saveMarkers()
+            return True
+
+        elif role == Qt.ItemDataRole.EditRole:
             item:MarkerDto = index.internalPointer()
             headerModel = self._headers[index.column()]
-
             if headerModel.dtoAttributeName is None: return False
 
             setattr(item, headerModel.dtoAttributeName, value)
 
-            self.dataChanged.emit(index, index, [
-                Qt.ItemDataRole.EditRole,
-                Qt.ItemDataRole.DisplayRole,
-                Qt.ItemDataRole.CheckStateRole,
-                Qt.ItemDataRole.BackgroundRole
-                ])
+            self.dataChanged.emit(index, index, [Qt.ItemDataRole.DisplayRole, Qt.ItemDataRole.BackgroundRole, Qt.ItemDataRole.EditRole])
+            self._saveMarkers()
             return True
+
+        elif role == Qt.ItemDataRole.CheckStateRole:
+            item:MarkerDto = index.internalPointer()
+            if isinstance(item, MarkerDto):
+                oldValue = item.active
+                item.active = value == Qt.CheckState.Checked.value
+                if oldValue != item.active:
+                    self.dataChanged.emit(index, index, [Qt.ItemDataRole.CheckStateRole])
+                return True
+
         return False
 
-    def index(self, row: int, column: int, parent: QModelIndex | QPersistentModelIndex = ...) -> QModelIndex:
-        if parent.isValid() and parent.column() != 0:
+    def addMarker(self, item:MarkerDto):
+        foundCateg = [markerGroup for markerGroup in self._markerData if markerGroup.category == item.category][:]
+        if len(foundCateg) <= 0:
+            raise RuntimeError(f'Cannot find category for item {item}')
+
+        parentItem:MarkerGroupDto = foundCateg[0]
+        parentIndex = self.index(self._markerData.index(parentItem), 0, QModelIndex())
+        parentMarkerCnt = len(parentItem.markers)
+
+        self.beginInsertRows(parentIndex, parentMarkerCnt, parentMarkerCnt)
+        parentItem.markers.append(item)
+        self.endInsertRows()
+        self._saveMarkers()
+        pass
+
+    def removeRow(self, row: int, parent: QModelIndex | QPersistentModelIndex = ...) -> bool:
+        if not parent.isValid(): return False
+        group:MarkerGroupDto = parent.internalPointer()
+
+        self.beginRemoveRows(parent, row, row)
+        del group.markers[row]
+        self.endRemoveRows()
+
+        self._saveMarkers()
+        return True
+
+    def flags(self, index: QModelIndex | QPersistentModelIndex) -> Qt.ItemFlag:
+        flags = super(MarkerStatusModel, self).flags(index)
+
+        if self._headers[index.column()].editable:
+            return Qt.ItemFlag.ItemIsEditable | flags
+
+        if index.column() == 0: flags |= Qt.ItemFlag.ItemIsUserCheckable
+
+        return flags
+
+    def index(self, row: int, column: int, parent: QModelIndex | QPersistentModelIndex = ...) -> QModelIndex: #returns index of row/col from a given parent
+        if parent == QModelIndex(): # parent is root -> get markerGroups
+            item = self._markerData[row]
+            return self.createIndex(row, column, item)
+
+        parentItem = parent.internalPointer()
+
+        if isinstance(parentItem, MarkerGroupDto):
+            parentItem:MarkerGroupDto
+            item = parentItem.markers[row]
+            return self.createIndex(row, column, item)
+
+        raise RuntimeError('Should not reach this line, index()')
+
+
+    def parent(self, childIndex: QModelIndex) -> QModelIndex: #returns parent of a given index
+        if not childIndex.isValid(): return QModelIndex()
+
+        if isinstance(childIndex.internalPointer(), MarkerGroupDto):
             return QModelIndex()
-        if not self.hasIndex(row, column, parent): return QModelIndex()
 
-        if not parent.isValid(): #is root
-            parentItem = self._markerData
-        else:
-            parentItem = parent.internalPointer()
+        if isinstance(childIndex.internalPointer(), MarkerDto):
+            markerItem:MarkerDto = childIndex.internalPointer()
+            for i, groupItem in enumerate(self._markerData):
+                groupItem:MarkerGroupDto
+                if groupItem.category == markerItem.category:
+                    return self.createIndex(i, 0, groupItem)
 
-        if parentItem == self._markerData:
-            children = parentItem[row]
-        elif isinstance(parentItem, MarkerGroupDto):
-            children = parentItem.markers[row]
-        elif isinstance(parentItem, MarkerDto):
-            children = None
-
-        if children:
-            return self.createIndex(row, column, children)
-        else:
-            return QModelIndex()
-
-    def parent(self, childIndex: QModelIndex) -> QModelIndex:
-        if not childIndex.isValid():
-            return QModelIndex()
-
-        childItem = childIndex.internalPointer()
-
-        parent = None
-
-        if childItem is None:
-            parent = None
-        elif isinstance(childItem, MarkerGroupDto):
-            parent = self._markerData
-        elif isinstance(childItem, MarkerDto):
-            for i in self._markerData:
-                if i.category == childItem.category:
-                    parent = i
-                    break
-
-        if parent is None:
-            return QModelIndex()
-        elif parent == self._markerData:
-            poz = self._markerData.index(childItem)
-            return self.createIndex(poz, 0, parent)
-        elif isinstance(parent, MarkerGroupDto):
-            for index, item in enumerate(self._markerData):
-                if item.category == childItem.category:
-                    return self.createIndex(index, 0, parent)
-        elif isinstance(parent, MarkerDto):
-            return QModelIndex()
+        raise RuntimeError('Should not reach this line, parent()')
 
     def rowCount(self, parent: QModelIndex | QPersistentModelIndex = ...) -> int:
         if parent.column() > 0:
@@ -163,44 +196,9 @@ class MarkerStatusModel(QAbstractItemModel):
             headerTitles = [item.title for item in self._headers][:]
             return headerTitles[section]
 
-    def removeRow(self, row: int, parent: QModelIndex | QPersistentModelIndex = ...) -> bool:
-        if not parent.isValid(): return False
-        self.beginRemoveRows(parent, row, 1)
-
-        group:MarkerGroupDto = parent.internalPointer()
-        del group.markers[row]
-
-        self.endRemoveRows()
-        self._saveMarkers()
-        return True
-
-    def addRow(self, item: MarkerDto) -> bool:
-        parentIndex = None
-        grp:MarkerGroupDto = None
-        # Find parent
-        for row in range(self.rowCount(QModelIndex())):
-            index = self.index(row, 0, QModelIndex())
-            grp = self.data(index, ExtRoles.Item)
-            if grp.category == item.category:
-                parentIndex  = index
-                break
-
-        # Add marker
-        if parentIndex is not None and grp is not None:
-            self.beginInsertRows(parentIndex, len(grp.markers), 1)
-            grp.markers.append(item)
-            self.endInsertRows()
-            self._saveMarkers()
-        return True
 
     def columnCount(self, parent: QModelIndex | QPersistentModelIndex = ...) -> int:
         return len(self._headers)
-
-    def flags(self, index: QModelIndex | QPersistentModelIndex) -> Qt.ItemFlag:
-        flags = super(MarkerStatusModel, self).flags(index)
-        if self._headers[index.column()].editable:
-            return Qt.ItemFlag.ItemIsEditable | flags
-        return flags
 
     def _dataByEditDisplayRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if isinstance(item, MarkerGroupDto):
@@ -217,9 +215,8 @@ class MarkerStatusModel(QAbstractItemModel):
         else: return None
 
     def _dataByCheckStateRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
-        if isinstance(item, MarkerDto) and colModel.dtoAttributeType == bool:
-            value = getattr(item, colModel.dtoAttributeName)
-            return Qt.CheckState.Checked if value else Qt.CheckState.Unchecked
+        if isinstance(item, MarkerDto):
+            return Qt.CheckState.Checked if item.active else Qt.CheckState.Unchecked
 
     def _dataByTextAlignmentRole(self, item:Union[MarkerDto, MarkerGroupDto], colModel:ColumnModel, index:QModelIndex):
         if index.column() > 0:
@@ -236,14 +233,15 @@ class MarkerStatusModel(QAbstractItemModel):
             return QColor('white') if lum < 0.4 else QColor('black')
 
     def _saveMarkers(self):
+        log.debug("Save markers to settings")
         serialized = jsonpickle.encode(self._markerData)
         Config.setValueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, serialized)
 
     def _loadMarkers(self):
+        log.debug("Load markers from settings")
         jsonData = Config.valueG(ConfigGroup.MarkingDockWidget, ConfigAttribute.Markers, None)
 
         if jsonData is None: return [MarkerGroupDto(MarkerCategory.Custom), MarkerGroupDto(MarkerCategory.Stationary)]
-
         return jsonpickle.decode(jsonData)
 
     def iterateAll(self, filterFunction:callable = lambda item: isinstance(item, MarkerDto)) -> Union[MarkerDto, MarkerGroupDto]:
