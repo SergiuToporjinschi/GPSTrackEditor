@@ -1,6 +1,5 @@
 import pandas as pd
 import re
-
 from typing import Any
 from qtpy.QtCore import Signal
 from PySide6.QtGui import QPalette, QBrush, QColor
@@ -24,9 +23,7 @@ class TrackPointsModel(QAbstractTableModel):
 
     updateSelection = Signal(int)
     updateTrackPoints = Signal(int)
-
-    markers = pd.DataFrame([], columns=['Color','Indexes', 'ID'])
-    # markers: list[MarkerDto] = []
+    markers = pd.DataFrame([], columns=['Indexes', 'Color'])
     trimmerInterval = TrimmerInterval(0, 0)
     allTrackPoints:pd.DataFrame = None
     calculatedColumns: list[CalcColumnDto] = []
@@ -73,7 +70,12 @@ class TrackPointsModel(QAbstractTableModel):
     def data(self, index: QModelIndex, role: int = ...) -> Any:
         trimmedRow = self.trimmerInterval.index(index.row())
         trimmedCol = index.column()
-        if role == Qt.ItemDataRole.EditRole:
+        if role == Qt.ItemDataRole.BackgroundRole and index.column() == 0:
+            lastColor = self.markers[self.markers['Indexes'] == trimmedRow]
+            if not lastColor.empty:
+                return QBrush(lastColor.apply(lambda row: row[row.last_valid_index()], axis=1).values[0])
+
+        elif role == Qt.ItemDataRole.EditRole:
             val = self.allTrackPoints.iat[trimmedRow, trimmedCol]
             if val is None: val = 0
             return val
@@ -81,28 +83,13 @@ class TrackPointsModel(QAbstractTableModel):
         elif role == Qt.ItemDataRole.DisplayRole:
             return self.allTrackPoints.iat[trimmedRow, trimmedCol]
 
-        elif role == Qt.ItemDataRole.BackgroundRole:
-            lastColor = self.markers[self.markers['Indexes'].apply(lambda x: trimmedRow in x)]
-            if not lastColor.empty:
-                selectedColor = lastColor['Color'].iloc[-1]
-                if selectedColor is not None: return QBrush(selectedColor)
-            # log.debug('Refreshing ...')
-            # selectedColor = None
-            # m = pd.DataFrame([(obj.indexes, obj.color) for obj in self.markers][:], columns=['indexes', 'Color'])
-            # selectedColor = m[m['indexes'].apply(lambda x: trimmedRow in x)]
-            # # if color
-            # # r = m.query('@trimmedRow in indexes')
-            # # for marker in self.markers:
-            # #     if marker.indexes is not None and trimmedRow in marker.indexes:
-            # #         selectedColor = marker.color
-            # print(selectedColor['Color':0])
-            # if selectedColor is not None and not selectedColor.empty: return QBrush(selectedColor.tail(1).iat[0,1])
-            return None
         elif role == Qt.ItemDataRole.ForegroundRole:
             color:QBrush = self.data(index, Qt.ItemDataRole.BackgroundRole)
             if color is None: return
             lum = color.color().lightnessF()
             return QColor('white') if lum < 0.4 else QColor('black')
+
+        return None
 
     def index(self, row: int, column: int, parent: QModelIndex = ...) -> QModelIndex:
         return self.createIndex(row, column, self.allTrackPoints.iat[row, column])
@@ -161,43 +148,56 @@ class TrackPointsModel(QAbstractTableModel):
 
     def addMarker(self, item: MarkerDto):
         log.info(f"Add marker: {item}")
-        if self.rowCount() <= 0: return
+        if self.rowCount() <= 0 or item.indexes == None or len(item.indexes) <= 0: return
 
-        self.markers = pd.concat([self.markers, pd.DataFrame({'Color': [item.color], 'Indexes': [item.indexes], 'ID': [item.id]})])
-        # self.markers.append(item) print(self.markers)
+        if self.markers.empty:
+            self.markers = pd.DataFrame({'Indexes': [index for index in item.indexes], item.id: item.color})
+        else:
+            newDf = pd.DataFrame({'Indexes': [index for index in item.indexes], item.id: item.color})
+            self.markers = pd.merge(self.markers, newDf, on='Indexes', how='outer', sort=True)
 
-        firstIndex = self.index(0,0, QModelIndex())
-        lastIndex = self.index(self.rowCount() - 1, self.columnCount() - 1, QModelIndex())
-        self.dataChanged.emit(firstIndex, lastIndex, [Qt.ItemDataRole.BackgroundRole])
+        self.markers['Color'] = self.markers.apply(lambda row: row[row.last_valid_index()], axis=1)
+        self.markers.sort_values(by=['Indexes'])
+
+        self._refreshAll()
         pass
 
     def removeMarker(self, item: MarkerDto):
         log.info(f"Remove marker: {item}")
-        if self.rowCount() <= 0: return
+        if self.rowCount() <= 0 or self.markers.empty: return
 
-        # for index, marker in enumerate(self.markers):
-        #     if marker.id == item.id:
-        self.markers = self.markers[self.markers['ID'] != item.id]
+        self.markers.drop(columns=item.id, inplace=True) # drop marker column
+        self.markers.dropna(subset=self.markers.columns[(self.markers.columns != 'Indexes') & (self.markers.columns != 'Color')], how='all', axis=0, inplace=True) # drop indexes which does not have any marker
 
-        firstIndex = self.index(0,0, QModelIndex())
-        lastIndex = self.index(self.rowCount() - 1, self.columnCount() - 1, QModelIndex())
-        self.dataChanged.emit(firstIndex, lastIndex, [Qt.ItemDataRole.BackgroundRole])
+        if not self.markers.empty:
+            self.markers['Color'] = self.markers.apply(lambda row: row[row.last_valid_index()], axis=1)
+            self.markers.sort_values(by=['Indexes'])
+
+        self._refreshAll()
         pass
 
     def changeMarker(self, item: MarkerDto):
         log.info(f"Change marker: {item}")
-        if self.rowCount() <= 0: return
+        if self.rowCount() <= 0 or self.markers.empty or item.indexes == None or len(item.indexes) <= 0: return
 
-        # for index, marker in enumerate(self.markers):
-        #     if marker.id == item.id:
-        #         self.markers[index] = item
-        self.markers = self.markers[self.markers['ID'] != item.id]
-        self.markers = pd.concat([self.markers, pd.DataFrame({'Color': [item.color], 'Indexes': [item.indexes], 'ID': [item.id]})])
+        # drop changed column
+        self.markers.drop(columns=item.id, inplace=True) # drop marker column
+        self.markers.dropna(subset=self.markers.columns[(self.markers.columns != 'Indexes') & (self.markers.columns != 'Color')], how='all', axis=0, inplace=True) # drop indexes which does not have any marker
 
+        # add changed column as a new
+        newDf = pd.DataFrame({'Indexes': [index for index in item.indexes], item.id: item.color})
+        self.markers = pd.merge(self.markers, newDf, on='Indexes', how='outer', sort=True)
+
+        self.markers['Color'] = self.markers.apply(lambda row: row[row.last_valid_index()], axis=1)
+        self.markers.sort_values(by=['Indexes'])
+
+        self._refreshAll()
+        pass
+
+    def _refreshAll(self):
         firstIndex = self.index(0,0, QModelIndex())
         lastIndex = self.index(self.rowCount() - 1, self.columnCount() - 1, QModelIndex())
         self.dataChanged.emit(firstIndex, lastIndex, [Qt.ItemDataRole.BackgroundRole])
-        pass
 
     def _removeNan(self, df:pd.DataFrame) -> pd.DataFrame:
         for key in ['distance', 'longitude', 'latitude', 'altitude', 'hartRate', 'speed']:
